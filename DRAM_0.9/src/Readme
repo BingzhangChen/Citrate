@@ -1,0 +1,6 @@
+The DRAM_0.3 updates the problems with C:Chl ratios in flexible models.
+Previously, Pahlow et al. (2013) assumes that when I < Ithreshold, ThetaHat is very small.
+But the data shows that it is not that low. So I decide to modify this to remove the effect of
+bleach.
+
+DRAM_0.4 tries to use the same set of parameters to fit the data of the two stations. 
