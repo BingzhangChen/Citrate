@@ -1,0 +1,15 @@
+&Model
+  Stn='HOT',
+  Model_ID = 19,
+  nutrient_uptake = 1,
+  grazing_formulation = 3,
+/
+
+&MCMCrun
+   nruns   = 2,
+   BurnInt = 1000, ! number of runs for initial 'Burn-in'
+   EnsLen  = 100, 
+   NDays   = 1440,
+   Readfile= 0,
+   NR_enspar=3,
+/
