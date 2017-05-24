@@ -260,7 +260,7 @@ Do j = 1, Nstn
          NDPTS(itP_1,j) = NDPTS(itP10,j)
       endif
   else if (trim(Stn(j)) .eq. 'HOT') then
-      N_Aks(j)       = 40
+      N_Aks(j)       = 39
       NDPTS(itNO3,j) = 3910
       if (Model_ID .eq. NPZDN2) then
          NDPTS(itPO4,j) = 6029
