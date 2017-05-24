@@ -25,7 +25,6 @@ integer, private, parameter :: y_per_s = INT(d_per_s*360), &
 
 integer, private            :: N_Aks(Nstn)              ! Station dependent
 
-! Use Taketo's Aks data for K2 and my own ROMS data for S1 
 
 ! Forcing data time indices 
 real, private, target :: obs_time_temp(NFobs(etemp), Nstn)
@@ -615,7 +614,7 @@ real,    parameter :: Dust_ironfrac   = 0.035 !TOM10Appendix p. 24, unit: g/g
 real,    parameter :: mon2sec         = 2592D3
 
 character(LEN=20)  :: outfile
-logical                        :: MLD_found
+logical            :: MLD_found
 
 ! For showing whether some unconstrained outputs are realistic or not
 if (.not. allocated(TINout)) allocate(TINout(size(TINData,1),1),STAT = AllocateStatus)
@@ -706,6 +705,7 @@ DO jj = 1, Nstn
   ww(:,:) = 0d0
   ncff    = size(ww,2)
   cff     = 10**(params(iwDET))
+  if (Model_ID .eq. NPZDN2) ww(0, ncff-1)=-cff/dble(d_per_s)  !Make PON sink out of the domain
   do k = 1,nlev-1
    !Phytoplankton no sinking
    !Detritus sinking rate (convert to UNIT: m/s)
@@ -1116,7 +1116,12 @@ DO jj = 1, Nstn
   do j = 1,NVsinkterms
      ww_(:)   = ww(:,j)
      Vars2(:) = Vars(Windex(j),:)
-     call adv_center(nlev,dtsec,Hz,Hz,ww_(:),1,1,Yup,Ydw,6,mode1,Vars2(:))
+     if (Model_ID .eq. NPZDN2 .and. j .eq. (NVsinkterms-1)) then
+       ! Let PON sink out of the bottom to counteract with N2 fixation
+       call adv_center(nlev,dtsec,Hz,Hz,ww_(:),1,2,Yup,Vars2(1),6,mode1,Vars2(:))
+     else
+       call adv_center(nlev,dtsec,Hz,Hz,ww_(:),1,1,Yup,Ydw,6,mode1,Vars2(:))
+     endif
      Vars(Windex(j),:) = Vars2(:)
   enddo
   
