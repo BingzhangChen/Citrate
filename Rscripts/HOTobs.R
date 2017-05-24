@@ -1,5 +1,5 @@
 setwd('~/Working/FlexEFT1D/HOT')
-depth_total    <- 4700 #Total depth (m) of the station
+depth_total    <- 500 #Total depth (m) of the station
 file <-   'HOT_obs2.csv'
 dat  <-   read.csv(file)
 dat  <-   dat[-1,]
@@ -19,6 +19,7 @@ dat$date  <- as.character(dat$date)
 dat$date  <- as.Date(dat$date,'%m%d%y')
 dat$DOY   <- as.numeric(strftime(dat$date, format = "%j")) 
 dat$Depth <- dat$press
+dat       <- dat[Depth <= depth_total,]
 dat0      <- dat  #Save original data
 
 #For TIN, CHL, NPP
