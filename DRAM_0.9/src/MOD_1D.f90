@@ -261,15 +261,15 @@ Do j = 1, Nstn
       endif
   else if (trim(Stn(j)) .eq. 'HOT') then
       N_Aks(j)       = 39
-      NDPTS(itNO3,j) = 3910
+      NDPTS(itNO3,j) = 6451
       if (Model_ID .eq. NPZDN2) then
-         NDPTS(itPO4,j) = 6029
-         NDPTS(itPOP,j) = 2384
+         NDPTS(itPO4,j) = 8072
+         NDPTS(itPOP,j) = 2850
          NDPTS(itDIA,j) = 23
       endif
-      NDPTS(itCHL,j) = 8180
-      NDPTS(itNPP,j) = 1659
-      NDPTS(itPON,j) = 2251
+      NDPTS(itCHL,j) = 8181
+      NDPTS(itNPP,j) = 1712
+      NDPTS(itPON,j) = 2806
   else
       write(6,*) 'Station number incorrect! Stop!'
       stop
