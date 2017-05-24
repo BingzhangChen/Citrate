@@ -4,7 +4,7 @@ implicit none
 public
 
 ! Number of vertical layers
-integer, parameter :: nlev        = 30  
+integer, parameter :: nlev        = 40  
 
 ! Options of biological models
 integer, parameter :: EFTdisc     = 1
