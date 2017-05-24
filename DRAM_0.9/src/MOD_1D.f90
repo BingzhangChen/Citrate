@@ -3,7 +3,7 @@ use BIO_MOD
 implicit none
 public
 ! Grid parameters
-real, private, parameter :: hmax   = 2.5d2 ! Total water depth
+real, private, parameter :: hmax   = 5d2 ! Total water depth
 real, private, parameter :: thetaS = 2d0   ! surface stretching parameter
 real, private, parameter :: dtsec  = 6D2   ! time step in seconds
 real, private, parameter ::d_per_s = 864d2 ! how many seconds in one day
