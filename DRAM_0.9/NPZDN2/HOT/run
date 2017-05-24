@@ -2,13 +2,13 @@
 export DATADIR=../../../HOT
 export SCRATCHDIR=Compile
 export SRCDIR=../../src
-Test=1 
+Test=0 
 
 rm -rf ${SCRATCHDIR}
 mkdir ${SCRATCHDIR}
 
 /bin/cp -f  ${SRCDIR}/*.f90    $SCRATCHDIR
-/bin/cp -f  ${DATADIR}/*.dat   $SCRATCHDIR
+/bin/cp -f  ${DATADIR}/*.dat   ./
 /bin/cp -f  ${SRCDIR}/*.f      $SCRATCHDIR
 /bin/cp -f  ${SRCDIR}/Makefile ${SCRATCHDIR}/Makefile1
 
