@@ -7,8 +7,7 @@ real, private, parameter :: hmax   = 5d2 ! Total water depth
 real, private, parameter :: thetaS = 2d0   ! surface stretching parameter
 real, private, parameter :: dtsec  = 6D2   ! time step in seconds
 real, private, parameter ::d_per_s = 864d2 ! how many seconds in one day
-real, private, parameter :: Yup    = 0d0
-real, private, parameter :: Ydw    = 0d0 
+real, private, parameter :: zero   = 0d0
                       !how many seconds of one year
 integer, private, parameter :: y_per_s = INT(d_per_s*360), &
 
@@ -596,6 +595,7 @@ End subroutine Model_setup
 SUBROUTINE Timestep
 implicit none
 real,    parameter  :: cnpar = 0.6
+real,    parameter  :: Taur(nlev) = 1D12
 ! Local scratch variables
 integer  :: it,i,k,nm, j,jj, Nstep, current_day, current_DOY,DOY
 integer  :: i_,j_
@@ -705,8 +705,7 @@ DO jj = 1, Nstn
   ww(:,:) = 0d0
   ncff    = size(ww,2)
   cff     = 10**(params(iwDET))
-  if (Model_ID .eq. NPZDN2) ww(0, ncff-1)=-cff/dble(d_per_s)  !Make PON sink out of the domain
-  do k = 1,nlev-1
+  do k = 0,nlev-1
    !Phytoplankton no sinking
    !Detritus sinking rate (convert to UNIT: m/s)
     if (Model_ID==NPPZDD .OR. Model_ID==EFTPPDD) then
@@ -1101,9 +1100,11 @@ DO jj = 1, Nstn
   ! Diffusion:
   do j = 1,NVAR
      Vars1(:)     = Vars(j,:)
-     ! At surface, assume zero flux (Dirichlet boundary condition)
+     ! At surface, assume zero flux  (Neumann boundary condition)
+     ! At bottom,  assume constant values obtained from observation (Dirichlet boundary condition)
 
-     call diff_center(nlev,dtsec,cnpar,1,Hz,Aks,Vars1,Vars2)
+     call diff_center(nlev,dtsec,cnpar,1,Hz, Neumann, Dirichlet, &
+                       zero, VarsBom(j),Aks,zero,zero,Taur,Vars1,Vars1,Vars2)
      !subroutine diff_center(N,dt,cnpar,posconc,h,Bcup,Bcdw, &
      !                  Yup,Ydw,nuY,Lsour,Qsour,Taur,Yobs,Yin,Yout)
 
@@ -1120,12 +1121,8 @@ DO jj = 1, Nstn
   do j = 1,NVsinkterms
      ww_(:)   = ww(:,j)
      Vars2(:) = Vars(Windex(j),:)
-     if (Model_ID .eq. NPZDN2 .and. j .eq. (NVsinkterms-1)) then
-       ! Let PON sink out of the bottom to counteract with N2 fixation
-       call adv_center(nlev,dtsec,Hz,Hz,ww_(:),1,2,Yup,Vars2(1),6,mode1,Vars2(:))
-     else
-       call adv_center(nlev,dtsec,Hz,Hz,ww_(:),1,1,Yup,Ydw,6,mode1,Vars2(:))
-     endif
+     ! Open bottom boundary
+     call adv_center(nlev,dtsec,Hz,Hz,ww_(:),1,2,zero,Vars2(1),6,mode1,Vars2(:))
      Vars(Windex(j),:) = Vars2(:)
   enddo
   

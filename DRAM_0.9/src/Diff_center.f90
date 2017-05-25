@@ -139,7 +139,6 @@ IMPLICIT NONE
       stop  'diff_center.F90'
    end select
 
-
 !  relaxation to observed value
    if (minval(Taur).lt.1.E10) then
       do i=1,N
@@ -147,7 +146,6 @@ IMPLICIT NONE
          du(i)=du(i)+dt/Taur(i)*Yobs(i)
       end do
    end if
-
 
 !  solve linear system
    call tridiagonal(N,au,bu,cu,du,1,N,Yout)
