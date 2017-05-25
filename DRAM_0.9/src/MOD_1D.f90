@@ -1101,8 +1101,12 @@ DO jj = 1, Nstn
   ! Diffusion:
   do j = 1,NVAR
      Vars1(:)     = Vars(j,:)
+     ! At surface, assume zero flux (Dirichlet boundary condition)
+
      call diff_center(nlev,dtsec,cnpar,1,Hz,Aks,Vars1,Vars2)
-  
+     !subroutine diff_center(N,dt,cnpar,posconc,h,Bcup,Bcdw, &
+     !                  Yup,Ydw,nuY,Lsour,Qsour,Taur,Yobs,Yin,Yout)
+
      ! Save diffusion fluxes (normalized to per day)
      Varout(oD_NO3+j-1,:) = (Vars2(:) - Vars1(:))/dtdays
   
