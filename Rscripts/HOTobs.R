@@ -105,5 +105,5 @@ for (VAR %in% c('PON','POP')){
    newY  <- predict(LOESS, DOY = newM)
 }
 
-#For HOT, PON = 0.04
+#For HOT, PON = 0.04, POP = .002
 
