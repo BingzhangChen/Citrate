@@ -24,7 +24,6 @@ integer, private, parameter :: y_per_s = INT(d_per_s*360), &
 
 integer, private            :: N_Aks(Nstn)              ! Station dependent
 
-
 ! Forcing data time indices 
 real, private, target :: obs_time_temp(NFobs(etemp), Nstn)
 real, private, target :: obs_time_NO3( NFobs(eNO3) , Nstn)
@@ -46,6 +45,11 @@ real, private :: obs_w(   N_w   ,  1+NFobs(ew   ))
 real, private :: obs_Dust(N_Dust,  1+NFobs(eDust))
 real, private :: obs_wstr(N_wstr,  1+NFobs(ewstr))
 real, private, allocatable :: obs_Aks(:,:) ! (N_Aks ,  1+NFobs(eAks ))
+
+! Bottom data for NO3 and PO4
+real, private, target :: NO3_bot(1,NFobs(eNO3), Nstn)
+real, private, target :: PO4_bot(1,NFobs(ePO4), Nstn)
+real, private, allocatable :: VarsBom(:,:)
 
 real, pointer :: pb(:), pc(:,:)
 integer       :: ncff  ! a scratch integer for the dimensions of matrix
@@ -148,7 +152,6 @@ integer              :: k, i,oi,j
 integer              :: NN  ! Number of data types in observational data
 integer              :: NL  ! for counting of OBS_DOY et al.
 integer, allocatable :: kk(:)
-
 
 Select case(Model_ID)
   case(NPZDFix,NPPZDD,EFTPPDD,Geidersimple, EFTsimple, NPZDFixIRON, GeidsimIRON,EFT2sp,NPZD2sp, EFTsimIRON)
@@ -477,6 +480,11 @@ do j = 1, Nstn
    call gridinterpol(N_NO3,1,obs_NO3(:,1),obs_NO3(:,2),                 &
                      nlev, Z_r, NO3(:,1,j)) 
    
+   ! Get bottom data for NO3:
+   do i = 1, NFobs(eNO3)
+      NO3_bot(1,i,j) = obs_NO3(1, i+1)
+   enddo
+
    if (N2fix) then
       ! Read PO4 data:
       call Readcsv(forcfile(ePO4), N_PO4, size(obs_PO4,2), obs_PO4) 
@@ -484,6 +492,11 @@ do j = 1, Nstn
       ! Interpolate initial PO4:
       call gridinterpol(N_PO4,1,obs_PO4(:,1),obs_PO4(:,2),                 &
                         nlev, Z_r, PO4(:,1,j)) 
+
+      ! Get bottom data for PO4:
+      do i = 1, NFobs(ePO4)
+         PO4_bot(1,i,j) = obs_PO4(1, i+1)
+      enddo
    endif
 
    if (do_IRON) then
@@ -596,6 +609,7 @@ SUBROUTINE Timestep
 implicit none
 real,    parameter  :: cnpar = 0.6
 real,    parameter  :: Taur(nlev) = 1D12
+real,    parameter  :: Vec0(nlev) = 0d0
 ! Local scratch variables
 integer  :: it,i,k,nm, j,jj, Nstep, current_day, current_DOY,DOY
 integer  :: i_,j_
@@ -697,6 +711,11 @@ DO jj = 1, Nstn
      enddo
   enddo
 
+  ! Initialize Bottom values of Vars:
+  allocate(VarsBom(1,NVAR),  STAT = AllocateStatus)
+  IF (AllocateStatus /= 0) STOP "*** Problem in allocating VarsBom ***"
+  VarsBom(:,:)=zero
+
   ! Sinking rate
   allocate(ww(0:nlev,NVsinkterms),  STAT = AllocateStatus)
   IF (AllocateStatus /= 0) STOP "*** Problem in allocating ww ***"
@@ -734,6 +753,7 @@ DO jj = 1, Nstn
   
   ! Number of time steps
   Nstep = NDays*INT(d_per_s)/INT(dtsec) 
+
   ! 'START TIME STEPPING'
   DO it = 1, Nstep+1
   
@@ -761,6 +781,11 @@ DO jj = 1, Nstn
      CHL_(:) = Varout(oCHLt,:)
      call Calculate_PAR(cff, nlev, Hz, CHL_, PAR)
       
+    ! Interpolate bottom NO3 data:
+     pb => obs_time_NO3(:,jj)
+     pc => NO3_bot(:,:,jj)
+     call time_interp(int(current_sec),NFobs(eNO3),1,pb,pc,VarsBom(:,iNO3))
+
      if (do_IRON) then
         ! Interpolate temporal Dust data: 
         pb => obs_time_Dust(:,jj)
@@ -788,6 +813,12 @@ DO jj = 1, Nstn
         ncff = size(pb,1)
         pc => Vwstr(:,:,jj)
         call time_interp(int(current_sec),ncff,1,pb,pc, wstr0)
+
+        ! Interpolate bottom PO4 data:
+        pb => obs_time_PO4(:,jj)
+        pc => PO4_bot(:,:,jj)
+        call time_interp(int(current_sec),NFobs(ePO4),1,pb,pc,VarsBom(:,iPO4))
+
      endif
 
     ! Interpolate Aks data throughout the water column:
@@ -1104,7 +1135,7 @@ DO jj = 1, Nstn
      ! At bottom,  assume constant values obtained from observation (Dirichlet boundary condition)
 
      call diff_center(nlev,dtsec,cnpar,1,Hz, Neumann, Dirichlet, &
-                       zero, VarsBom(j),Aks,zero,zero,Taur,Vars1,Vars1,Vars2)
+                       zero, VarsBom(1,j),Aks,Vec0,Vec0,Taur,Vars1,Vars1,Vars2)
      !subroutine diff_center(N,dt,cnpar,posconc,h,Bcup,Bcdw, &
      !                  Yup,Ydw,nuY,Lsour,Qsour,Taur,Yobs,Yin,Yout)
 
