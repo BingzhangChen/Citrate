@@ -1,6 +1,5 @@
 subroutine diff_center(N,dt,cnpar,posconc,h,Bcup,Bcdw, &
                        Yup,Ydw,nuY,Lsour,Qsour,Taur,Yobs,Yin,Yout)
-!subroutine diff_center(N,dt,cnpar,posconc,h,nuY,Yin,Yout)
 
    IMPLICIT NONE
 
