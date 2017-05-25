@@ -1,11 +1,9 @@
 subroutine diff_center(N,dt,cnpar,posconc,h,Bcup,Bcdw, &
                        Yup,Ydw,nuY,Lsour,Qsour,Taur,Yobs,Yin,Yout)
-
-   IMPLICIT NONE
+use bio_MOD, only: Dirichlet, Neumann
+IMPLICIT NONE
 
  !INPUT PARAMETERS:
-   integer,parameter                    :: Dirichlet      = 0
-   integer,parameter                    :: Neumann        = 1
 
 !  number of vertical layers
    integer,  intent(in)               :: N
