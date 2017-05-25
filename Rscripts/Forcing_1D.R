@@ -22,17 +22,19 @@ load(WOA13TFile)
 #system('ifort -shared -o FlexEFT.so FlexEFT.o')
 
 Stn_name <- 'HOT'
-depth    <- 250 #Total depth (m) of the station
 
 if (Stn_name == 'S1'){
     stn_lon  = 145
     stn_lat  = 30
+    depth    = 500 #Total depth (m) of the station
 } else if(Stn_name == 'K2'){
     stn_lon  = 160 
     stn_lat  = 47
+    depth    = 500 #Total depth (m) of the station
 } else if(Stn_name == 'HOT'){
     stn_lon  = -158
     stn_lat  = 22.75
+    depth    = 500 #Total depth (m) of the station
 }
 
 #For each depth, get the profile at the targeted coordinates
@@ -152,6 +154,9 @@ plot_forcing <- function(Stn_name,var,useTaketo=FALSE){
           axis(1, at = seq(1,11,by=2))
        dev.off()
 }
+
+
+#Generate bottom values for NO3, PO4, PON and POP
 
 
 #Get data from 3D ROMS output for back calculation:

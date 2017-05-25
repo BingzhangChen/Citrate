@@ -6,7 +6,7 @@
 /
 
 &MCMCrun
-   nruns   = 2,
+   nruns   = 200,
    BurnInt = 1000, ! number of runs for initial 'Burn-in'
    EnsLen  = 100, 
    NDays   = 1440,

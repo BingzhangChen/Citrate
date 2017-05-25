@@ -19,7 +19,7 @@ dat$date  <- as.character(dat$date)
 dat$date  <- as.Date(dat$date,'%m%d%y')
 dat$DOY   <- as.numeric(strftime(dat$date, format = "%j")) 
 dat$Depth <- dat$press
-dat       <- dat[Depth <= depth_total,]
+dat       <- dat[dat$Depth <= depth_total,]
 dat0      <- dat  #Save original data
 
 #For TIN, CHL, NPP
@@ -34,7 +34,7 @@ for (var in c('TIN','CHL','NPP','PON','DIP','POP')){
    } else if (var == 'PON'){
       dat[,var] <- dat$pn
    } else if (var == 'POP'){
-      dat[,var] <- dat$pp
+      dat[,var] <- dat$pp/1e3
    } else if (var == 'NPP'){
    
       dat$d12[is.na(dat$d12)]   <- 0 
@@ -80,3 +80,30 @@ for (var in c('TIN','CHL','NPP','PON','DIP','POP')){
    file <- paste('~/Working/FlexEFT1D/HOT/HOT','_',var,'.dat',sep='')
    write.table(dat1,file,row.names=F)
 }
+
+#For PON and POP, produce interpolated bottom values for boundary condition:
+for (VAR %in% c('PON','POP')){
+   file <- paste('~/Working/FlexEFT1D/HOT/HOT','_',VAR,'.dat',sep='')
+    dat <- read.table(file, header = T)
+   DOYu <- unique(dat$DOY)
+   Bdat <- numeric(length(DOYu))
+   Bdat <- NA
+   data <- data.frame(DOY = DOYu, dat = Bdat)
+   #First, obtain the data at bottom depth for each profile:
+   for (i in 1:length(DOYu)){
+       cff <- dat[dat$DOY == DOYu[i],]
+       if (max(cff$Depth) > 400) {
+          w       <- which.max(cff$Depth)
+          data[i,2] <- cff[w,3]
+       }
+   }
+   
+   LOESS <- loess(dat ~ DOY, data)
+   # Interpolate for 12 months:
+   newM  <- seq(0.5,11.5,length.out=12)
+   newM  <- newM*30
+   newY  <- predict(LOESS, DOY = newM)
+}
+
+#For HOT, PON = 0.04
+
