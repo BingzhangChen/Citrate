@@ -8,7 +8,7 @@
 &MCMCrun
    nruns   = 200,
    BurnInt = 1000, ! number of runs for initial 'Burn-in'
-   EnsLen  = 100, 
+   EnsLen  = 10, 
    NDays   = 1440,
    Readfile= 0,
    NR_enspar=3,
