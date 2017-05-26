@@ -4,7 +4,7 @@ implicit none
 integer :: k
 real    :: NO3,PO4,PHY, ZOO, DETn,DETp,DIA
 real    :: par_, muNet,muDIA
-real    :: Kp, gmax, RDN,mz,KPO4
+real    :: Kp, gmax, mz,KPO4
 real    :: QN, Qp, bI0, KFe_, N2P_phy, theta_DIA
 real    :: pp_NDn,pp_PDp,Res_DIA,Mort_DIA
 real, parameter :: N2P_dia = 45d0 ! N:P ratio of diazotrophs
@@ -17,7 +17,6 @@ real            :: Lnifdin = 0.17*16
 Lnifdin=params(iLnifp)  ! Diazotroph respiration rate
 Kp  = params(iKPHY)
 gmax= params(igmax)
-RDN = 0.1
 mz  = params(imz)
 !bI0 = 10**params(ibI0B)
 bI0 = 0.
@@ -31,7 +30,7 @@ DO k = 1, nlev
    PHY = Vars(iPHY(1),k)
    ZOO = Vars(iZOO,   k)
    DETn= Vars(iDET,   k)  ! Detritus N
-   DETp= Vars(iDETp,  k)
+   DETp= Vars(iDETp,  k)  ! Detritus P
 
    ! Add diazotrophs:
    DIA = Vars(iDIA,   k) 
@@ -87,8 +86,8 @@ DO k = 1, nlev
    EGES = INGES*unass
 
   ! For production/destruction matrix:
-  pp_NDn = dtdays*RDN*DETn*tf_z   
-  pp_PDp = dtdays*RDN*DETp*tf_z
+  pp_NDn = dtdays*params(iRDN_N)*DETn*tf_z   
+  pp_PDp = dtdays*params(iRDN_P)*DETp*tf_z
   pp_NZ  = ZOO*RES        
   pp_DZ  = ZOO*EGES+Zmort 
   pp_ZP  = ZOO*INGES      

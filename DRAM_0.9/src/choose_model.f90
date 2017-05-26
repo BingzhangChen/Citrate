@@ -383,8 +383,8 @@ if (Model_ID == EFT2sp .OR. Model_ID==EFTPPDD .OR. Model_ID==NPZD2sp .OR. Model_
        iaI0 =  iaI0B  + 1
        imz  =  iaI0   + 1
     endif
-else if(Model_ID==NPZDFix.or.Model_ID==NPZDN2) then
-      iKPHY =  igmax  + 1   !The parameter for photoinhibition
+else if(Model_ID==NPZDN2) then
+      iKPHY =  igmax  + 1  
        imz  =  iKPHY  + 1
 else if(Model_ID==NPZDcont .or. Model_ID==NPZDdisc) then
       imz   =  igmax  + 1
@@ -402,7 +402,9 @@ if (nutrient_uptake .eq. 1) then
      ! iKP  =  iKN    + 1
      iKPnif=  iKN    + 1
      iLnifp=  iKPnif + 1
-      iQ0N =  iLnifp + 1
+     iRDN_N=  iLnifp + 1
+     iRDN_P=  iRDN_N + 1
+      iQ0N =  iRDN_P + 1
    else
       iQ0N =  iKN    + 1
    endif
@@ -559,6 +561,10 @@ if (nutrient_uptake .eq. 1) then
       params(iLnifp)= 0.17*16.
   ParamLabel(iKPHY) = 'KPHY'
       params(iKPHY) = .5/16d0
+  ParamLabel(iRDN_N)= 'RDNn'
+      params(iRDN_N)= 0.05
+  ParamLabel(iRDN_P)= 'RDNp'
+      params(iRDN_P)= 0.1
   endif
   if (Model_ID .eq. NPZD2sp .or. Model_ID.eq.NPPZDD) then
    ParamLabel(iKN2) = 'KN2'

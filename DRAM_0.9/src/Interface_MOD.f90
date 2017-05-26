@@ -326,10 +326,10 @@ if (Model_ID .ne. NPZDFix .and. Model_ID .ne. NPPZDD .and. Model_ID .ne. NPZD2sp
    MinValue(iaI0) =  0.01
 endif
 
-if (Model_ID .eq. NPZDFix) then
-   MaxValue(ibI0B)=-1.5
-   MinValue(ibI0B)=-1d1
-endif
+!if (Model_ID .eq. NPZDFix) then
+!   MaxValue(ibI0B)=-1.5
+!   MinValue(ibI0B)=-1d1
+!endif
 
 if (Model_ID.eq.EFT2sp .or. Model_ID.eq.EFTPPDD .or. Model_ID.eq.NPZD2sp .or. Model_ID.eq.NPPZDD) then
   if (Model_ID .eq. EFT2sp .or. Model_ID .eq. EFTPPDD)  & 
@@ -405,13 +405,17 @@ case(1)
 ! Franks (2009): 0.005~3
   MaxValue(iKN) =  2D0
   MinValue(iKN) =  0.1
-  if (Model_ID .eq. NPZDN2) then
+  if (Model_ID .eq. NPZDN2) then  ! The unit based on P
      MaxValue(iKPnif)=2D-3
      MinValue(iKPnif)=5D-5
      MaxValue(iLnifp)=5d0
      MinValue(iLnifp)=0.05*16d0
      MaxValue(iKPHY) =1./16.
      MinValue(iKPHY) =.01/16.
+     MaxValue(iRDN_N)=.2
+     MinValue(iRDN_N)=.001
+     MaxValue(iRDN_P)=.2
+     MinValue(iRDN_P)=.001
   endif
   if (Model_ID .eq. NPZD2sp .OR. Model_ID.eq.NPPZDD) then
      MaxValue(iKN) = 0.2D0
