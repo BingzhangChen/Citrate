@@ -18,11 +18,11 @@ integer, private, parameter :: y_per_s = INT(d_per_s*360), &
                       N_w     = 40,               &
                       N_par   = 1 ,               &
                       N_Dust  = 1,                &
-                      N_wstr  = 1,   &
+                      N_wstr  = 1,                &
                       N_fer   = 33,               &
                       nsave   = INT(d_per_s)/INT(dtsec) ! Timesteps to save
 
-integer, private            :: N_Aks(Nstn)              ! Station dependent
+integer, private      :: N_Aks(Nstn)              ! Station dependent
 
 ! Forcing data time indices 
 real, private, target :: obs_time_temp(NFobs(etemp), Nstn)
@@ -715,6 +715,13 @@ DO jj = 1, Nstn
   allocate(VarsBom(1,NVAR),  STAT = AllocateStatus)
   IF (AllocateStatus /= 0) STOP "*** Problem in allocating VarsBom ***"
   VarsBom(:,:)=zero
+  ! Initialize bottom values of PHY, ZOO, DET based on PON and POP:
+  if (trim(Stn(jj) .eq. 'HOT') then
+     VarsBom(1, iDET)    = 4D-2/3d0
+     VarsBom(1, iDETp)   = 2D-3/3d0
+     VarsBom(1, iZOO)    = 2D-3/3d0
+     VarsBom(1, iPHY(1)) = 2D-3/3d0
+  endif
 
   ! Sinking rate
   allocate(ww(0:nlev,NVsinkterms),  STAT = AllocateStatus)
