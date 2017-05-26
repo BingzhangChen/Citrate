@@ -52,7 +52,7 @@ integer  :: oD_NO3,oD_ZOO,oD_DET,oD_DET2,oD_fer,oD_PMU,oD_VAR,oPAR_,oD_DETp,oD_P
 integer  :: oCHLs(4)   ! Four size fractions of CHL
 
 ! Indices for parameters used in DRAM
-integer  :: imu0,iaI0,igmax,iKN,iKP,iKPHY,iKPnif,iLnifp,iKFe
+integer  :: imu0,iaI0,igmax,iKN,iKP,iKPHY,iKPnif,iLnifp,iKFe,iRDN_N,iRDN_P
 integer  :: ialphamu,ibetamu,ialphaKN
 integer  :: imu0B, iaI0B, iA0N2, iRL2,iKN2,ibI0B
 integer  :: iVTR, ifer,od3mu,od4mu
