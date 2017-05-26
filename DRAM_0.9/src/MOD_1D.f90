@@ -714,14 +714,12 @@ DO jj = 1, Nstn
   ! Initialize Bottom values of Vars:
   allocate(VarsBom(1,NVAR),  STAT = AllocateStatus)
   IF (AllocateStatus /= 0) STOP "*** Problem in allocating VarsBom ***"
-  VarsBom(:,:)=zero
-  ! Initialize bottom values of PHY, ZOO, DET based on PON and POP:
-  if (trim(Stn(jj) .eq. 'HOT') then
-     VarsBom(1, iDET)    = 4D-2/3d0
-     VarsBom(1, iDETp)   = 2D-3/3d0
-     VarsBom(1, iZOO)    = 2D-3/3d0
-     VarsBom(1, iPHY(1)) = 2D-3/3d0
-  endif
+  VarsBom(:,:)        = zero
+  ! Initialize bottom values of PHY, ZOO, DET based on PON and POP at HOT:
+  VarsBom(1, iDET)    = 4D-2/3d0
+  VarsBom(1, iDETp)   = 2D-3/3d0
+  VarsBom(1, iZOO)    = 2D-3/3d0
+  VarsBom(1, iPHY(1)) = 2D-3/3d0
 
   ! Sinking rate
   allocate(ww(0:nlev,NVsinkterms),  STAT = AllocateStatus)
