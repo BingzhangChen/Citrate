@@ -714,7 +714,7 @@ DO jj = 1, Nstn
   ! Initialize Bottom values of Vars:
   allocate(VarsBom(1,NVAR),  STAT = AllocateStatus)
   IF (AllocateStatus /= 0) STOP "*** Problem in allocating VarsBom ***"
-  VarsBom(:,:)        = zero
+  VarsBom(:,:)        = 1D-30
   ! Initialize bottom values of PHY, ZOO, DET based on PON and POP at HOT:
   VarsBom(1, iDET)    = 4D-2/3d0
   VarsBom(1, iDETp)   = 2D-3/3d0
@@ -1177,7 +1177,8 @@ DO jj = 1, Nstn
         close (unit=9+i)
      enddo
   endif
-  deallocate(ww)
+  if(allocated(ww))      deallocate(ww)
+  if(allocated(VarsBom)) deallocate(VarsBom)
 ENDDO  ! ==> End of Stn
 END subroutine Timestep
 !=====================================================
@@ -1244,6 +1245,5 @@ subroutine Calculate_PAR(I_0, nlev_, Hz, Chl, PAR)
      par0   = PAR(i)*attn
   enddo
 end subroutine Calculate_PAR
-
 !-----------------------------------------------------------------------
 End MODULE MOD_1D
