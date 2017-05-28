@@ -5,7 +5,7 @@ integer :: k
 real    :: NO3, PHY, ZOO, DET
 real    :: par_,rmax_T, SI, muNet
 real    :: Kp, gmax, RDN,mz
-real    :: QN, bI0, KFe_, QP
+real    :: QN, bI0=0d0, KFe_, QP
 real, parameter :: Qpmin = 0.05/16.
 real, parameter :: KPO4  = 0.5/16.
 
@@ -13,7 +13,7 @@ Kp  = 0.5
 gmax= params(igmax)
 RDN = 0.1
 mz  = params(imz)
-bI0 = 10**params(ibI0B)
+!bI0 = 10**params(ibI0B)
 
 if (do_IRON) KFe = params(iKFe)
 

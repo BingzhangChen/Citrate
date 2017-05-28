@@ -544,7 +544,7 @@ if(Model_ID==NPZDdisc.or.Model_ID==Geiderdisc.or.  &
      params(ialphaA)     = -0.3
    endif
 endif
-if (Model_ID.eq.NPZD2sp .OR. Model_ID.eq.NPZDFix .OR. Model_ID.eq.NPPZDD) then
+if (Model_ID.eq.NPZD2sp .OR. Model_ID.eq.NPPZDD) then
    ParamLabel(ibI0B)='bI0B'
       params(ibI0B) = -8d0
 endif

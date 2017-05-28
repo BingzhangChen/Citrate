@@ -326,11 +326,6 @@ if (Model_ID .ne. NPZDFix .and. Model_ID .ne. NPPZDD .and. Model_ID .ne. NPZD2sp
    MinValue(iaI0) =  0.01
 endif
 
-!if (Model_ID .eq. NPZDFix) then
-!   MaxValue(ibI0B)=-1.5
-!   MinValue(ibI0B)=-1d1
-!endif
-
 if (Model_ID.eq.EFT2sp .or. Model_ID.eq.EFTPPDD .or. Model_ID.eq.NPZD2sp .or. Model_ID.eq.NPPZDD) then
   if (Model_ID .eq. EFT2sp .or. Model_ID .eq. EFTPPDD)  & 
    MaxValue(iaI0) = 0.2
@@ -447,7 +442,7 @@ MinValue(iQ0N) =  0.04
 ! Model-specific parameters:
 select case(Model_ID)
 case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFixIRON, GeidsimIRON, NPZDN2)
-  !Based on the lab dataset from Chen and Laws (in revision)
+  !Based on the lab dataset from Chen and Laws (2017)
   !Growth rate normalized to 15 ºC based on linear regression
   !0.025% and 0.975% quantiles
   MaxValue(imu0) =  2.2d0

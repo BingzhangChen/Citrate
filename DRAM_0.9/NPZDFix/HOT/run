@@ -29,5 +29,5 @@ export MAKEFILE=Makefile1
 sed -f flags.tmp $MAKEFILE > Makefile
 make
 rm -rf flags.tmp
-mv DRAM ../NPZDN2_HOT
+mv DRAM ../NPZD_HOT
 cd ../
