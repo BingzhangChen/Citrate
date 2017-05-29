@@ -386,7 +386,7 @@ if (Model_ID == EFT2sp .OR. Model_ID==EFTPPDD .OR. Model_ID==NPZD2sp .OR. Model_
 else if(Model_ID==NPZDN2) then
       iKPHY =  igmax  + 1  
        imz  =  iKPHY  + 1
-else if(Model_ID==NPZDcont .or. Model_ID==NPZDdisc) then
+else if(Model_ID==NPZDcont .or. Model_ID==NPZDdisc .or. Model_ID==NPZDFix) then
       imz   =  igmax  + 1
 else
     iaI0    =  igmax  + 1
@@ -437,11 +437,11 @@ if (Model_ID==NPZDFix .or.Model_ID==NPZD2sp    .or.Model_ID==NPPZDD  &
    iaI0_C  =  iwDET    + 1
    if (Model_ID==NPZDFix .or. Model_ID==NPZDN2) then
       NPar = iaI0_C
-   else if(Model_ID ==NPZD2sp .or. Model_ID == NPPZDD) then
+   else if (Model_ID ==NPZD2sp .or. Model_ID == NPPZDD) then
       iRL2 = iaI0_C + 1
     ialphaG= iRL2   + 1
       NPar = ialphaG
-   else if(Model_ID == NPZDFixIRON) then
+   else if (Model_ID == NPZDFixIRON) then
       iKFe = iaI0_C  + 1
       NPar = iKFe
    else
