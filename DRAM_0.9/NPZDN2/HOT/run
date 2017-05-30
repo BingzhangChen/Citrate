@@ -2,7 +2,7 @@
 export DATADIR=../../../HOT
 export SCRATCHDIR=Compile
 export SRCDIR=../../src
-Test=1 
+Test=0 
 
 rm -rf ${SCRATCHDIR}
 mkdir ${SCRATCHDIR}
