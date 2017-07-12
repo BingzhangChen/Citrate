@@ -290,37 +290,7 @@ source('~/Working/FlexEFT1D/Rscripts/MLD_PHYZOO.R')
 source('~/Working/FlexEFT1D/Rscripts/CChl_ML.R')
 source('~/Working/FlexEFT1D/Rscripts/vertical_OBS_model_MS.R')
 source('~/Working/FlexEFT1D/Rscripts/plot_1D.R')
-
-VALs     <- c('muN1','The1','QN_1')
-Models   <- c('NPZDFix_sRun','EFTsimple_sRun')
-#Modnames <- c('NPZDFix','Geider','Pahlow','NPZDFixFe','GeiderFe','PahlowFe')
-Modnames <- c('MONOD','PAHLOW')
-
-Stn <- 'HOT'
-for (v in VALs){
-  if (v == 'muN1'){
-     ZLIM <- c(0, 1.4)
-  }else if (v == 'The1'){
-     ZLIM <- c(0, 0.4)
-  } else if (v =='QN_1'){
-     ZLIM <- c(0, 0.5)
-  }
-  PDFfile <- paste0(v,'_1D.pdf')
-  pdf(PDFfile, width=6,height=5,paper='a4')
-  op <- par(font.lab = 1, las = 1,
-               family ="serif",
-               mar    = c(2,2,1.5,2),
-               mgp    = c(2.3,1,0),
-               oma    = c(4,4,0,0),
-               mfrow  = c(2,1)   ) 
-
-  for (m in 1:length(Models)){
-    title <- Modnames[m]
-    model <- Models[m]
-    plot_1D(v,model,Stn,title=title,ZLIM=ZLIM,finalyr=T,BOTH=F)
-  }
-  dev.off()
-}
+source('~/Working/FlexEFT1D/Rscripts/vertical_muQNtheta.R')
 
 pdf('Growth.pdf')
 op <- par(font.lab = 1,
