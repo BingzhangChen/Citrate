@@ -1,0 +1,80 @@
+ Inflexible NPZD model selected!
+ Labelout(           1 ) = Temp
+ Labelout(           2 ) = PAR
+ Labelout(           3 ) = Aks
+ Labelout(           4 ) = Dust
+ Labelout(           5 ) = w
+ Labelout(           6 ) = NO3
+ Labelout(           7 ) = PHY1
+ Labelout(           8 ) = ZOO
+ Labelout(           9 ) = DET
+ Labelout(          10 ) = CHL1
+ Labelout(          11 ) = PHY_T
+ Labelout(          12 ) = CHL_T
+ Labelout(          13 ) = muN1
+ Labelout(          14 ) = Gra1
+ Labelout(          15 ) = Lno1
+ Labelout(          16 ) = SI_1
+ Labelout(          17 ) = QN_1
+ Labelout(          18 ) = The1
+ Labelout(          19 ) = Z2N
+ Labelout(          20 ) = D2N
+ Labelout(          21 ) = NPP_T
+ Labelout(          22 ) = PON
+ Labelout(          23 ) = PAR_
+ Labelout(          24 ) = muAvg
+ Labelout(          25 ) = D_NO3
+ Labelout(          26 ) = D_P1
+ Labelout(          27 ) = D_ZOO
+ Labelout(          28 ) = D_DET
+ 8 parameters in total 
+ Stn name: HOT
+Total number of observations of HOT = 16000
+Observation data set up for HOT
+ParamLabel(  1) = mu0hat
+   Params(  1) =        1.200
+      Max(  1) =        2.200
+      Min(  1) =        0.300
+ParamLabel(  2) =   gmax
+   Params(  2) =        1.000
+      Max(  2) =        2.000
+      Min(  2) =        0.500
+ParamLabel(  3) =   bI0B
+   Params(  3) =       -3.000
+      Max(  3) =       -1.500
+      Min(  3) =       -6.000
+ParamLabel(  4) =     mz
+   Params(  4) =        0.100
+      Max(  4) =        0.300
+      Min(  4) =        0.050
+ParamLabel(  5) =     KN
+   Params(  5) =        0.500
+      Max(  5) =        2.000
+      Min(  5) =        0.100
+ParamLabel(  6) =    Q0N
+   Params(  6) =        0.076
+      Max(  6) =        0.130
+      Min(  6) =        0.050
+ParamLabel(  7) =   wDET
+   Params(  7) =        1.000
+      Max(  7) =       10.000
+      Min(  7) =        0.100
+ParamLabel(  8) =  aI0_C
+   Params(  8) =        0.055
+      Max(  8) =        0.100
+      Min(  8) =        0.010
+Timestepping:        0.007 of one day.
+ Model setup finished for HOT
+mu0hat       2.650
+  gmax       1.000
+  bI0B      -8.000
+    mz       0.150
+    KN       0.595
+   Q0N       0.050
+  wDET       1.000
+ aI0_C       0.084
+SSqE(1)=  1.432E+02
+SSqE(2)=  7.307E+02
+SSqE(3)=  6.626E+01
+SSqE(4)=  1.225E+02
+Time =    0.020 mins.
