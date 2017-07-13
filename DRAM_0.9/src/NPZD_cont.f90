@@ -1,6 +1,8 @@
 SUBROUTINE NPZD_CONT
 use bio_MOD
 implicit none
+
+integer :: k,j,i
 !INPUT PARAMETERS:
 real :: tC,par_
 !LOCAL VARIABLES of phytoplankton:
@@ -15,22 +17,23 @@ real :: muNet1, SI1, Lno31, QN1
 real :: mu ! a scratch variable to temporally store phyto. growth rate
 real :: theta,theta1,dgdlbar,d2gdl2bar
 real :: NO3, Fe, PHY, ZOO, DET, DET1
+
 !Declarations of zooplankton:
-integer :: k,j,i
 real :: dx  ! size interval
 real :: gmax,RDN,mz,Kp,Cf  !Zooplankton variables
 real :: pp_PN, PPpn
 real :: Ptot, PCtot, Ptot1,CHLt,KN, Pl, dCHL,NPPt,rl
 real :: pCHL(4) = 0D0
 real :: VTR,Fe_scav
-real,     external :: pnorm, normal
-real,    parameter :: PMU0 = log(10.)
-real,    parameter :: bI0  = 0D0
-integer, parameter :: M=50    !discretize the continous normal distribution
-real, parameter :: Qpmin = 0.05/16.
-real, parameter :: KPO4  = 0.5/16.
-
 real :: x(M)
+real,     external :: pnorm, normal
+real,    parameter :: PMU0  = log(1d1)
+real,    parameter :: bI0   = 0D0
+real,    parameter :: eps   = 1d-20
+real,    parameter :: Qpmin = 0.05/16d0
+real,    parameter :: KPO4  = 0.5/16d0
+
+integer, parameter :: M=50    !discretize the continous normal distribution
 
 !-----------------------------------------------------------------------
 VTR    = params(iVTR)
@@ -42,7 +45,7 @@ gmax   = params(igmax)
 RDN    = 0.1
 mz     = params(imz)
 Kp     = 0.5
-!alphaG =1D0+10**params(ialphaG)
+alphaG = 1D0+10**params(ialphaG)
 DO k = nlev, 1, -1   
    ! Retrieve current (local) state variable values.
    tC     = Temp(k)
@@ -72,8 +75,8 @@ DO k = nlev, 1, -1
    Varout(oLno3(1),k)=Lno3
 
 !=============================================================
-    ! Calculate the community sinking rate of phytoplankton
-    ! Phytoplankton sinking rate at the average size
+! Calculate the community sinking rate of phytoplankton
+! Phytoplankton sinking rate at the average size
 !    w_p    = ScaleTrait(PMU,abs(w_p0),alphaW)  !Positive
 !    dwdl   = alphaW*w_p
 !    d2wdl2 = alphaW*dwdl
@@ -96,13 +99,14 @@ DO k = nlev, 1, -1
 
    ! Calculate total phytoplankton palatable prey (Ptot,Eq. 13):
    ! Ptot roughly equals to Phy
-   ! Cf    = params(igb)
-   Ptot  = 0D0
+   Cf    = params(igb)
+   Ptot  = 0D0  ! Total palatable prey
    NPPt  = 0D0
    PCtot = 0D0  ! Phytoplankton carbon
-   !Ptot1 = 0D0
+   Ptot1 = 0D0
    CHLt  = 0D0
    pCHL(:)=0D0  ! Size fractionated Chl
+
    do i=1,M
      !Calculate Chl in this size class
 
@@ -115,8 +119,7 @@ DO k = nlev, 1, -1
 
    ! MONOD(Temp, PAR,NO3,PO4,mu0,Qnmin,Qpmin,aI0,bI0,KN,KP,DFe,KFe,muNet,QN,QP,theta,SI,Lno3)
       call MONOD(tC,par_,NO3,1d0,mu0,params(iQ0N),Qpmin,aI0,bI0,KN,KPO4,&
-                 Fe,KFe_, &
-                 mu, QN, QP, theta, SI, Lno3)
+                 Fe,KFe_,mu, QN, QP, theta, SI, Lno3)
    
       !Probability function
       Pl=PHY*normal(PMU,VAR,x(i))
@@ -138,30 +141,32 @@ DO k = nlev, 1, -1
        else
           pCHL(1)=pCHL(1)+dCHL
        endif
+
        ! Total Phytoplankton carbon
        PCtot= PCtot + Pl*dx/QN
 
        ! Total NPP (use light as the in situ incubation):
        call MONOD(tC,PAR(k),NO3,1d0,mu0,params(iQ0N),Qpmin,aI0,bI0,KN,KPO4,&
-                  Fe,KFe_,&
-                  muNet1, QN1,QP, theta1, SI1, Lno31)
+                  Fe,KFe_,muNet1, QN1,QP, theta1, SI1, Lno31)
 
        NPPt = NPPt + Pl*dx*muNet1/QN
 
        !Feeding preference
-    !   rl   = exp(Cf*x(i))
-    !   Ptot = Ptot +Pl*dx*rl   ! Total palatable prey
+       rl   = exp(Cf*x(i))
+       Ptot = Ptot +Pl*dx*rl   ! Total palatable prey
 
     !   Considering killing-the-winner strategy
-    !   Ptot1= Ptot1+Pl**alphaG*dx*rl
+       Ptot1= Ptot1+Pl**alphaG*dx*rl
      endif
    enddo
    do j = 1, 4
-      Varout(oCHLs(j),k)=pCHL(j)/max(CHLt,1D-10) !Get the percentage of size-fractionated CHL
+      Varout(oCHLs(j),k)=pCHL(j)/max(CHLt,eps) !Get the percentage of size-fractionated CHL
    enddo
-   PCtot           = max(PCtot, 1D-10)
+
+   PCtot           = max(PCtot, eps)
    Varout(oCHLt,k) = CHLt
    Varout(oPPt, k) = NPPt*12d0 ! Correct the unit to ug C/L
+
 ! The grazing dependence on total prey
    gbar = grazing(grazing_formulation,Kp,PHY)
 
@@ -175,17 +180,18 @@ DO k = nlev, 1, -1
    EGES = INGES*unass
 
 ! Grazing rate on the mean size of PHY (specific to N-based Phy biomass, unit: d-1) (Eq. 12)
-   !rl   = exp(Cf*PMU)
+   rl   = exp(Cf*PMU)
 
    ! The probability density at avg. size
-   !Pl   = normal(PMU,VAR,PMU)*PHY
+   Pl   = normal(PMU,VAR,PMU)*PHY
 
    ! Grazing rate on the mean size
-   !gbar = INGES*ZOO*rl*Pl**(alphaG-1D0)/max(Ptot1,1D-10) 
+   gbar = INGES*ZOO*rl*Pl**(alphaG-1D0)/max(Ptot1,eps) 
 
 ! First derivative of grazing rate evaluated at the mean size (negative)
-   dgdlbar  = 0. !Cf*gbar 
-   d2gdl2bar= 0. !((1D0-alphaG)/VAR+Cf*Cf)*gbar
+
+   dgdlbar  = Cf*gbar 
+   d2gdl2bar= ((1D0-alphaG)/VAR+Cf*Cf)*gbar
 
 !!End of zooplankton section
 !=============================================================
@@ -223,14 +229,14 @@ DO k = nlev, 1, -1
    ! Use VAR*PHY**2 as the tracer
    VARPHY1 = VARPHY + PHY**2*(VAR1-VAR) + 2.*PHY*VAR*(PHY1-PHY)
 
-   Varout(oNO3,k)   = NO31
-   Varout(oPHY(1),k)= PHY1
-   Varout(oPHYt,  k)= PHY1
-   Varout(oZOO,k)   = ZOO1
-   Varout(oDET,k)   = DET1
-   Varout(ofer,k)   = Fe
-   Varout(oPMU,k)   = PMUPHY1
-   Varout(oVAR,k)   = VARPHY1
+   Varout(oNO3,k)      = NO31
+   Varout(oPHY(1),k)   = PHY1
+   Varout(oPHYt,  k)   = PHY1
+   Varout(oZOO,k)      = ZOO1
+   Varout(oDET,k)      = DET1
+   Varout(ofer,k)      = Fe
+   Varout(oPMU,k)      = PMUPHY1
+   Varout(oVAR,k)      = VARPHY1
    Varout(oTheta(1),k) = CHLt/PCtot 
    Varout(oQN(1)   ,k) = PHY/PCtot
    Varout(omuNet(1),k) = muNet               !Growth rate of mean size
