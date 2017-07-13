@@ -87,6 +87,7 @@ enddo
 
 iZOO = iPHY(NPHY)+1
 iDET = iZOO+1
+
 if (Model_ID==Geiderdisc .or. Model_ID==Geidersimple .or. Model_ID==GeidsimIRON) then
    do i=1,NPHY
       iCHL(i) = i + iDET
@@ -299,11 +300,11 @@ Labelout(oDET +ow)='DET'
 if (Model_ID==NPPZDD  .or. Model_ID==EFTPPDD) Labelout(oDET2 +ow)='DET2'
 !
 if (Model_ID==NPZDN2) then
-    Labelout(oDETp +ow)='DETp'
-    Labelout(oPO4  +ow)='DIP'  ! Consistent with data file
-    Labelout(oPOP  +ow)='POP'
-    Labelout(oDIA  +ow)='DIA'
-    Labelout(oDIAu +ow)='uDIA'
+    Labelout(oDETp +ow) ='DETp'
+    Labelout(oPO4  +ow) ='DIP'  ! Consistent with data file
+    Labelout(oPOP  +ow) ='POP'
+    Labelout(oDIA  +ow) ='DIA'
+    Labelout(oDIAu +ow) ='uDIA'
     Labelout(oD_DETp+ow)='DDETp'
     Labelout(oD_PO4 +ow)='D_DIP'
     Labelout(oD_DIA +ow)='D_DIA'
@@ -448,15 +449,17 @@ if (Model_ID==NPZDFix .or.Model_ID==NPZD2sp    .or.Model_ID==NPPZDD  &
       ialphamu=iaI0_C+1
       ibetamu =ialphamu+1
       ialphaI =ibetamu+1
-      !ialphaG =ialphaI +1
+      ialphaG =ialphaI +1
       if (nutrient_uptake.eq.1) then
-         ialphaKN=ialphaI+1
+
+         ialphaKN=ialphaG+1
+
          if (Model_ID == NPZDcont) then
            
            iVTR   =ialphaKN+1
-           !igb    =iVTR    +1
+           igb    =iVTR    +1
            if (do_IRON) then
-             iKFe =iVTR    +1
+             iKFe =igb     +1
           ialphaFe=iKFe    +1
           idustsol=ialphaFe+1
              NPar =idustsol
@@ -587,8 +590,9 @@ if (Model_ID .eq. EFT2sp .or. Model_ID .eq. EFTPPDD .or. Model_ID .eq. NPZD2sp .
    params(iRL2) =0.5
 endif
 
-if(Model_ID.eq.NPZD2sp .OR. Model_ID.eq.EFTdisc .OR. Model_ID .eq. EFT2sp   &
-  .OR. Model_ID.eq.NPPZDD .OR. Model_ID .eq. EFTPPDD) then
+if(Model_ID.eq.NPZD2sp .OR. Model_ID.eq.EFTdisc .OR. &
+   Model_ID.eq.EFT2sp  .OR. Model_ID.eq.NPZDcont.OR. &
+   Model_ID.eq.NPPZDD  .OR. Model_ID.eq.EFTPPDD) then
    ParamLabel(ialphaG)='alphaG'
    params(ialphaG)=-5d0
 endif
@@ -608,10 +612,10 @@ if(Model_ID==NPZDdisc.or.Model_ID==NPZD2sp.or.Model_ID==NPPZDD.or.Model_ID==NPZD
   ParamLabel(iaI0_C)='aI0_C'
   params(iaI0_C)    =0.055
   if (Model_ID == NPZDcont) then
-     !ParamLabel(igb)='gb'
-     !params(igb)    =-1D-12
+     ParamLabel(igb) ='gb'
+     params(igb)     =-1D-12
      ParamLabel(iVTR)='VTR'
-     params(iVTR)    =0.08
+     params(iVTR)    =0.01
      ParamLabel(ibetamu)='betamu'
      params(ibetamu)    =-0.025
      if (do_IRON) then
