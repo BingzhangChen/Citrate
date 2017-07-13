@@ -4,17 +4,18 @@ source('~/Working/FlexEFT1D/Rscripts/getData.R')
 source('../Rscripts/get_obs_MLD.R')
 source('../Rscripts/Hz.R')
 COLS <- c('green','red')
-LTYS <- c(rep(1,3),rep(3,3))
+LTYS <- c(1,1)
 Stns <- c('S1','HOT')
 Nstn <- length(Stns)
 Models <- c('NPZDFix_sRun','EFTsimple_sRun')
 
-pdf('Fig5_ML_mod_obs.pdf', width=2.5*Nstn,height=6,paper='a4')
+pdf('Fig4_ML_mod_obs.pdf', width=2.5*Nstn,height=6,paper='a4')
    op <- par(font.lab = 1,
                 family ="serif",
                 mar    = c(4,4,1,3),
                 oma    = c(2,2,0,0),
                 mgp    = c(2.3,1,0),
+                lwd    = 1.5,
                 mfrow  = c(3,Nstn)) 
 j=0
 for (Var in c('TIN','CHL','NPP')){
@@ -105,11 +106,11 @@ for (Var in c('TIN','CHL','NPP')){
            s_Chl[k]= xff
            }
      #   }
-        lines(1:length(s_Chl),s_Chl, col=COLS[ii])
+        lines(1:length(s_Chl),s_Chl, lty=LTYS[ii],col=COLS[ii])
 
         if (Var == 'TIN' && Stn == Stns[1]){
            legend('topright',c('MONOD','PAHLOW'),
-                  col=COLS,lty=1  )
+                  col=COLS,lty=LTYS  )
         }
     }
   }

@@ -54,6 +54,14 @@ themax  <- max(the_EFT)
 
 MU_sim2 <- predict(Fit2,newdata=data.frame(NO3=NO3,PAR=max(dat1$PAR)))
 
+#Fit3 <- nls( mu ~ rmax * NO3/(NO3 + KN)*(1-exp(-aI0*PAR/rmax/(NO3/(NO3+KN)))),
+#                data  = dat1, 
+#                start = list(rmax = 3, KN = 0.1, aI0 = 0.05),
+#                algorithm = "port" )
+#rmax=coef(Fit3)[1]
+#  KN=coef(Fit3)[2]
+#aI0 =coef(Fit3)[3]
+
 pdf('~/Working/FlexEFT1D/DRAM_0.9/N_PAR_EFT_FIX_One.pdf',
                           width=3.5, height=8,paper='a4')
 op <- par( font.lab = 1,
@@ -161,8 +169,8 @@ op <- par( font.lab = 1,
              lwd    = 1.5, las=1,
              cex.axis=1) 
 
-PAR     <- c(5, 30, 200)
-NO3     <- seq(1E-4, 30, 0.01)
+PAR     <- c(5, 30, 400)
+NO3     <- seq(1E-4, 20, 0.01)
 MU_FIX  <- matrix(NA, nr = length(NO3), nc = length(PAR) )
 MU_EFT  <- MU_FIX
 
