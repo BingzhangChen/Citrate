@@ -452,8 +452,8 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
      MaxValue(iaI0_C) =0.1
      MinValue(iaI0_C) =0.01
      if (Model_ID.eq.NPZDcont) then
-        !MaxValue(igb) =0.
-        !MinValue(igb) =-1D-10
+        MaxValue(igb) =0d0
+        MinValue(igb) =-0.01
         MaxValue(iVTR)=0.12
         MinValue(iVTR)=0.01
         if (do_IRON) then
@@ -481,8 +481,8 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
      MinValue(ibetamu) =-0.05
      MaxValue(ialphaI )=0.2d0
      MinValue(ialphaI )=-0.3d0
-     !MaxValue(ialphaG )=-4d0
-     !MinValue(ialphaG )=-6d0
+     MaxValue(ialphaG )=-2d0
+     MinValue(ialphaG )=-1d1
 
      if(nutrient_uptake .eq. 1) then
         MaxValue(ialphaKN)=0.3

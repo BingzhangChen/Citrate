@@ -594,7 +594,7 @@ if(Model_ID.eq.NPZD2sp .OR. Model_ID.eq.EFTdisc .OR. &
    Model_ID.eq.EFT2sp  .OR. Model_ID.eq.NPZDcont.OR. &
    Model_ID.eq.NPPZDD  .OR. Model_ID.eq.EFTPPDD) then
    ParamLabel(ialphaG)='alphaG'
-   params(ialphaG)=-5d0
+   params(ialphaG)    =-5d0
 endif
 !
 ParamLabel(iwDET) = 'wDET   '
