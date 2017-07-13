@@ -289,7 +289,6 @@ source('~/Working/FlexEFT1D/Rscripts/surface_OBS_model.R')
 source('~/Working/FlexEFT1D/Rscripts/MLD_PHYZOO.R')
 source('~/Working/FlexEFT1D/Rscripts/CChl_ML.R')
 source('~/Working/FlexEFT1D/Rscripts/vertical_OBS_model_MS.R')
-source('~/Working/FlexEFT1D/Rscripts/plot_1D.R')
 source('~/Working/FlexEFT1D/Rscripts/vertical_muQNtheta.R')
 
 pdf('Growth.pdf')
