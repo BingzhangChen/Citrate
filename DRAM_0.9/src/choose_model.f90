@@ -2,7 +2,7 @@ SUBROUTINE choose_model
 USE bio_MOD
 implicit none
 integer             :: i
-namelist /Model/    Stn, Model_ID, nutrient_uptake, grazing_formulation
+namelist /Model/    Stn, Model_ID, nutrient_uptake, grazing_formulation, bot_bound
 character(len=100)  :: format_string
 
 !  open the namelist file and read station name.

@@ -5,18 +5,14 @@ real(4) :: start,finish,t2,t1
 logical :: there
 ! All parameters varied in an Identical Twin Test assimilation.
 integer :: i,j,k,row,col
-integer :: Readfile   = NO  ! Read parameter set from "out/Best.out", and start from Subpcurr
-
-!    To run a simulation using best-fit parameters from a given Assimilation,
-!    save the file "out/status" from that assimilation as "out/Best.out",
-!    then, run this program with nruns = 1, and Readfile = 1, (after compiling)
-
+integer :: Readfile   = NO  ! Read parameter set from "enssig" and "enspar", and start from Subpcurr
 real, allocatable  :: enspar1(:,:)    ! scratch matrix to store previous runs of parameters
 integer            :: NR_enspar=100
 integer            :: N_cvm
-namelist /MCMCrun/    nruns, BurnInt,EnsLen, NDays, Readfile,NR_enspar
+namelist /MCMCrun/ nruns, EnsLen, NDays, Readfile, NR_enspar
       
 call cpu_time(start) 
+
 !  open the namelist file and read station name.
 open(namlst,file='Model.nml',status='old',action='read')
 read(namlst,nml=MCMCrun)
@@ -144,6 +140,7 @@ IF(nruns .gt. 1) THEN
        End do
 
        startrun=NR_enspar
+
      ! Obtain current position:
        do i = 1, NPar
           Apvcurr(i) = enspar1(NR_enspar,i+2)

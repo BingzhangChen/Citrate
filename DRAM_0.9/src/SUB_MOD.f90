@@ -5,16 +5,17 @@ USE mtmod
 USE gasdevf90
 USE mGf90
 implicit none
-!!$ declare all variables used within the model itself
+! declare all variables used within the model itself
 public
 integer           :: error  = 0, err
 ! number of samples to be output for the ensemble   
 integer           :: EnsLen  = 2 
-!Total number of iterations
+
+! Total number of iterations
 integer           :: nruns   = 10
+
 ! number of runs for initial 'Burn-in'
-integer           :: BurnInt = 3 
-real              :: alpha13 = 0d0
+integer           :: BurnInt = 100 
 integer           :: jrun
 integer           :: AMacc, DRacc, paramrc, startrun = 0, length
 

@@ -1130,7 +1130,7 @@ DO jj = 1, Nstn
      Vars1(:)     = Vars(j,:)
      ! At surface, assume zero flux  (Neumann boundary condition)
 
-     selectcase (bottom) ! Select the type of boundary condition at bottom
+     selectcase (bot_bound) ! Select the type of boundary condition at bottom
      case (Dirichlet)
 
      ! At bottom,  assume constant values obtained from observation (Dirichlet boundary condition)

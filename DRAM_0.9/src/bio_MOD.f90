@@ -35,9 +35,10 @@ real, parameter :: PMU_1   = log(1d1*pi/6d0)
 real, parameter :: PMU_3   = log(1d1*pi/6d0*3d0**3)
 real, parameter :: PMU_10  = log(1d1*pi/6d0*1d1**3)
 integer         :: AllocateStatus
-integer         :: N_MLD   ! vertical grid index at the bottom of MLD
-integer,parameter :: Dirichlet      = 0
-integer,parameter :: Neumann        = 1
+integer         :: N_MLD     ! vertical grid index at the bottom of MLD
+integer         :: bot_bound ! Option of bottom boundary condition
+integer, parameter :: Dirichlet      = 0
+integer, parameter :: Neumann        = 1
 
 real     :: Temp(nlev), PAR(nlev), dtdays, Ntot, PARavg, wstr0(1) 
 real     :: DFe(nlev)                           ! Dissolved iron concentration
