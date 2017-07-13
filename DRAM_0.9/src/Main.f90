@@ -27,8 +27,6 @@ call Model_setup
 ! Initialize the random number generator with a seed
 call sgrnd(17001)
 
-! (Integer values: 1 = Yes, 0 = No)
-  
 ! An initial guess that is some factor times the inital parameter estimates 
 subpguess = Npv
 
