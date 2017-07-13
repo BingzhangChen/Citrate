@@ -7,7 +7,7 @@ USE mGf90
 implicit none
 ! declare all variables used within the model itself
 public
-integer           :: error  = 0, err
+integer           :: error   = 0
 ! number of samples to be output for the ensemble   
 integer           :: EnsLen  = 2 
 
@@ -94,8 +94,8 @@ DO j = 1, Nstn
    
      if (INCLUDESIZE .and. i .ge. NDTYPE-3) then
         ! The percentages of size-fractions just between 0 and 1
-        max_y = 1.
-        min_y = 0.
+        max_y = 1d0
+        min_y = 0d0
      else
         max_y =     maxval(OBS_data,1)
         min_y = max(minval(OBS_data,1),0d0) ! Must be positive
@@ -130,7 +130,6 @@ function CalSSQE(Npars) result(SS)
 implicit none
 ! Used to call the model but NOT write output (for most calls in the chain) 
 real, intent(IN)  :: Npars(NPar)   ! Normalized parameters
-
 real              :: Ymod(ANobs)
 real              :: Apars(NPar)  !Absolute parameters
 real              :: SS(NDTYPE*Nstn)

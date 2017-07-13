@@ -1137,10 +1137,10 @@ DO jj = 1, Nstn
        call diff_center(nlev,dtsec,cnpar,1,Hz, Neumann, Dirichlet, &
                        zero, VarsBom(1,j),Aks,Vec0,Vec0,Taur,Vars1,Vars1,Vars2)
 
-     case (Newmann)
+     case (Neumann)
 
      ! Zero flux at bottom
-       call diff_center(nlev,dtsec,cnpar,1,Hz, Neumann, Newmann, &
+       call diff_center(nlev,dtsec,cnpar,1,Hz, Neumann, Neumann, &
                        zero, zero, Aks,Vec0,Vec0,Taur,Vars1,Vars1,Vars2)
      case default
        write(6,*) 'The type of bottom boundary condition incorrect!'
