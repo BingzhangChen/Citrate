@@ -3,7 +3,7 @@ use BIO_MOD
 implicit none
 public
 ! Grid parameters
-real, private, parameter :: hmax   = 5d2 ! Total water depth
+real, private, parameter :: hmax   = 5d2   ! Total water depth
 real, private, parameter :: thetaS = 2d0   ! surface stretching parameter
 real, private, parameter :: dtsec  = 6D2   ! time step in seconds
 real, private, parameter ::d_per_s = 864d2 ! how many seconds in one day
@@ -329,6 +329,7 @@ endif
 
 allocate( OBSData(ANobs  ,3 ), STAT = AllocateStatus)
 IF (AllocateStatus /= 0) STOP "*** Problem in allocating OBSData ***"
+
 ! Initialize observational data:
 TINData(:,:) = 0d0
 CHLData(:,:) = 0d0
@@ -608,8 +609,8 @@ End subroutine Model_setup
 SUBROUTINE Timestep
 implicit none
 real,    parameter  :: cnpar = 0.6
-real,    parameter  :: Taur(nlev) = 1D12
-real,    parameter  :: Vec0(nlev) = 0d0
+real,    parameter  :: Taur(nlev) = 1D12  !Relaxation time
+real,    parameter  :: Vec0(nlev) = 0d0   !Vectors of zero
 ! Local scratch variables
 integer  :: it,i,k,nm, j,jj, Nstep, current_day, current_DOY,DOY
 integer  :: i_,j_
@@ -730,6 +731,7 @@ DO jj = 1, Nstn
   ncff    = size(ww,2)
   cff     = 10**(params(iwDET))
   do k = 0,nlev-1
+
    !Phytoplankton no sinking
    !Detritus sinking rate (convert to UNIT: m/s)
     if (Model_ID==NPPZDD .OR. Model_ID==EFTPPDD) then
@@ -742,6 +744,7 @@ DO jj = 1, Nstn
        ww(k,ncff) = -cff/dble(d_per_s) 
     endif
   enddo
+
   ! Create output files:
   if (savefile) then
 
@@ -932,19 +935,8 @@ DO jj = 1, Nstn
   
         IF (DOY .eq. current_DOY) then
 
-         ! Check whether C:Chl (may add other parameters) realistic or not:
-         ! allocate(a(nlev,NPHY))
-         ! a(:,:) = 0d0
-         ! do i_ = 1, nlev
-         !   do j_ = 1, NPHY
-         !    a(i_,j_) = 12d0/Varout(oTheta(j_),i_)   !unit: gC:gChl
-         !     dCChl=dCChl+max((a(i_,j_)-8D2),0d0)+abs(min((a(i_,j_)-5D0),0d0))
-         !   enddo
-         ! enddo
-         ! deallocate(a)
-
           allocate(a(nlev,1))
-          a(:,:)=0d0
+          a(:,:)=zero
 
           if (i .le. nrow(1,jj)) then
              if (jj .eq. 1) then
@@ -1137,12 +1129,23 @@ DO jj = 1, Nstn
   do j = 1,NVAR
      Vars1(:)     = Vars(j,:)
      ! At surface, assume zero flux  (Neumann boundary condition)
-     ! At bottom,  assume constant values obtained from observation (Dirichlet boundary condition)
 
-     call diff_center(nlev,dtsec,cnpar,1,Hz, Neumann, Dirichlet, &
+     selectcase (bottom) ! Select the type of boundary condition at bottom
+     case (Dirichlet)
+
+     ! At bottom,  assume constant values obtained from observation (Dirichlet boundary condition)
+       call diff_center(nlev,dtsec,cnpar,1,Hz, Neumann, Dirichlet, &
                        zero, VarsBom(1,j),Aks,Vec0,Vec0,Taur,Vars1,Vars1,Vars2)
-     !subroutine diff_center(N,dt,cnpar,posconc,h,Bcup,Bcdw, &
-     !                  Yup,Ydw,nuY,Lsour,Qsour,Taur,Yobs,Yin,Yout)
+
+     case (Newmann)
+
+     ! Zero flux at bottom
+       call diff_center(nlev,dtsec,cnpar,1,Hz, Neumann, Newmann, &
+                       zero, zero, Aks,Vec0,Vec0,Taur,Vars1,Vars1,Vars2)
+     case default
+       write(6,*) 'The type of bottom boundary condition incorrect!'
+       stop
+     end select
 
      ! Save diffusion fluxes (normalized to per day)
      Varout(oD_NO3+j-1,:) = (Vars2(:) - Vars1(:))/dtdays
