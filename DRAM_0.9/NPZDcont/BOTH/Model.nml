@@ -3,7 +3,11 @@
   Model_ID = 4,
   nutrient_uptake = 1,
   grazing_formulation = 3,
+  bot_bound = 1, 
 /
+!bot_bound: type of boundary condition for bottom
+!Dirichlet      = 0,
+!Neumann        = 1
 
 ! Model_ID:
 !EFTdisc     = 1
@@ -24,10 +28,9 @@
 !NPZD2sp     = 16
 
 &MCMCrun
-   nruns   = 100000,
-   BurnInt = 1000, ! number of runs for initial 'Burn-in'
+   nruns   = 2,
    EnsLen  = 200, 
    NDays   = 1440,
-   Readfile= 1,
+   Readfile= 0,
    NR_enspar=10001,
 /
