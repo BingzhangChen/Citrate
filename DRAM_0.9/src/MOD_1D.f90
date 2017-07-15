@@ -3,7 +3,7 @@ use BIO_MOD
 implicit none
 public
 ! Grid parameters
-real, private, parameter :: hmax   = 5d2   ! Total water depth
+real, private, parameter :: hmax   = 25d1  ! Total water depth
 real, private, parameter :: thetaS = 2d0   ! surface stretching parameter
 real, private, parameter :: dtsec  = 6D2   ! time step in seconds
 real, private, parameter ::d_per_s = 864d2 ! how many seconds in one day
@@ -145,7 +145,6 @@ character(LEN=20)    :: NPP_OBS_file(Nstn)
 character(LEN=20)    :: PON_OBS_file(Nstn)
 character(LEN=20)    :: POP_OBS_file(Nstn)
 character(LEN=20)    :: DIA_OBS_file(Nstn)
-character(LEN=20)    :: C2N_OBS_file(Nstn)
 character(LEN=20)    :: SIZE_OBS_file(Nstn)
 real,    allocatable :: DOY(:), Depth(:)
 integer              :: k, i,oi,j
@@ -159,6 +158,7 @@ Select case(Model_ID)
      ! But can be different for different models
      NDTYPE = 4  !TIN, CHL, PP, PON
      INCLUDESIZE = .FALSE.
+
   case(NPZDN2)
      NDTYPE      = 7  !TIN, CHL, PP, PON, PO4, POP, DIA
      INCLUDESIZE = .FALSE.
@@ -613,7 +613,7 @@ real,    parameter  :: Taur(nlev) = 1D12  !Relaxation time
 real,    parameter  :: Vec0(nlev) = 0d0   !Vectors of zero
 ! Local scratch variables
 integer  :: it,i,k,nm, j,jj, Nstep, current_day, current_DOY,DOY
-integer  :: i_,j_
+integer  :: j_
 
 ! Counting of the index of each data type
 real     :: cff,current_sec
@@ -712,15 +712,17 @@ DO jj = 1, Nstn
      enddo
   enddo
 
-  ! Initialize Bottom values of Vars:
-  allocate(VarsBom(1,NVAR),  STAT = AllocateStatus)
-  IF (AllocateStatus /= 0) STOP "*** Problem in allocating VarsBom ***"
-  VarsBom(:,:)        = 1D-30
-  ! Initialize bottom values of PHY, ZOO, DET based on PON and POP at HOT:
-  VarsBom(1, iDET)    = 4D-2/3d0
-  VarsBom(1, iDETp)   = 2D-3/3d0
-  VarsBom(1, iZOO)    = 2D-3/3d0
-  VarsBom(1, iPHY(1)) = 2D-3/3d0
+  if (bot_bound .eq. Dirichlet) then
+     ! Initialize Bottom values of Vars:
+     allocate(VarsBom(1,NVAR),  STAT = AllocateStatus)
+     IF (AllocateStatus /= 0) STOP "*** Problem in allocating VarsBom ***"
+     VarsBom(:,:)        = 1D-30
+     ! Initialize bottom values of PHY, ZOO, DET based on PON and POP at HOT:
+     VarsBom(1, iDET)    = 4D-2/3d0
+     VarsBom(1, iZOO)    = 2D-3/3d0
+     VarsBom(1, iPHY(1)) = 2D-3/3d0
+     if (Model_ID .eq. NPZDN2) VarsBom(1, iDETp)   = 2D-3/3d0
+  endif
 
   ! Sinking rate
   allocate(ww(0:nlev,NVsinkterms),  STAT = AllocateStatus)
@@ -789,10 +791,12 @@ DO jj = 1, Nstn
      CHL_(:) = Varout(oCHLt,:)
      call Calculate_PAR(cff, nlev, Hz, CHL_, PAR)
       
-    ! Interpolate bottom NO3 data:
-     pb => obs_time_NO3(:,jj)
-     pc => NO3_bot(:,:,jj)
-     call time_interp(int(current_sec),NFobs(eNO3),1,pb,pc,VarsBom(:,iNO3))
+     if (bot_bound .eq. Dirichlet) then
+        !  Interpolate bottom NO3 data:
+        pb => obs_time_NO3(:,jj)
+        pc => NO3_bot(:,:,jj)
+        call time_interp(int(current_sec),NFobs(eNO3),1,pb,pc,VarsBom(:,iNO3))
+     endif
 
      if (do_IRON) then
         ! Interpolate temporal Dust data: 
@@ -822,10 +826,12 @@ DO jj = 1, Nstn
         pc => Vwstr(:,:,jj)
         call time_interp(int(current_sec),ncff,1,pb,pc, wstr0)
 
-        ! Interpolate bottom PO4 data:
-        pb => obs_time_PO4(:,jj)
-        pc => PO4_bot(:,:,jj)
-        call time_interp(int(current_sec),NFobs(ePO4),1,pb,pc,VarsBom(:,iPO4))
+        if (bot_bound .eq. Dirichlet) then
+           ! Interpolate bottom PO4 data:
+           pb => obs_time_PO4(:,jj)
+           pc => PO4_bot(:,:,jj)
+           call time_interp(int(current_sec),NFobs(ePO4),1,pb,pc,VarsBom(:,iPO4))
+        endif
 
      endif
 
@@ -1000,24 +1006,30 @@ DO jj = 1, Nstn
            call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
                 PONout(nm,1))  
 
-          elseif (N2fix.and. i.le.(nrow(1,jj)+nrow(2,jj)+nrow(3,jj)+nrow(4,jj)+nrow(5,jj))) then
-             if (jj .eq. 1) then
-                nm = i- nrow(1,jj) - nrow(2,jj) - nrow(3,jj)-nrow(4,jj)
-             else
-                nm = 0
-                do j = 1, (jj-1)
-                   nm = nm + nrow(5, j)
-                enddo
-                nm = nm + i - nrow(1,jj) - nrow(2,jj) - nrow(3,jj) - nrow(4,jj)
-             endif
+          elseif (.not. N2fix) then  ! Separate NPZDN2 and NPZDCONT models
+
+           goto 1000   ! <== for models without N2 fixation but with size
+
+          else
+           ! For models with N2fixation 
+           if (i.le.(nrow(1,jj)+nrow(2,jj)+nrow(3,jj)+nrow(4,jj)+nrow(5,jj))) then
+            if (jj .eq. 1) then
+               nm = i- nrow(1,jj) - nrow(2,jj) - nrow(3,jj)-nrow(4,jj)
+            else
+               nm = 0
+               do j = 1, (jj-1)
+                  nm = nm + nrow(5, j)
+               enddo
+               nm = nm + i - nrow(1,jj) - nrow(2,jj) - nrow(3,jj) - nrow(4,jj)
+            endif
 
           ! Calculate PO4 output:
-           a(:,1) = Varout(oPO4,:)   ! PO4
-           call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
-                PO4out(nm,1))  
+            a(:,1) = Varout(oPO4,:)   ! PO4
+            call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
+                 PO4out(nm,1))  
 
-          elseif (N2fix .and. &
-           i.le.(nrow(1,jj)+nrow(2,jj)+nrow(3,jj)+nrow(4,jj)+nrow(5,jj)+nrow(6,jj))) then
+           elseif (&
+            i.le.(nrow(1,jj)+nrow(2,jj)+nrow(3,jj)+nrow(4,jj)+nrow(5,jj)+nrow(6,jj))) then
              if (jj .eq. 1) then
                 nm = i- nrow(1,jj) - nrow(2,jj) - nrow(3,jj)-nrow(4,jj)-nrow(5,jj)
              else
@@ -1029,11 +1041,11 @@ DO jj = 1, Nstn
              endif
 
           ! Calculate POP output:
-           a(:,1) = Varout(oPOP,:)   ! POP
-           call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
-                POPout(nm,1))  
+            a(:,1) = Varout(oPOP,:)   ! POP
+            call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
+                 POPout(nm,1))  
 
-          elseif (N2fix) then
+           else
              if (jj .eq. 1) then
                 nm = i- nrow(1,jj)-nrow(2,jj)-nrow(3,jj)-nrow(4,jj)-nrow(5,jj)-nrow(6,jj)
              else
@@ -1044,12 +1056,14 @@ DO jj = 1, Nstn
                 nm=nm+i-nrow(1,jj)-nrow(2,jj)-nrow(3,jj)- nrow(4,jj)-nrow(5,jj)-nrow(6,jj)
              endif
 
-          ! Calculate DIA output:
-           a(:,1) = Varout(oDIA,:)   ! POP
-           call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
-                DIAout(nm,1))  
-          else
-           if(INCLUDESIZE) then
+            ! Calculate DIA output:
+             a(:,1) = Varout(oDIA,:)   ! POP
+             call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
+                  DIAout(nm,1))  
+           endif ! <== End of selection of special data types in NPZDN2 model
+
+1000      if(INCLUDESIZE) then
+
              ncff = NDTYPE-4  !Number of data types excluding size
 
              !Calculate the total number of observations before size
@@ -1065,7 +1079,7 @@ DO jj = 1, Nstn
                 do j = 1, (jj-1)
                    nm = nm + nrow(ncff+1, j)
                 enddo
-                nm=nm+i-j_
+                nm = nm + i - j_
              endif
 
           !  Calculate Size-fractionated Chl output:
@@ -1160,8 +1174,18 @@ DO jj = 1, Nstn
   do j = 1,NVsinkterms
      ww_(:)   = ww(:,j)
      Vars2(:) = Vars(Windex(j),:)
-     ! Open bottom boundary
-     call adv_center(nlev,dtsec,Hz,Hz,ww_(:),1,2,zero,Vars2(1),6,mode1,Vars2(:))
+
+     select case (bot_bound)
+     case(Neumann)  ! closed at bottom (Conserve total N mass)
+        call adv_center(nlev,dtsec,Hz,Hz,ww_(:),1,1,zero,zero,    6,mode1,Vars2(:))
+     case(Dirichlet)
+        ! Open bottom boundary
+        call adv_center(nlev,dtsec,Hz,Hz,ww_(:),1,2,zero,Vars2(1),6,mode1,Vars2(:))
+     case default
+        write(6,*) "The boundary conditions incorrect! STOP!"
+        stop
+     endselect
+      
      Vars(Windex(j),:) = Vars2(:)
   enddo
   
