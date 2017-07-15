@@ -2,7 +2,7 @@
 export DATADIR=../../../Forcing
 export SCRATCHDIR=Compile
 export SRCDIR=../../src
-Test=0 
+Test=1 
 
 rm -rf ${SCRATCHDIR}
 mkdir ${SCRATCHDIR}
@@ -12,7 +12,7 @@ mkdir ${SCRATCHDIR}
 /bin/cp -f  ${SRCDIR}/Makefile ${SCRATCHDIR}/Makefile1
 
 #Replace global setting with local setting
-/bin/cp -f bio_MOD.f90 ${SCRATCHDIR}/
+/bin/cp -f params.f90 ${SCRATCHDIR}/
 
 if [[ $Test == 1 ]]; then
    echo 'Run model with debug options...'
