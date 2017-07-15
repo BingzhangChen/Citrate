@@ -4,7 +4,7 @@ implicit none
 public
 
 ! Number of vertical layers
-integer, parameter :: nlev        = 40  
+integer, parameter :: nlev        = 30  
 
 ! Options of biological models
 integer, parameter :: EFTdisc     = 1
@@ -29,6 +29,7 @@ integer, parameter :: NPZDN2      = 19
 
 ! Parameters for phytoplankton size fractional Chl
 real, parameter :: pi=3.1415926535897932384633D0
+real, parameter :: eps     = 1d-20
 real, parameter :: PMU_min = log(1d1*pi/6d0*0.6**3)
 real, parameter :: PMU_max = log(1d1*pi/6d0*4d1**3)
 real, parameter :: PMU_1   = log(1d1*pi/6d0)
@@ -60,7 +61,7 @@ integer  :: iVTR, ifer,od3mu,od4mu
 integer  :: iEp,iEz,izetaN,izetaChl, iaI0_C 
 integer  :: ialphaI,iA0N,ialphaA,ialphaG,ialphaK, ialphaFe
 integer  :: iQ0N,ialphaQ,iPenfac,iLref,iwDET,irdN,imz
-integer  :: ithetamin,iQNmin,itau,iwDET2,idustsol
+integer  :: ithetamin,iQNmin,itau,iwDET2,idustsol,igb
 integer, allocatable :: iPHY(:), oPHY(:),oTheta(:),oQN(:),oQp(:)
 integer, allocatable :: iCHL(:), oCHL(:),omuNet(:),oD_PHY(:),oD_CHL(:)
 integer, allocatable :: oGraz(:),oSI(:), oLno3(:)

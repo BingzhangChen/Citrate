@@ -879,7 +879,7 @@ DO jj = 1, Nstn
       ! Check whether the values are valid:
       do j = 1,NVAR
          do k=1,nlev
-            if( (Vars(j,k) .ne. Vars(j,k)) .OR. (Vars(j,k) .le. 0.) ) then
+            if( (Vars(j,k) .ne. Vars(j,k)) ) then
                 write(6,*) 'j = ',j
                 write(6,*) 'k = ',k
                 write(6,*) 'At time step ',it
@@ -888,6 +888,8 @@ DO jj = 1, Nstn
                 write(6,*) 'Vars(j,k) =',  Vars(j,k)
                 stop
             endif
+
+            Vars(j,k) = max(Vars(j,k), eps)
          enddo 
       enddo
   

@@ -25,15 +25,16 @@ real :: pp_PN, PPpn
 real :: Ptot, PCtot, Ptot1,CHLt,KN, Pl, dCHL,NPPt,rl
 real :: pCHL(4) = 0D0
 real :: VTR,Fe_scav
-real :: x(M)
+
+integer, parameter :: M=50    !discretize the continous normal distribution
+real               :: x(M)  = 0d0
+
 real,     external :: pnorm, normal
 real,    parameter :: PMU0  = log(1d1)
 real,    parameter :: bI0   = 0D0
-real,    parameter :: eps   = 1d-20
 real,    parameter :: Qpmin = 0.05/16d0
 real,    parameter :: KPO4  = 0.5/16d0
 
-integer, parameter :: M=50    !discretize the continous normal distribution
 
 !-----------------------------------------------------------------------
 VTR    = params(iVTR)
@@ -46,6 +47,7 @@ RDN    = 0.1
 mz     = params(imz)
 Kp     = 0.5
 alphaG = 1D0+10**params(ialphaG)
+
 DO k = nlev, 1, -1   
    ! Retrieve current (local) state variable values.
    tC     = Temp(k)
@@ -206,8 +208,8 @@ DO k = nlev, 1, -1
    PMU1= PMU + dtdays*(VAR*(dmuNetdl-dgdlbar+VTR*d3mudl3) - 3d0*VTR*dmuNetdl)
 
 !   Constrain the PMU and VAR: 
-!   PMU1 = min(max(PMU1,0.01),PMUmax)
-!   VAR1 = min(max(VAR1,0.01),VARmax)
+   PMU1 = min(max(PMU1,eps),PMUmax)
+   VAR1 = min(max(VAR1,eps),VARmax)
           
 !All rates have been multiplied by dtdays to get the real rate correponding to the actual time step
    PP_ND= dtdays*RDN*DET*tf_z   

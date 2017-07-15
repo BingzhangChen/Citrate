@@ -453,7 +453,7 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
      MinValue(iaI0_C) =0.01
      if (Model_ID.eq.NPZDcont) then
         MaxValue(igb) =0d0
-        MinValue(igb) =-0.01
+        MinValue(igb) =-0.001
         MaxValue(iVTR)=0.12
         MinValue(iVTR)=0.01
         if (do_IRON) then
