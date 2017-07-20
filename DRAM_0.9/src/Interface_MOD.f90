@@ -454,8 +454,8 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
      if (Model_ID.eq.NPZDcont) then
         MaxValue(igb) =0d0
         MinValue(igb) =-0.001
-        MaxValue(iVTR)=0.12
-        MinValue(iVTR)=0.01
+        MaxValue(iVTR)=0.1
+        MinValue(iVTR)=1D-6
         if (do_IRON) then
            MaxValue(iKFe)=0.2
            MinValue(iKFe)=0.04
@@ -475,10 +475,10 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
   endif
 
   if (Model_ID==NPZDdisc .or. Model_ID==NPZDCONT) then
-     MaxValue(ialphamu)=0.4
-     MinValue(ialphamu)=0.1
+     MaxValue(ialphamu)=0.35
+     MinValue(ialphamu)=0.01
      MaxValue(ibetamu) =0.
-     MinValue(ibetamu) =-0.05
+     MinValue(ibetamu) =-0.04
      MaxValue(ialphaI )=0.2d0
      MinValue(ialphaI )=-0.3d0
      MaxValue(ialphaG )=-2d0
