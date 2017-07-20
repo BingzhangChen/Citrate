@@ -26,7 +26,7 @@ real :: Ptot, PCtot, Ptot1,CHLt,KN, Pl, dCHL,NPPt,rl
 real :: pCHL(4) = 0D0
 real :: VTR,Fe_scav
 
-integer, parameter :: M=50    !discretize the continous normal distribution
+integer, parameter :: M=20    !discretize the continous normal distribution
 real               :: x(M)  = 0d0
 
 real,     external :: pnorm, normal
@@ -113,7 +113,7 @@ DO k = nlev, 1, -1
      !Calculate Chl in this size class
 
      !Pertain only meaningful size class
-     if (x(i) .gt. -3 .and. x(i) .le. 15.) then 
+     if (x(i) .gt. -3. .and. x(i) .le. 15.) then 
        mu0=params(imu0)  *exp(alphamu*x(i)+betamu*x(i)**2)
        aI0=params(iaI0_C)*exp(alphaI*x(i))
        KN =params(iKN)   *exp(alphaK*x(i))
@@ -406,12 +406,12 @@ real                :: Kn
  d4fNdl4 = alphaK**4*N*Kn*(11.*Kn*N*(N-Kn)+Kn**3-N**3)/(N+Kn)**5  !Correct
 end subroutine
 !
-subroutine IRONCYCLE(Temp, DET, DFe, PP_ND, PP_NZ,PP_PN,Fe_scav)
+subroutine IRONCYCLE(Temp, DET,DETFe, DFe, PP_NZ,PP_PN)
 use bio_MOD, only : Femin,TEMPBOL,Ez,dtdays
 implicit none
-real, intent(in)    :: Temp,DET, PP_ND, PP_NZ, PP_PN
-real, intent(inout) :: DFe
-real, intent(out)   :: Fe_scav
+real, intent(in)    :: Temp,DET, PP_NZ, PP_PN
+real, intent(inout) :: DFe, DETFe
+real                :: Fe_scav     !Iron scavenging
 real                :: keq, cff
 real, parameter     :: Kscm= 3D-5  !Minimal scavenging rate
 real, parameter     :: Ksc = 3D-2  !Particle dependent scavenging rate (umolN-1 d-1)
@@ -419,7 +419,7 @@ real, parameter     :: Ksc = 3D-2  !Particle dependent scavenging rate (umolN-1 
 !assume redfield ratio of C/N. Times 1000 to convert umol N to nmol Fe
 real, parameter     :: Fe_N = 0.0265 ! Fe:Nitrogen molar ratio
 real, parameter     :: lFe  = 0.6    ! Iron ligand concentration (nM). (TOM10 P. 19)
-
+real, parameter     :: Rdn  = .1     ! Regeneration rate from detritus to dissolved Fe
 DFe  = max(DFe,Femin)
 
 !dFedt = -phytouptake + Zoo excretion - scavenging + remineralization + dust deposition
@@ -427,6 +427,7 @@ DFe  = max(DFe,Femin)
 
 !lFe: total ligand conc. (Nikelsen et al. Geosci. Model. Dev. 2015)
 !     When iron concentration is above 0.6 nM, it is scavenged by DET
+!To close the iron cycle, need to model the Fe in Detritus
 !Following TOM10Appendix, Eq. 46
 !The equilibrium constant between free iron and ligands and organic complexes. 
 keq  = 10**(17.27-1565.7/(273.15 + Temp))
@@ -434,11 +435,15 @@ keq  = 10**(17.27-1565.7/(273.15 + Temp))
 !Following TOM10Appendix, Eq. 45
 !Iron scavenging rate = (Basal scavenging rate + particle asorbtion)*FEprime
 cff     = 1D0+(lFe-DFe)*keq 
-Fe_scav = KScm + Ksc*DET*TEMPBOL(Ez,Temp)             &
-               * (-cff + sqrt(cff**2 + 4.*DFe*keq))/2D0/keq  
+Fe_scav = (Kscm + Ksc*DET*TEMPBOL(Ez,Temp))             &
+               * (-cff + sqrt(cff**2 + 4D0*DFe*keq))/2D0/keq  
 
-DFe = DFe + ((PP_ND+PP_NZ-PP_PN)*Fe_N- Fe_scav*dtdays)
+cff = dtdays*DETFe*Rdn*TEMPBOL(Ez,Temp) !The flux from DETFe ==> DFe
+DFe = DFe + cff + ((PP_NZ-PP_PN)*Fe_N - Fe_scav*dtdays)
 
+! dDETFe/dt = Zooplankton defecation and mortality + scavenging - regeneration
+DETFe = DETFe + PP_DZ*Fe_N + dtdays*Fe_scav - cff
+! In this way, although we do not explicitly model the iron contents in PHY and ZOO, the total mass of iron is conserved (excluding dust deposition which should balance with detritus sinking)
 end subroutine
 
 
