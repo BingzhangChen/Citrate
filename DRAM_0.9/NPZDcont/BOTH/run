@@ -2,7 +2,7 @@
 export DATADIR=../../../Forcing
 export SCRATCHDIR=Compile
 export SRCDIR=../../src
-Test=0 
+Test=1 
 
 rm -rf ${SCRATCHDIR}
 mkdir ${SCRATCHDIR}
@@ -16,7 +16,7 @@ mkdir ${SCRATCHDIR}
 
 if [[ $Test == 1 ]]; then
    echo 'Run model with debug options...'
-   FFLAGS="-O0 -r8 -i4 -g -check all -fpe0 -warn -traceback -debug extended"
+   FFLAGS="-O0 -r8 -i4 -g -check all -fpe0 -warn -traceback -debug extended -nogen-interface"
 else
    FFLAGS="-fast -r8 -i4"
    echo 'Run model without debug options...'
