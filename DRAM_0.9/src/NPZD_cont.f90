@@ -6,8 +6,8 @@ integer :: k,j,i
 !INPUT PARAMETERS:
 real :: tC,par_
 !LOCAL VARIABLES of phytoplankton:
-real :: PMUPHY,VARPHY,NO31,PHY1,ZOO1
-real :: PMUPHY1,VARPHY1  !State variables
+real :: PMUPHY,VARPHY,PHY1
+real :: NO3, Fe, PHY, ZOO, DET, DETFe, DET1
 real :: PMU,VAR,PMU1,VAR1
 real :: mu0,aI0
 real :: QN,QP  ! cell quota related variables
@@ -16,7 +16,6 @@ real :: alphaK,alphaI, alphaG,SI,Lno3,KFe_
 real :: muNet1, SI1, Lno31, QN1
 real :: mu ! a scratch variable to temporally store phyto. growth rate
 real :: theta,theta1,dgdlbar,d2gdl2bar
-real :: NO3, Fe, PHY, ZOO, DET, DET1
 
 !Declarations of zooplankton:
 real :: dx  ! size interval
@@ -24,7 +23,7 @@ real :: gmax,RDN,mz,Kp,Cf  !Zooplankton variables
 real :: pp_PN, PPpn
 real :: Ptot, PCtot, Ptot1,CHLt,KN, Pl, dCHL,NPPt,rl
 real :: pCHL(4) = 0D0
-real :: VTR,Fe_scav
+real :: VTR
 
 integer, parameter :: M=20    !discretize the continous normal distribution
 real               :: x(M)  = 0d0
@@ -35,7 +34,6 @@ real,    parameter :: bI0   = 0D0
 real,    parameter :: Qpmin = 0.05/16d0
 real,    parameter :: KPO4  = 0.5/16d0
 
-
 !-----------------------------------------------------------------------
 VTR    = params(iVTR)
 alphamu= params(ialphamu)
@@ -45,10 +43,11 @@ alphaK = params(ialphaKN)
 gmax   = params(igmax)
 RDN    = 0.1
 mz     = params(imz)
-Kp     = 0.5
-alphaG = 1D0+10**params(ialphaG)
+Kp     = params(iKPHY)              ! Grazing half-saturation constant for ZOO
+alphaG = 1D0+params(ialphaG)
 
 DO k = nlev, 1, -1   
+
    ! Retrieve current (local) state variable values.
    tC     = Temp(k)
    ! Check whether in the MLD or not
@@ -61,6 +60,7 @@ DO k = nlev, 1, -1
    NO3    = Vars(iNO3,    k)
    ZOO    = Vars(iZOO,    k)
    DET    = Vars(iDET,    k)
+   DETFe  = Vars(iDETFe,  k)
    PHY    = Vars(iPHY(1), k)
    Varout(oPON,k)=ZOO+DET+PHY
    PMUPHY = Vars(iPMU,    k)
@@ -218,27 +218,29 @@ DO k = nlev, 1, -1
    PP_ZP= ZOO*INGES*dtdays      
    PPpn = PHY*dtdays*(muNet+0.5*VAR*(d2muNetdl2+VTR*d4mudl4)-1.5*VTR*d2muNetdl2)
    PP_PN= max(PPpn,0D0)
-!
-   DET1 = DET + PP_DZ         - PP_ND 
-   NO31 = NO3 + PP_ND + PP_NZ - PP_PN
-   PHY1 = PHY + PP_PN         - PP_ZP
-   ZOO1 = ZOO + PP_ZP         - PP_NZ - PP_DZ
-   
-   call IRONCYCLE(tC, DET, Fe ,PP_ND,PP_NZ,PP_PN,Fe_scav)
 
-   PMUPHY1 = PMUPHY + PHY*(PMU1-PMU) + PMU*(PHY1-PHY)
+!Update tracers:
+   DET1 = DET + PP_DZ         - PP_ND 
+   NO3  = NO3 + PP_ND + PP_NZ - PP_PN
+   PHY1 = PHY + PP_PN         - PP_ZP
+   ZOO  = ZOO + PP_ZP         - PP_NZ - PP_DZ
+   
+   call IRONCYCLE(tC, DET, PP_NZ, PP_PN, PP_DZ, DETFe, Fe)
+
+   PMUPHY = PMUPHY + PHY*(PMU1-PMU) + PMU*(PHY1-PHY)
 
    ! Use VAR*PHY**2 as the tracer
-   VARPHY1 = VARPHY + PHY**2*(VAR1-VAR) + 2.*PHY*VAR*(PHY1-PHY)
+   VARPHY = VARPHY + PHY**2*(VAR1-VAR) + 2d0*PHY*VAR*(PHY1-PHY)
 
-   Varout(oNO3,k)      = NO31
+   Varout(oNO3,k)      = NO3
    Varout(oPHY(1),k)   = PHY1
    Varout(oPHYt,  k)   = PHY1
-   Varout(oZOO,k)      = ZOO1
+   Varout(oZOO,k)      = ZOO
    Varout(oDET,k)      = DET1
+   Varout(oDETFe,k)    = DETFe
    Varout(ofer,k)      = Fe
-   Varout(oPMU,k)      = PMUPHY1
-   Varout(oVAR,k)      = VARPHY1
+   Varout(oPMU,k)      = PMUPHY
+   Varout(oVAR,k)      = VARPHY
    Varout(oTheta(1),k) = CHLt/PCtot 
    Varout(oQN(1)   ,k) = PHY/PCtot
    Varout(omuNet(1),k) = muNet               !Growth rate of mean size
@@ -406,10 +408,10 @@ real                :: Kn
  d4fNdl4 = alphaK**4*N*Kn*(11.*Kn*N*(N-Kn)+Kn**3-N**3)/(N+Kn)**5  !Correct
 end subroutine
 !
-subroutine IRONCYCLE(Temp, DET,DETFe, DFe, PP_NZ,PP_PN)
-use bio_MOD, only : Femin,TEMPBOL,Ez,dtdays
+subroutine IRONCYCLE(Temp, DET, PP_NZ,PP_PN,PP_DZ, DETFe, DFe)
+use bio_MOD, only : Femin,TEMPBOL,Ez,dtdays,Fe_N
 implicit none
-real, intent(in)    :: Temp,DET, PP_NZ, PP_PN
+real, intent(in)    :: Temp,DET, PP_NZ, PP_PN, PP_DZ
 real, intent(inout) :: DFe, DETFe
 real                :: Fe_scav     !Iron scavenging
 real                :: keq, cff
@@ -417,7 +419,6 @@ real, parameter     :: Kscm= 3D-5  !Minimal scavenging rate
 real, parameter     :: Ksc = 3D-2  !Particle dependent scavenging rate (umolN-1 d-1)
 !Iron:Nitrogen ratio, Aumont et al. (2003) set Fe/C = 4D-6 (mol:mol). 
 !assume redfield ratio of C/N. Times 1000 to convert umol N to nmol Fe
-real, parameter     :: Fe_N = 0.0265 ! Fe:Nitrogen molar ratio
 real, parameter     :: lFe  = 0.6    ! Iron ligand concentration (nM). (TOM10 P. 19)
 real, parameter     :: Rdn  = .1     ! Regeneration rate from detritus to dissolved Fe
 DFe  = max(DFe,Femin)
@@ -438,11 +439,13 @@ cff     = 1D0+(lFe-DFe)*keq
 Fe_scav = (Kscm + Ksc*DET*TEMPBOL(Ez,Temp))             &
                * (-cff + sqrt(cff**2 + 4D0*DFe*keq))/2D0/keq  
 
-cff = dtdays*DETFe*Rdn*TEMPBOL(Ez,Temp) !The flux from DETFe ==> DFe
+cff = dtdays*DETFe*Rdn*TEMPBOL(Ez,Temp) !The regeneration flux from DETFe ==> DFe
+
 DFe = DFe + cff + ((PP_NZ-PP_PN)*Fe_N - Fe_scav*dtdays)
 
 ! dDETFe/dt = Zooplankton defecation and mortality + scavenging - regeneration
 DETFe = DETFe + PP_DZ*Fe_N + dtdays*Fe_scav - cff
+
 ! In this way, although we do not explicitly model the iron contents in PHY and ZOO, the total mass of iron is conserved (excluding dust deposition which should balance with detritus sinking)
 end subroutine
 

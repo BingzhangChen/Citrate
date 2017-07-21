@@ -335,8 +335,8 @@ if (Model_ID.eq.EFT2sp .or. Model_ID.eq.EFTPPDD .or. Model_ID.eq.NPZD2sp .or. Mo
    MinValue(imu0B)= 0.05
    MaxValue(iRL2) = 0.99
    MinValue(iRL2) = 0.1
-   MaxValue(ialphaG)=-1d0
-   MinValue(ialphaG)=-6d0
+   MaxValue(ialphaG)=0.1
+   MinValue(ialphaG)=0.
 
    if (Model_ID .eq. NPZD2sp .or. Model_ID .eq. NPPZDD) then
       MaxValue(ibI0B)=-1.5d0
@@ -388,9 +388,11 @@ endif
  MaxValue(igmax) =  2d0
  MinValue(igmax) =  0.5
 
+ MaxValue(iKPHY) = 2d0
+ MinValue(iKPHY) = .1
 if (Model_ID .eq. NPZDDISC .or. Model_ID .eq. EFTdisc) then
-   MaxValue(ialphaG)=-0.5
-   MinValue(ialphaG)=-6d0
+   MaxValue(ialphaG)=.1
+   MinValue(ialphaG)=0.
 
 endif
 select case(nutrient_uptake)
@@ -481,8 +483,8 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
      MinValue(ibetamu) =-0.04
      MaxValue(ialphaI )=0.2d0
      MinValue(ialphaI )=-0.3d0
-     MaxValue(ialphaG )=-2d0
-     MinValue(ialphaG )=-1d1
+     MaxValue(ialphaG )=0.1
+     MinValue(ialphaG )=0.
 
      if(nutrient_uptake .eq. 1) then
         MaxValue(ialphaKN)=0.3

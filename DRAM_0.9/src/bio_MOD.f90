@@ -37,7 +37,7 @@ real, parameter :: PMU_3   = log(1d1*pi/6d0*3d0**3)
 real, parameter :: PMU_10  = log(1d1*pi/6d0*1d1**3)
 integer         :: AllocateStatus
 integer         :: N_MLD     ! vertical grid index at the bottom of MLD
-integer         :: bot_bound ! Option of bottom boundary condition
+integer            :: bot_bound = 1 ! Option of bottom boundary condition
 integer, parameter :: Dirichlet      = 0
 integer, parameter :: Neumann        = 1
 
@@ -45,12 +45,12 @@ real     :: Temp(nlev), PAR(nlev), dtdays, Ntot, PARavg, wstr0(1)
 real     :: DFe(nlev)                           ! Dissolved iron concentration
 real     :: Z_r(1:nlev), Z_w(0:nlev), Hz(nlev)  ! Grid variables
 real     :: I_zero
-integer  :: NVAR, Nout, iZOO, iDET,iDET2,iDETp, iPMU, iVAR, iPO4,iDIA
+integer  :: NVAR, Nout, iZOO, iDET,iDET2,iDETp,iDETFe, iPMU, iVAR, iPO4,iDIA
 integer  :: NVsinkterms,NPHY, NPar
 integer  :: oZOO, oDET, oPON, oFER, oZ2N, oD2N, oPHYt,oCHLt,oPPt,omuAvg
-integer  :: oPO4, oPOP, oDIA, oDIAu,oDETp, oDET2
+integer  :: oPO4, oPOP, oDIA, oDIAu,oDETp, oDET2, oDETFe
 integer  :: oPMU, oVAR, odmudl,odgdl,od2mu,od2gdl  
-integer  :: oD_NO3,oD_ZOO,oD_DET,oD_DET2,oD_fer,oD_PMU,oD_VAR,oPAR_,oD_DETp,oD_PO4,oD_DIA
+integer  :: oD_NO3,oD_ZOO,oD_DET,oD_DET2,oD_fer,oD_PMU,oD_VAR,oPAR_,oD_DETp,oD_DETFe,oD_PO4,oD_DIA
 integer  :: oCHLs(4)   ! Four size fractions of CHL
 
 ! Indices for parameters used in DRAM
@@ -73,6 +73,7 @@ character(LEN=6), allocatable :: ParamLabel(:)
 real, parameter :: PMUmax =1.5D1, VARmax=50D0
 real            :: Femin  =0.02,K0Fe  =0.8, alphaFe=0.14
 real, parameter :: GGE    =0.3, unass =0.24
+real, parameter :: Fe_N   =0.0265 ! Fe:Nitrogen molar ratio (nmol : umol)
 real, parameter :: thetm  =0.65
 real, parameter :: RMchl0 =0.1
 real, parameter :: Ep     =0.5, Ez    =0.6 

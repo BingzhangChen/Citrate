@@ -33,7 +33,7 @@ real, private, target :: obs_time_w(   NFobs(ew  ) , Nstn)
 real, private, target :: obs_time_par( NFobs(ePAR) , Nstn)
 real, private, target :: obs_time_wstr(NFobs(ewstr), Nstn)
 real, private, target :: obs_time_Dust(NFobs(eDust), Nstn)
-real, private, target :: obs_time_Fer( NFobs(eFer) , Nstn)
+real, private, target :: obs_time_fer( NFobs(eFer) , Nstn)
 
 ! Forcing data
 real, private :: obs_NO3( N_NO3 ,  1+NFobs(eNO3 ))
@@ -46,9 +46,10 @@ real, private :: obs_Dust(N_Dust,  1+NFobs(eDust))
 real, private :: obs_wstr(N_wstr,  1+NFobs(ewstr))
 real, private, allocatable :: obs_Aks(:,:) ! (N_Aks ,  1+NFobs(eAks ))
 
-! Bottom data for NO3 and PO4
+! Bottom data for NO3, PO4, and fer
 real, private, target :: NO3_bot(1,NFobs(eNO3), Nstn)
 real, private, target :: PO4_bot(1,NFobs(ePO4), Nstn)
+real, private, target :: fer_bot(1,NFobs(eFer), Nstn)
 real, private, allocatable :: VarsBom(:,:)
 
 real, pointer :: pb(:), pc(:,:)
@@ -507,6 +508,12 @@ do j = 1, Nstn
      ! Interpolate initial fer:
      call gridinterpol(N_fer,1,obs_fer(:,1),obs_fer(:,2),                 &
                        nlev, Z_r, fer(:,1,j)) 
+
+     ! Get bottom data for fer:
+      do i = 1, NFobs(eFer)
+         fer_bot(1,i,j) = obs_fer(1, i+1)
+      enddo
+
    endif
   
    ! Calculate obs. time indices in seconds:
@@ -539,6 +546,11 @@ do j = 1, Nstn
    if (do_IRON) then  ! Read dust deposition time data:
       call Readcsv(forcfiletime(eDust), 1,NFobs(eDust), obs_time_Dust(:,j)) 
       obs_time_Dust(:,j) = obs_time_Dust(:,j) *3d1*dble(d_per_s)  ! Dust deposition
+
+      if (bot_bound .eq. Dirichlet) then  ! Read iron time
+         call Readcsv(forcfiletime(eFer), 1,NFobs(eFer), obs_time_fer(:,j)) 
+         obs_time_fer(:,j) = obs_time_fer(:,j) *3d1*dble(d_per_s)  ! fer deposition
+      endif
    endif
 
    ! Read external w data:
@@ -608,7 +620,7 @@ End subroutine Model_setup
 ! Must be called after initialization
 SUBROUTINE Timestep
 implicit none
-real,    parameter  :: cnpar = 0.6
+real,    parameter  :: cnpar      = 0.6
 real,    parameter  :: Taur(nlev) = 1D12  !Relaxation time
 real,    parameter  :: Vec0(nlev) = 0d0   !Vectors of zero
 ! Local scratch variables
@@ -687,6 +699,9 @@ DO jj = 1, Nstn
   if (do_IRON) then
     ! Initialize initial fer:
      Vars(ifer,:) = fer(:,1,jj)
+     do k = 1, nlev
+        Vars(iDETFe,k) = Vars(iDET,k)*Fe_N
+     enddo
   endif
 
    ! Initialize initial PO4:
@@ -721,7 +736,10 @@ DO jj = 1, Nstn
      VarsBom(1, iDET)    = 4D-2/3d0
      VarsBom(1, iZOO)    = 2D-3/3d0
      VarsBom(1, iPHY(1)) = 2D-3/3d0
-     if (Model_ID .eq. NPZDN2) VarsBom(1, iDETp)   = 2D-3/3d0
+     if (Model_ID .eq. NPZDN2)   VarsBom(1, iDETp)   = 2D-3/3d0
+     if (Model_ID .eq. NPZDcont) then
+        VarsBom(1, iDETFe)  = VarsBom(1,iDET)*Fe_N  !Unit: nM
+     endif
   endif
 
   ! Sinking rate
@@ -739,7 +757,7 @@ DO jj = 1, Nstn
     if (Model_ID==NPPZDD .OR. Model_ID==EFTPPDD) then
        ww(k,ncff-1)=-cff/dble(d_per_s) 
        ww(k,ncff)  =-10**(Params(iwDET2))/dble(d_per_s) 
-    elseif (Model_ID==NPZDN2) then
+    elseif (Model_ID==NPZDN2 .or. Model_ID==NPZDcont) then
        ww(k,ncff-1)=-cff/dble(d_per_s) 
        ww(k,ncff)  =ww(k,ncff-1)
     else
@@ -817,6 +835,14 @@ DO jj = 1, Nstn
        !write(6,*) 'Annual added dissolved Fe (umol/m2) = ', cff * Hz(nlev)*mon2sec/dtsec*12.
        
        Vars(ifer,nlev) = Vars(ifer,nlev) + cff
+
+       if (bot_bound .eq. Dirichlet) then
+          !  Interpolate bottom fer data:
+          pb => obs_time_fer(:,jj)
+          pc => fer_bot(:,:,jj)
+          call time_interp(int(current_sec),NFobs(eFer),1,pb,pc,VarsBom(:,ifer))
+       endif
+
      endif
 
      if (N2fix) then
@@ -1178,6 +1204,7 @@ DO jj = 1, Nstn
      Vars2(:) = Vars(Windex(j),:)
 
      select case (bot_bound)
+
      case(Neumann)  ! closed at bottom (Conserve total N mass)
         call adv_center(nlev,dtsec,Hz,Hz,ww_(:),1,1,zero,zero,    6,mode1,Vars2(:))
      case(Dirichlet)

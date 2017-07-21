@@ -94,7 +94,8 @@ if (Model_ID==Geiderdisc .or. Model_ID==Geidersimple .or. Model_ID==GeidsimIRON)
    enddo 
    NVAR = iCHL(NPHY)
 else if(Model_ID==EFTcont .or. Model_ID==NPZDcont) then
-   iPMU = iDET  + 1
+   iDETFe=iDET  + 1   ! Detritus in iron
+   iPMU = iDETFe+ 1
    iVAR = iPMU  + 1
    NVAR = iVAR 
    if (Model_ID == NPZDcont) then
@@ -132,11 +133,17 @@ do i=1,NPHY
    endif
 enddo
 if (Model_ID==NPPZDD .or. Model_ID==EFTPPDD) then
+
    Windex(NVsinkterms-1)=iDET
    Windex(NVsinkterms)  =iDET2
+
 elseif (Model_ID==NPZDN2) then
    Windex(NVsinkterms-1)=iDET
    Windex(NVsinkterms)  =iDETp
+
+elseif (Model_ID==NPZDcont) then
+   Windex(NVsinkterms-1)=iDET
+   Windex(NVsinkterms)  =iDETFe
 else
    Windex(NVsinkterms)=iDET
 endif
@@ -148,7 +155,8 @@ enddo
 oZOO =oPHY(NPHY)+1
 oDET =oZOO+1
 if(Model_ID==EFTcont .or. Model_ID==NPZDcont) then
-   oPMU=oDET+1
+   oDETFe=oDET+1
+   oPMU=oDETFe+1
    oVAR=oPMU+1
    if (do_IRON) then
       ofer = oVAR+1
@@ -237,8 +245,9 @@ oPPt=oD2N+1
 oPON=oPPt+1
 oPAR_ =oPON+1
 omuAvg=oPAR_+1
-oD_NO3=omuAvg+1
 
+! The diffusion output order must be consistent with the tracer order!
+oD_NO3=omuAvg+1
 do i=1,NPHY
    oD_PHY(i)=oD_NO3+i
 enddo
@@ -254,7 +263,8 @@ else if(Model_ID==NPPZDD .or. Model_ID==EFTPPDD) then
    oD_DET2=oD_DET+1
    Nout=oD_DET2
 else if(Model_ID==EFTcont .or. Model_ID==NPZDcont) then
-   oD_PMU=oD_DET+1
+   oD_DETFe=oD_DET+1
+   oD_PMU=oD_DETFe+1
    oD_VAR=oD_PMU+1
    oD_fer=oD_VAR+1
    od2mu =oD_fer+1
@@ -310,12 +320,14 @@ if (Model_ID==NPZDN2) then
     Labelout(oD_DIA +ow)='D_DIA'
 endif
 if (Model_ID==EFTcont .or. Model_ID==NPZDcont) then
+    Labelout(oDETFe+ow)='DETFe'
     Labelout(oPMU  +ow)='PMU'
     Labelout(oVAR  +ow)='VAR'
     Labelout(odmudl+ow)='dmudl'
     Labelout(od2mu +ow)='d2mu '
     Labelout(od3mu +ow)='d3mu'
     Labelout(od4mu +ow)='d4mu'
+    Labelout(oD_DETFe+ow)='DDETF'
     Labelout(oD_PMU+ow)='D_PMU'
     Labelout(oD_VAR+ow)='D_VAR'
     if (do_IRON) then
@@ -374,8 +386,9 @@ enddo
 ! Common parameters:
 imu0    =  1
 igmax   =  imu0+1
+iKPHY   =  igmax  + 1  
 if (Model_ID == EFT2sp .OR. Model_ID==EFTPPDD .OR. Model_ID==NPZD2sp .OR. Model_ID==NPPZDD) then
-    imu0B   =  igmax + 1  ! The ratio of mu0 of the second species to the first
+    imu0B   =  iKPHY + 1  ! The ratio of mu0 of the second species to the first
     iaI0B   =  imu0B + 1  ! The ratio of aI0 of the second species to the first
     if (Model_ID==NPZD2sp .OR. Model_ID==NPPZDD) then
        ibI0B=  iaI0B  + 1
@@ -385,12 +398,11 @@ if (Model_ID == EFT2sp .OR. Model_ID==EFTPPDD .OR. Model_ID==NPZD2sp .OR. Model_
        imz  =  iaI0   + 1
     endif
 else if(Model_ID==NPZDN2) then
-      iKPHY =  igmax  + 1  
        imz  =  iKPHY  + 1
 else if(Model_ID==NPZDcont .or. Model_ID==NPZDdisc .or. Model_ID==NPZDFix) then
-      imz   =  igmax  + 1
+      imz   =  iKPHY  + 1
 else
-    iaI0    =  igmax  + 1
+    iaI0    =  iKPHY  + 1
     imz     =  iaI0   + 1
 endif
 
@@ -504,6 +516,7 @@ allocate(ParamLabel(NPar))
 ParamLabel(imu0) = 'mu0hat '
 ParamLabel(imz)  = 'mz'
 ParamLabel(igmax)= 'gmax'
+ParamLabel(iKPHY)= 'KPHY'
 
 if (Model_ID .eq. NPZDN2) then
    params(imz)   = 0.15*16d0
@@ -511,6 +524,7 @@ else
    params(imz)   = 0.15
 endif
 params(igmax)    = 1.0
+params(iKPHY)    = 0.5
 if (Model_ID == NPZDdisc .or. Model_ID == NPZDFix .or. Model_ID==NPZDcont &
 .or.Model_ID == NPZDN2) then
    params(imu0)     = 1.2
@@ -520,7 +534,7 @@ endif
 
 if(Model_ID==EFT2sp .or. Model_ID==EFTPPDD .or.  Model_ID==NPZD2sp .or. Model_ID==NPPZDD) then
    ParamLabel(imu0B)='mu0B'
-   params(imu0B)=0.3
+   params(imu0B)    =0.3
 endif
 
 if(Model_ID==NPZDdisc.or.Model_ID==Geiderdisc.or.  &
@@ -562,7 +576,6 @@ if (nutrient_uptake .eq. 1) then
       params(iKPnif)= 1D-3
   ParamLabel(iLnifp)= 'Lnifp'
       params(iLnifp)= 0.17*16.
-  ParamLabel(iKPHY) = 'KPHY'
       params(iKPHY) = .5/16d0
   ParamLabel(iRDN_N)= 'RDNn'
       params(iRDN_N)= 0.05
@@ -594,7 +607,7 @@ if(Model_ID.eq.NPZD2sp .OR. Model_ID.eq.EFTdisc .OR. &
    Model_ID.eq.EFT2sp  .OR. Model_ID.eq.NPZDcont.OR. &
    Model_ID.eq.NPPZDD  .OR. Model_ID.eq.EFTPPDD) then
    ParamLabel(ialphaG)='alphaG'
-   params(ialphaG)    =-5d0
+   params(ialphaG)    =.01
 endif
 !
 ParamLabel(iwDET) = 'wDET   '
