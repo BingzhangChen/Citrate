@@ -7,10 +7,10 @@ real :: start, finish
 real, allocatable    :: Ymod(:)
 integer              :: i
 real                 :: mu0hat, KN, A0N, wDET, Q0N,aI0, KPHY,alphaG
-real                 :: alphaKN,alphaA, VTR, gmax, mz, alphaI,dustso
+real                 :: alphaKN,alphaA, VTR, gmax, mz, alphaI,dustso,gb
 
 NAMELIST /parameters/ mu0hat,KN, A0N, wDET, Q0N,aI0,alphaKN,alphaA,alphamu, &
-    VTR, gmax,KPHY, mz, alphaI,alphaG, betamu, KFe, alphaFe, dustso, bot_bound
+    VTR, gmax,KPHY, mz, alphaI,alphaG, betamu, KFe, alphaFe, dustso,gb, bot_bound
 
 !  open the namelist file and read station name.
 OPEN(namlst,file='param.nml',status='old',action='read')
@@ -46,6 +46,7 @@ params(iKFe)      = KFe
 params(ialphaFe)  = alphaFe
 params(idustsol)  = dustso
 params(ialphaG)   = alphaG
+params(igb)       = gb
 
 do i = 1, NPar
    write(6, 101) trim(ParamLabel(i)), params(i)

@@ -18,5 +18,6 @@ betamu = -0.01,
 KFe    = 0.04,
 alphaFe= 0.27,
 dustso = 0.02,
+gb     = 0,
 bot_bound = 0,
 /
