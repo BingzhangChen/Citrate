@@ -452,6 +452,7 @@ subroutine Model_setup
 ! Called at the beginning of the program, only once
 implicit none
 integer            :: i,j,k
+real               :: a(1)  !a scratch vector with length 1
 ! Input files
 character(LEN=20)  :: forcfile(TNFo), forcfiletime(TNFo)
 
@@ -481,7 +482,19 @@ do j = 1, Nstn
    ! Interpolate initial NO3:
    call gridinterpol(N_NO3,1,obs_NO3(:,1),obs_NO3(:,2),                 &
                      nlev, Z_r, NO3(:,1,j)) 
-   
+
+   ! Get bottom data for NO3:
+   ! Interpolate NO3 to the bottom depth:
+   a(1) = Z_w(0)
+   call gridinterpol(N_NO3,NFobs(eNO3),obs_NO3(:,1),               &
+                     obs_NO3(:,2:(NFobs(eNO3)+1)),                 &
+                     1, a, NO3_bot(1,:,j)) 
+
+   do i = 1, NFobs(eNO3)
+      write(6,*) NO3_bot(1,:,j)
+   enddo
+   stop
+  
    ! Get bottom data for NO3:
    do i = 1, NFobs(eNO3)
       NO3_bot(1,i,j) = obs_NO3(1, i+1)
