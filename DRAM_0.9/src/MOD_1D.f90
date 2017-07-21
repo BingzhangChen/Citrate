@@ -490,16 +490,6 @@ do j = 1, Nstn
                      obs_NO3(:,2:(NFobs(eNO3)+1)),                 &
                      1, a, NO3_bot(1,:,j)) 
 
-   do i = 1, NFobs(eNO3)
-      write(6,*) NO3_bot(1,:,j)
-   enddo
-   stop
-  
-   ! Get bottom data for NO3:
-   do i = 1, NFobs(eNO3)
-      NO3_bot(1,i,j) = obs_NO3(1, i+1)
-   enddo
-
    if (N2fix) then
       ! Read PO4 data:
       call Readcsv(forcfile(ePO4), N_PO4, size(obs_PO4,2), obs_PO4) 
@@ -509,9 +499,9 @@ do j = 1, Nstn
                         nlev, Z_r, PO4(:,1,j)) 
 
       ! Get bottom data for PO4:
-      do i = 1, NFobs(ePO4)
-         PO4_bot(1,i,j) = obs_PO4(1, i+1)
-      enddo
+      call gridinterpol(N_PO4,NFobs(ePO4),obs_PO4(:,1),               &
+                     obs_PO4(:,2:(NFobs(ePO4)+1)),                    &
+                     1, a, PO4_bot(1,:,j)) 
    endif
 
    if (do_IRON) then
@@ -523,9 +513,9 @@ do j = 1, Nstn
                        nlev, Z_r, fer(:,1,j)) 
 
      ! Get bottom data for fer:
-      do i = 1, NFobs(eFer)
-         fer_bot(1,i,j) = obs_fer(1, i+1)
-      enddo
+     call gridinterpol(N_fer,NFobs(efer),obs_fer(:,1),               &
+                    obs_fer(:,2:(NFobs(efer)+1)),                    &
+                    1, a, fer_bot(1,:,j)) 
 
    endif
   
