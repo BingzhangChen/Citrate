@@ -21,14 +21,19 @@ plot_1D <- function(Var,model,Stn,title='',ZLIM=NULL, finalyr = F, BOTH = T, Dma
       days[days==0] <- 360
       data <- data[cff,]
     }
-    #ZLIM = as.double(quantile(unlist(data),probs=c(0.01,0.95)))
-    data[data < ZLIM[1]] <- ZLIM[1]
-    data[data > ZLIM[2]] <- ZLIM[2]
-    breaks=round(seq(ZLIM[1], ZLIM[2], length.out=12),2)
-    image2D(as.matrix(data), x=days, y=-depth, col = jet2.col(length(breaks)-1),#jet2.col(100), 
+    if (!is.null(ZLIM)) {
+       breaks= round(seq(ZLIM[1], ZLIM[2], length.out=12),2)
+       image2D(as.matrix(data), x=days, y=-depth, col = jet2.col(length(breaks)-1),#jet2.col(100), 
            breaks=breaks, 
            #colkey=list(breaks=round(seq(ZLIM[1], ZLIM[2], by = 0.1),2)),
            xlab='',ylab='',main=title,adj=0,xaxt='n',cex.axis=1.2,cex.lab=1.2)
+    }else{
+      #ZLIM = as.double(quantile(unlist(data),probs=c(0.01,0.95)))
+      #data[data < ZLIM[1]] <- ZLIM[1]
+      #data[data > ZLIM[2]] <- ZLIM[2]
+      image2D(as.matrix(data), x=days, y=-depth,
+             xlab='',ylab='',main=title,adj=0,xaxt='n',cex.axis=1.2,cex.lab=1.2)
+    }
     #Add Variable name and units:
     if (Var == 'NO3'){
       Varname  <- bquote('TIN (mmol '*m^-3*')')
