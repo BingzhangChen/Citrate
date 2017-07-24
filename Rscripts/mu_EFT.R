@@ -113,4 +113,17 @@ mu_EFT <- function(temp = 15,  par_=400, NO3=100, aI = 6.103E-01, Q0N = 0.07561,
     return(list(mu=muNet,Theta=Theta,QN=QN))
 }
 
+#
+#A function that generates the concentrations within each size class
+dB <- function(B, mean, var, mu=seq(1,20,length.out=100),N=10000){
+   M  <- length(mu)
+   X  <- rnorm(N, mean=mean, sd = sqrt(var))
+   NewX <- numeric(M)
+   for (i in 1:M){
+       #Count the number of X within one interval:
+       NewX[i] <- length(which(X >= mu[i] & X < mu[i+1]))
+   }
+   NewX <- NewX/N*B
+   return(NewX)
+}
 

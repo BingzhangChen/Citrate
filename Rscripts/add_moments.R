@@ -1,4 +1,5 @@
 setwd('~/Working/Draft/gmd/')
+source('~/Working/FlexEFT1D/Rscripts/mu_EFT.R')
 BX    <- 1
 muX   <- 5
 varX  <- 1
@@ -8,19 +9,7 @@ varY  <- .8
  muZ_e  <- (BX*muX+BY*muY)/(BX+BY)
 varZ_e1 <- (BX*varX+BY*varY)/(BX+BY)
 varZ_e2 <- (BX**2*varX+BY**2*varY)/(BX**2+BY**2)
-#A function that generates the concentrations within each size class
-mu=seq(0,10,length.out=200)
-dB <- function(B, mean, var, mu=seq(1,20,length.out=100),N=10000){
-   M  <- length(mu)
-   X  <- rnorm(N, mean=mean, sd = sqrt(var))
-   NewX <- numeric(M)
-   for (i in 1:M){
-       #Count the number of X within one interval:
-       NewX[i] <- length(which(X >= mu[i] & X < mu[i+1]))
-   }
-   NewX <- NewX/N*B
-   return(NewX)
-}
+mu   <-  seq(0,10,length.out=200)
 X    <-  dB(BX, muX, varX, mu) 
 Y    <-  dB(BY, muY, varY, mu) 
 #Calculate the resultant mean and var:
