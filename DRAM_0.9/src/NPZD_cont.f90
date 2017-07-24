@@ -25,7 +25,7 @@ real :: Ptot, PCtot, Ptot1,CHLt,KN, Pl, dCHL,NPPt,rl
 real :: pCHL(4) = 0D0
 real :: VTR
 
-integer, parameter :: M=20    !discretize the continous normal distribution
+integer, parameter :: M     = 20    !discretize the continous normal distribution
 real               :: x(M)  = 0d0
 
 real,     external :: pnorm, normal
@@ -277,7 +277,7 @@ real :: d3SIdl3,daI_mu0hat3dl,d2aI_mu0hat2dl2,d4SIdl4
 real :: daI_mu0hat4dl,d2aI_mu0hat3dl2,d3aI_mu0hat2dl3, d4aI_mu0hatdl4
 real :: d3muIhatdl3, d4muIhatdl4
 real :: Kn,K0N,dfNdl,d2fNdl2,d3fNdl3, d4fNdl4, Qmin,Qmax,tf
-real :: fFe, dfFedl, d2fFedl2, d3fFedl3, d4fFedl4
+real :: fFe
 real, parameter :: thetamin = 0.02, thetamax = 0.5
 
 alphaK     =params(ialphaKN) 
@@ -341,8 +341,24 @@ d3muIhatdl3 = d2mu0hatSIdl2*(alphamu + 2.*betamu*PMU) + dmu0hatSIdl*4.*betamu + 
 d4muIhatdl4 = mu0hat*d4SIdl4 + 4.*dmu0hatdl*d3SIdl3 + 6.*d2mu0hatdl2*d2SIdl2 + 4.*dSIdl*d3mu0hatdl3+SI*d4mu0hatdl4  !Correct
 
 K0N = params(iKN)
-call MM(NO3, K0N, alphaK, PMU, fN, dfNdl, d2fNdl2, d3fNdl3, d4fNdl4)
-Kn = ScaleTrait(PMU, K0N, alphaK)
+Kn  = ScaleTrait(PMU, K0N, alphaK)
+fN  = NO3/(NO3 + Kn)  !Nitrogen limitation index
+
+!Add iron limitation:
+if (DO_IRON) then
+   K0Fe    = params(iKFe)
+   alphaFe = params(ialphaFe)
+   KFe     = ScaleTrait(PMU, K0Fe, alphaFe)
+   fFe     = Fe/(Fe + KFe)
+endif
+
+!Evaluate whether N or Fe is limiting (Liebig's law):
+!Only needs to call MM once:
+if (DO_IRON .and. (fFe < fN)) then  !Fe is limiting
+   call MM(Fe,  K0Fe, alphaFe, PMU, fN, dfNdl, d2fNdl2, d3fNdl3, d4fNdl4)
+else
+   call MM(NO3, K0N,  alphaK,  PMU, fN, dfNdl, d2fNdl2, d3fNdl3, d4fNdl4)
+endif 
 
 ! Phytoplankton growth rate at the mean size:
  muNet = mu0hat*SI*fN
@@ -351,22 +367,6 @@ d2mudl2=2*dmu0hatSIdl*dfNdl+d2mu0hatSIdl2*fN+mu0hatSI*d2fNdl2
 d3mudl3=3.*(d2mu0hatSIdl2*dfNdl+dmu0hatSIdl*d2fNdl2) +fN*d3muIhatdl3 + mu0hatSI*d3fNdl3 !Correct
 d4mudl4=4.*d3muIhatdl3*dfNdl+6.*d2mu0hatSIdl2*d2fNdl2+4.*dmu0hatSIdl*d3fNdl3 + fN*d4muIhatdl4 + mu0hatSI*d4fNdl4  !Correct
 
-!Add iron limitation:
-if (DO_IRON) then
-   K0Fe    = params(iKFe)
-   alphaFe = params(ialphaFe)
-   call MM(Fe, K0Fe, alphaFe, PMU, fFe, dfFedl, d2fFedl2, d3fFedl3, d4fFedl4)
-   KFe     = ScaleTrait(PMU, K0Fe, alphaFe)
-   muNet_  = muNet*fFe
-   dmudl_  = muNet*dfFedl   + dmudl*fFe
-   d2mudl2_= muNet*d2fFedl2 + 2.*dmudl*dfFedl + fFe*d2mudl2
-   d3mudl3_= muNet*d3fFedl3 + 3.*(dmudl*d2fFedl2+d2mudl2*dfFedl)+fFe*d3mudl3
-   d4mudl4 = muNet*d4fFedl4 + 4.*dmudl*d3fFedl3 + 6.*d2mudl2*d2fFedl2 + 4.*d3mudl3*dfFedl + fFe*d4mudl4  
-   muNet   = muNet_
-   dmudl   = dmudl_
-   d2mudl2 = d2mudl2_
-   d3mudl3 = d3mudl3_
-endif  !All correct
 Qmin=params(iQ0N)
 Qmax=3D0*params(iQ0N)
 
