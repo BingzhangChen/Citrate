@@ -6,10 +6,10 @@ real :: start, finish
 ! The model output to match with observational data: 
 real, allocatable    :: Ymod(:)
 integer              :: i
-real                 :: mu0hat, KN, A0N, wDET, Q0N,aI0, KPHY,alphaG
-real                 :: alphaKN,alphaA, VTR, gmax, mz, alphaI,dustso,gb
+real                 :: mu0hat, KN, wDET, Q0N,aI0, KPHY,alphaG
+real                 :: alphaKN, VTR, gmax, mz, alphaI,dustso,gb
 
-NAMELIST /parameters/ mu0hat,KN, A0N, wDET, Q0N,aI0,alphaKN,alphaA,alphamu, &
+NAMELIST /parameters/ mu0hat,KN,  wDET, Q0N,aI0,alphaKN, alphamu, &
     VTR, gmax,KPHY, mz, alphaI,alphaG, betamu, KFe, alphaFe, dustso,gb, bot_bound
 
 !  open the namelist file and read station name.
