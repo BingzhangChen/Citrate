@@ -1,4 +1,3 @@
-CFT=ifort
 .SUFFIXES: .o .i .f90 .f
 .f90.o:
 	$(CFT) -c $(FFLAGS) $*.f90 -o $*.o
