@@ -360,7 +360,7 @@ endif
 ! Fennel et al. (2006) gave range of 0.009-25 m/d
 ! Kishi et al. (2007) gave sinking rate of POC of 40 m/d
 MaxValue(iwDET) =  1.3
-MinValue(iwDET) =  -2.
+MinValue(iwDET) =  0d0
 
 if (Model_ID == NPPZDD .or. Model_ID == EFTPPDD) then
    MaxValue(iwDET2) = 2d0
@@ -390,6 +390,7 @@ endif
 
  MaxValue(iKPHY) = 2d0
  MinValue(iKPHY) = .1
+
 if (Model_ID .eq. NPZDDISC .or. Model_ID .eq. EFTdisc) then
    MaxValue(ialphaG)=.1
    MinValue(ialphaG)=0.
@@ -450,12 +451,18 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
   MaxValue(imu0) =  2.2d0
   MinValue(imu0) =  0.3
 
+  if (Model_ID .eq. NPZDcont .or. Model_ID .or. NPZDdisc) then
+     MaxValue(imu0) =  0.7
+     MinValue(imu0) =  0.2
+  endif
+
+
   if (Model_ID .eq. NPZDcont .or. Model_ID .eq. NPZDFix .or. Model_ID .eq. NPPZDD .or. Model_ID.eq.NPZD2sp .or. Model_ID.eq.NPZDdisc .or. Model_ID .eq. NPZDFixIRON .or. Model_ID .eq. NPZDN2) then
      MaxValue(iaI0_C) =0.1
      MinValue(iaI0_C) =0.01
      if (Model_ID.eq.NPZDcont) then
         MaxValue(igb) =0d0
-        MinValue(igb) =-0.001
+        MinValue(igb) =-1D-10   !No size-dependent feeding for now
         MaxValue(iVTR)=0.1
         MinValue(iVTR)=1D-6
         if (do_IRON) then
@@ -477,18 +484,19 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
   endif
 
   if (Model_ID==NPZDdisc .or. Model_ID==NPZDCONT) then
-     MaxValue(ialphamu)=0.35
-     MinValue(ialphamu)=0.01
-     MaxValue(ibetamu) =0.
-     MinValue(ibetamu) =-0.04
+     MaxValue(ialphamu)=0.356
+     MinValue(ialphamu)=0.044
+     MaxValue(ibetamu) =-0.0057
+     MinValue(ibetamu) =-0.029
+
      MaxValue(ialphaI )=0.2d0
      MinValue(ialphaI )=-0.3d0
-     MaxValue(ialphaG )=0.1
+     MaxValue(ialphaG )=1D-10  ! Only trait diffusion
      MinValue(ialphaG )=0.
 
      if(nutrient_uptake .eq. 1) then
         MaxValue(ialphaKN)=0.3
-        MinValue(ialphaKN)=0.1
+        MinValue(ialphaKN)=0.2
      else if(nutrient_uptake .eq. 2) then
         MaxValue(ialphaA)=-0.2
         MinValue(ialphaA)=-1d0

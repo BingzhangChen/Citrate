@@ -525,8 +525,10 @@ else
 endif
 params(igmax)    = 1.0
 params(iKPHY)    = 0.5
-if (Model_ID == NPZDdisc .or. Model_ID == NPZDFix .or. Model_ID==NPZDcont &
+if (Model_ID == NPZDdisc .or. Model_ID==NPZDcont &
 .or.Model_ID == NPZDN2) then
+   params(imu0)     = 0.44  ! growth rate at 15 C for 1 um3
+else if (Model_ID == NPZDFix) then
    params(imu0)     = 1.2
 else
    params(imu0)     = 2.5d0
@@ -544,7 +546,7 @@ if(Model_ID==NPZDdisc.or.Model_ID==Geiderdisc.or.  &
    ParamLabel(ialphamu) = 'alphamu'
    ParamLabel(ialphaI)  = 'alphaI'
 
-   params(ialphamu) = 0.25
+   params(ialphamu) = 0.2
    params(ialphaI ) = 0.08
 
    !if (Model_ID .ne. NPZDCONT) then
@@ -607,7 +609,7 @@ if(Model_ID.eq.NPZD2sp .OR. Model_ID.eq.EFTdisc .OR. &
    Model_ID.eq.EFT2sp  .OR. Model_ID.eq.NPZDcont.OR. &
    Model_ID.eq.NPPZDD  .OR. Model_ID.eq.EFTPPDD) then
    ParamLabel(ialphaG)='alphaG'
-   params(ialphaG)    =.01
+   params(ialphaG)    =1D-30
 endif
 !
 ParamLabel(iwDET) = 'wDET   '
@@ -630,7 +632,7 @@ if(Model_ID==NPZDdisc.or.Model_ID==NPZD2sp.or.Model_ID==NPPZDD.or.Model_ID==NPZD
      ParamLabel(iVTR)='VTR'
      params(iVTR)    =0.01
      ParamLabel(ibetamu)='betamu'
-     params(ibetamu)    =-0.025
+     params(ibetamu)    =-0.017
      if (do_IRON) then
             ParamLabel(iKFe)='KFe'
         ParamLabel(ialphaFe)='alphaFe'
