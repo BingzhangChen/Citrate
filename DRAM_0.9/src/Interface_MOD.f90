@@ -463,11 +463,11 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
      if (Model_ID.eq.NPZDcont) then
         MaxValue(igb) =0d0
         MinValue(igb) =-1D-10   !No size-dependent feeding for now
-        MaxValue(iVTR)=0.1
-        MinValue(iVTR)=1D-6
+        MaxValue(iVTR)=1D-30
+        MinValue(iVTR)=0D0
         if (do_IRON) then
-           MaxValue(iKFe)=0.2
-           MinValue(iKFe)=0.04
+           MaxValue(iKFe)    =0.2
+           MinValue(iKFe)    =0.04
            MaxValue(ialphaFe)=0.3
            MinValue(ialphaFe)=0.1
            MaxValue(idustsol)=0.05
@@ -491,7 +491,7 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
 
      MaxValue(ialphaI )=0.2d0
      MinValue(ialphaI )=-0.3d0
-     MaxValue(ialphaG )=1D-10  ! Only trait diffusion
+     MaxValue(ialphaG )=0.1  ! Only trait diffusion
      MinValue(ialphaG )=0.
 
      if(nutrient_uptake .eq. 1) then

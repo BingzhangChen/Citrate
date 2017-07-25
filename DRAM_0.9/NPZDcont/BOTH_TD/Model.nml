@@ -3,7 +3,7 @@
   Model_ID = 4,
   nutrient_uptake = 1,
   grazing_formulation = 3,
-  bot_bound = 1, 
+  bot_bound = 0, 
 /
 !bot_bound: type of boundary condition for bottom
 !Dirichlet      = 0,
@@ -28,7 +28,7 @@
 !NPZD2sp     = 16
 
 &MCMCrun
-   nruns   = 2,
+   nruns   = 2000,
    EnsLen  = 10, 
    NDays   = 1440,
    Readfile= 0,

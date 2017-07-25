@@ -3,7 +3,7 @@ export DATADIR=../../../Forcing
 export SCRATCHDIR=Compile
 export SRCDIR=../../src
 CFT=ifort
-Test=1 
+Test=0 
 
 rm -rf ${SCRATCHDIR}
 mkdir ${SCRATCHDIR}
