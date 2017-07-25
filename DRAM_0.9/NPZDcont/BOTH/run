@@ -2,7 +2,7 @@
 export DATADIR=../../../Forcing
 export SCRATCHDIR=Compile
 export SRCDIR=../../src
-CFT=gfortran
+CFT=ifort
 Test=1 
 
 rm -rf ${SCRATCHDIR}
