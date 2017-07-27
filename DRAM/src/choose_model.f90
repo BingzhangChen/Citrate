@@ -160,8 +160,10 @@ if(Model_ID==EFTcont .or. Model_ID==NPZDcont) then
    oVAR=oPMU+1
    if (do_IRON) then
       ofer = oVAR+1
+      oFescav = ofer   + 1
+      odstdep = oFescav+ 1
       do i=1,NPHY
-         oCHL(i) = i + ofer
+         oCHL(i) = i + odstdep
       enddo 
    else
       do i=1,NPHY
@@ -332,7 +334,9 @@ if (Model_ID==EFTcont .or. Model_ID==NPZDcont) then
     Labelout(oD_VAR+ow)='D_VAR'
     if (do_IRON) then
        Labelout(ofer  +ow)='Fer'
-       Labelout(oD_fer+ow)='D_Fe'
+       Labelout(odstdep+ow)='DtDep'
+       Labelout(oFescav+ow)='Fescv'
+       Labelout(oD_fer+ow) ='D_Fe'
     endif
 endif
 Labelout(oPHYt+ow)='PHY_T'

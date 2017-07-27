@@ -61,7 +61,7 @@ integer  :: iVTR, ifer,od3mu,od4mu
 integer  :: iEp,iEz,izetaN,izetaChl, iaI0_C 
 integer  :: ialphaI,iA0N,ialphaA,ialphaG,ialphaK, ialphaFe
 integer  :: iQ0N,ialphaQ,iPenfac,iLref,iwDET,irdN,imz
-integer  :: ithetamin,iQNmin,itau,iwDET2,idustsol,igb
+integer  :: ithetamin,iQNmin,itau,iwDET2,idustsol,igb,oFescav,odstdep
 integer, allocatable :: iPHY(:), oPHY(:),oTheta(:),oQN(:),oQp(:)
 integer, allocatable :: iCHL(:), oCHL(:),omuNet(:),oD_PHY(:),oD_CHL(:)
 integer, allocatable :: oGraz(:),oSI(:), oLno3(:)

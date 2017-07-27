@@ -12,7 +12,7 @@ real :: PMU,VAR,PMU1,VAR1
 real :: mu0,aI0
 real :: QN,QP  ! cell quota related variables
 real :: muNet,dmuNetdl,d2muNetdl2, d3mudl3, d4mudl4
-real :: alphaK,alphaI, alphaG,SI,Lno3,KFe_
+real :: alphaK,alphaI, alphaG,SI,Lno3,KFe_,Fescav
 real :: muNet1, SI1, Lno31, QN1
 real :: mu ! a scratch variable to temporally store phyto. growth rate
 real :: theta,theta1,dgdlbar,d2gdl2bar
@@ -225,7 +225,8 @@ DO k = nlev, 1, -1
    PHY1 = PHY + PP_PN         - PP_ZP
    ZOO  = ZOO + PP_ZP         - PP_NZ - PP_DZ
    
-   call IRONCYCLE(tC, DET, PP_NZ, PP_PN, PP_DZ, DETFe, Fe)
+   call IRONCYCLE(tC, DET, PP_NZ, PP_PN, PP_DZ, Fescav, DETFe, Fe)
+   Varout(oFescav,k) = Fescav
 
    PMUPHY = PMUPHY + PHY*(PMU1-PMU) + PMU*(PHY1-PHY)
 
@@ -408,12 +409,12 @@ real                :: Kn
  d4fNdl4 = alphaK**4*N*Kn*(11.*Kn*N*(N-Kn)+Kn**3-N**3)/(N+Kn)**5  !Correct
 end subroutine
 !
-subroutine IRONCYCLE(Temp, DET, PP_NZ,PP_PN,PP_DZ, DETFe, DFe)
+subroutine IRONCYCLE(Temp, DET, PP_NZ,PP_PN,PP_DZ, Fe_scav, DETFe, DFe)
 use bio_MOD, only : Femin,TEMPBOL,Ez,dtdays,Fe_N
 implicit none
 real, intent(in)    :: Temp,DET, PP_NZ, PP_PN, PP_DZ
 real, intent(inout) :: DFe, DETFe
-real                :: Fe_scav     !Iron scavenging
+real, intent(out)   :: Fe_scav     !Iron scavenging for diagonosis
 real                :: keq, cff
 real, parameter     :: Kscm= 3D-5  !Minimal scavenging rate
 real, parameter     :: Ksc = 3D-2  !Particle dependent scavenging rate (umolN-1 d-1)

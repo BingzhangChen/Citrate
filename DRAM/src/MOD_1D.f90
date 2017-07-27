@@ -835,7 +835,8 @@ DO jj = 1, Nstn
        Dust_solubility=params(idustsol)
        cff= Dust_solubility*dust0(1)*1D9/55.85/Hz(nlev)/mon2sec*dtsec                     
        
-       !write(6,*) 'Annual added dissolved Fe (umol/m2) = ', cff * Hz(nlev)*mon2sec/dtsec*12.
+       ! added dissolved Fe (nM/d) on top grid: 
+       Varout(odstdep,nlev)=cff/dtsec*d_per_s
        
        Vars(ifer,nlev) = Vars(ifer,nlev) + cff
 
