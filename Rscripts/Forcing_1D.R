@@ -21,7 +21,7 @@ load(WOA13TFile)
 #system('ifort -c FlexEFT.f90')
 #system('ifort -shared -o FlexEFT.so FlexEFT.o')
 
-Stn_name <- 'HOT'
+Stn_name <- 'S1'
 
 if (Stn_name == 'S1'){
     stn_lon  = 145
@@ -56,7 +56,7 @@ wROMS_data$time  <- time
 
 
 #Write into data files:
-for (var in c('temp','par','Aks','NO3','PO4','wROMS','wSODA','wstr')){
+for (var in c('temp','par','Aks','NO3','PO4','wROMS','wSODA','wstr','solfe')){
 
     if (var == 'wstr'){
        taux = getdata_station('taux3',stn_lon,stn_lat)

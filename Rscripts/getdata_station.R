@@ -1,9 +1,11 @@
-source('~/Working/Global_PP/Interpolate_WOA.R')
+source('~/Working/FlexEFT1D/Rscripts/Interpolate_WOA.R')
 getdata_station <- function(varname,lon,lat){
     #First, get the total dataset
     ROMS <- FALSE
     if (varname == 'temp'){
       data_s <- Temp_data
+    } else if (varname == 'solfe'){
+      data_s=readnc(varname,sourcefile=Dustfile,ROMS=F)
     } else if (varname == 'par'){
       data_s <- Par_data
     } else if (varname %in% c('taux3','tauy3')){
@@ -47,10 +49,10 @@ getdata_station <- function(varname,lon,lat){
     Z      <- data_s$data
 
     # Determine the time dimension of the data
-    time       <- data_s$time
-    lon[lon>0] <- lon[lon>0]-360
-    gridlist   <- list(x=lon,y=lat)
-    obs_time   <- data.frame(matrix(NA, nr=1, nc=length(time) ) )
+    time            <- data_s$time
+    lon[lon>0]      <- lon[lon>0]-360
+    gridlist        <- list(x=lon,y=lat)
+    obs_time        <- data.frame(matrix(NA, nr=1, nc=length(time) ) )
     names(obs_time) <- c( paste('M',1:length(time),sep=''))
 
     if (ROMS){
