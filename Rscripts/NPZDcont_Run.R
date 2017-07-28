@@ -1,5 +1,5 @@
 Model <- 'NPZDcont'
-DIR   <- paste0('~/Working/FlexEFT1D/DRAM_0.9/',Model,'/BOTH/')
+DIR   <- paste0('~/Working/FlexEFT1D/DRAM/',Model,'/BOTH_TD/')
 setwd(DIR)
 source('~/Working/FlexEFT1D/Rscripts/plot_1D.R')
 source('~/Working/FlexEFT1D/Rscripts/loglike_size.R')  #Plot Log-Likelihoods of size model
@@ -63,7 +63,7 @@ for (Stn in c('K2','S1')){
                oma    = c(4,4,1,0)) 
    for (i in 1:NVar){
        VAR = VARs[i]
-       plot_1D(VAR,Model,Stn,finalyr = T, Dmax = -180)
+       plot_1D(VAR,Model,Stn,finalyr = T, Dmax = -500)
        mtext(paste0(letters[i],')'),adj=0, outer=F)
    }
    mtext('Depth (m)', side = 2, outer=TRUE, line=2)
@@ -155,16 +155,25 @@ INT_MLD = function(dat){
   return(V)
 }
 
+depo_    = INT_MLD(depo)
+phyV_    = INT_MLD(phyV)
+PP_NZ_   = INT_MLD(PP_NZ)
+Fescav_  = INT_MLD(Fescav)
+PP_FeD_  = INT_MLD(PP_FeD)
+Fediff_  = INT_MLD(Fediff)
 
-
-plot(days, depo[,M], ylim=c(-0.05,0.05), type = 'l', col=2)
-points(days,-phyV[,M],col='blue',type='l')
-points(days,PP_NZ[,M],col='green',type='l')
-points(days,-Fescav[,M],lty=2,type='l')
-points(days, PP_FeD[,M],lty=2,col=2,type='l')
-points(days, Fediff[,M],lty=1,col='orange',type='l')
-
+plot(days,   depo_, ylim=c(-0.2,0.2), type = 'l', col=2)
+points(days,-phyV_,col='blue',type='l')
+points(days,PP_NZ_,col='green',type='l')
+points(days,-Fescav_,lty=2,type='l')
+points(days, PP_FeD_,lty=2,col=2,type='l')
+points(days, Fediff_,lty=1,col='orange',type='l')
+legend('topright',legend = c('Deposition', 'Phy. uptake','Zoo. excretion','Scavenging','Det. rem.','Diffusion'),
+    col=c(2,'blue','green',1,2,'orange'),lty=c(1,1,1,2,2,1))
 #Compare The net budget with net changes of Fe:
+plot(days, Fer[,M], type = 'l')
+
+
 plot(days, delFe[,M], type = 'l')
 
 #add net changes of Fe:

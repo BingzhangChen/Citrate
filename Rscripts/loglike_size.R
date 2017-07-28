@@ -1,6 +1,6 @@
 #Plot LogLikehood of two models at two stations in one plot:
 pwd1 <- getwd()
-setwd('~/Working/FlexEFT1D/DRAM_0.9/NPZDcont/BOTH/')  
+setwd('~/Working/FlexEFT1D/DRAM/NPZDcont/BOTH_TD/')  
 #pdffile <- paste('LogLike.pdf',sep='')
 #pdf(pdffile, width=5,height=5,paper='a4')
 pdf('Fig3.LogLike_size.pdf',
