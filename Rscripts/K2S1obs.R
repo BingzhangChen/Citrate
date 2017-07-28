@@ -123,8 +123,8 @@ get_CHLNO3 <- function(stn){
   dat$Date  = as.Date(dat$Date,'%m/%d/%Y')
   dat$DOY   = as.numeric(strftime(dat$Date, format = "%j"))    #Date of the year
   dat$Depth = as.numeric(as.character(dat$Depth)) 
-  #Only need data above 250 m
-  dat = dat[dat$Depth <= 250,]
+  #Only need data above 500 m
+  dat = dat[dat$Depth <= 500,]
   
   #Clean up nitrate data:
   dat$Nitrate=as.numeric(as.character(dat$Nitrate))
@@ -161,7 +161,7 @@ get_CHLNO3 <- function(stn){
   
   #Extract WOA13 data:
   
-  depth_total    <- 250 #Total depth (m) of the station
+  depth_total    <- 500 #Total depth (m) of the station
   
   if (stn == 'S1'){
       lon  = 145
@@ -249,7 +249,7 @@ get_CHLNO3 <- function(stn){
      #write out csv file:
      CHL       <- rbind(CHL,dat)
   }
-  filedir <- paste('~/Working/FlexEFT1D/Forcing/',stn,'_CHL.dat',sep='')
+  filedir <- paste('~/Working/FlexEFT1D/',stn,'/',stn,'_CHL.dat',sep='')
   write.table(CHL,filedir,row.names=F)
 }
 
