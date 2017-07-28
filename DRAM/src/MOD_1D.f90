@@ -3,7 +3,7 @@ use BIO_MOD
 implicit none
 public
 ! Grid parameters
-real, private, parameter :: hmax   = 25d1  ! Total water depth
+real, private, parameter :: hmax   = 5D2   ! Total water depth
 real, private, parameter :: thetaS = 2d0   ! surface stretching parameter
 real, private, parameter :: dtsec  = 6D2   ! time step in seconds
 real, private, parameter ::d_per_s = 864d2 ! how many seconds in one day
@@ -239,7 +239,7 @@ Do j = 1, Nstn
 ! Assign the data dimension, must be consistent with external file:
   if (trim(Stn(j)) .eq. 'S1') then
       N_Aks(j)       = 40
-      NDPTS(itNO3,j) = 902
+      NDPTS(itNO3,j) = 1127
       NDPTS(itCHL,j) = 426
       NDPTS(itNPP,j) = 128
       NDPTS(itPON,j) = 32
@@ -252,7 +252,7 @@ Do j = 1, Nstn
       endif
   else if (trim(Stn(j)) .eq. 'K2') then
       N_Aks(j)       = 25
-      NDPTS(itNO3,j) = 974
+      NDPTS(itNO3,j) = 1186
       NDPTS(itCHL,j) = 470
       NDPTS(itNPP,j) = 112
       NDPTS(itPON,j) = 29
@@ -723,7 +723,7 @@ DO jj = 1, Nstn
   endif
 
   ! Initialize output data:
-  Varout(:,:) = 1D-3
+  Varout(:,:) = 0D0
   do i = 1,NVAR
      do k = 1,nlev
         Varout(i,k)= Vars(i,k)
@@ -735,11 +735,15 @@ DO jj = 1, Nstn
      allocate(VarsBom(1,NVAR),  STAT = AllocateStatus)
      IF (AllocateStatus /= 0) STOP "*** Problem in allocating VarsBom ***"
      VarsBom(:,:)        = 1D-30
-     ! Initialize bottom values of PHY, ZOO, DET based on PON and POP at HOT:
-     VarsBom(1, iDET)    = 4D-2/3d0
-     VarsBom(1, iZOO)    = 2D-3/3d0
-     VarsBom(1, iPHY(1)) = 2D-3/3d0
-     if (Model_ID .eq. NPZDN2)   VarsBom(1, iDETp)   = 2D-3/3d0
+     VarsBom(1, iDET)    = 3D-2   !Based on PON at 500 m at HOT
+
+     if (Model_ID .eq. NPZDN2 .and. trim(Stn(jj)) .eq. 'HOT') then 
+        ! Initialize bottom values of PHY, ZOO, DET based on PON and POP at HOT:
+        VarsBom(1, iZOO)    = 2D-3/3d0 ! Unit: uM P   
+        VarsBom(1, iPHY(1)) = 2D-3/3d0 ! Unit: uM P
+        VarsBom(1, iDETp)   = 2D-3/3d0 ! Unit: uM P
+     endif
+
      if (Model_ID .eq. NPZDcont) then
         VarsBom(1, iDETFe)  = VarsBom(1,iDET)*Fe_N  !Unit: nM
      endif
@@ -1174,25 +1178,27 @@ DO jj = 1, Nstn
   ! Diffusion:
   do j = 1,NVAR
      Vars1(:)     = Vars(j,:)
+
      ! At surface, assume zero flux  (Neumann boundary condition)
 
-     selectcase (bot_bound) ! Select the type of boundary condition at bottom
-     case (Dirichlet)
+     !selectcase (bot_bound) ! Select the type of boundary condition at bottom
+     !case (Dirichlet)
+     if (j .eq. iNO3 .or. j .eq. ifer .or. j .eq. iPO4) then
 
      ! At bottom,  assume constant values obtained from observation (Dirichlet boundary condition)
        call diff_center(nlev,dtsec,cnpar,1,Hz, Neumann, Dirichlet, &
                        zero, VarsBom(1,j),Aks,Vec0,Vec0,Taur,Vars1,Vars1,Vars2)
-
-     case (Neumann)
+     else
+     !case (Neumann)
 
      ! Zero flux at bottom
        call diff_center(nlev,dtsec,cnpar,1,Hz, Neumann, Neumann, &
                        zero, zero, Aks,Vec0,Vec0,Taur,Vars1,Vars1,Vars2)
-     case default
-       write(6,*) 'The type of bottom boundary condition incorrect!'
-       stop
-     end select
-
+     !case default
+     !  write(6,*) 'The type of bottom boundary condition incorrect!'
+     !  stop
+     !end select
+     endif
      ! Save diffusion fluxes (normalized to per day)
      Varout(oD_NO3+j-1,:) = (Vars2(:) - Vars1(:))/dtdays
   
