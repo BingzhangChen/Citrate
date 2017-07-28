@@ -2,9 +2,9 @@ library(plot3D)
 source('~/Working/FlexEFT1D/Rscripts/getData.R')
 plot_1D <- function(Var,model,Stn,title='',ZLIM=NULL, finalyr = F, BOTH = T, Dmax = -200){
     if (BOTH){
-     filedir  <- paste0('~/working/FlexEFT1D/DRAM_0.9/',model,'/BOTH/')
+     filedir  <- paste0('~/working/FlexEFT1D/DRAM/',model,'/BOTH/')
     } else{
-     filedir  <- paste0('~/working/FlexEFT1D/DRAM_0.9/',model,'/',Stn,'/')
+     filedir  <- paste0('~/working/FlexEFT1D/DRAM/',model,'/',Stn,'/')
     }
       data    <- getData(filedir,Stn,Var)
       days    <- data$days

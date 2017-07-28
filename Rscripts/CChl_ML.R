@@ -1,5 +1,5 @@
 #Compare C:Chl ratios and growth/grazing rates between the two models within ML
-setwd('~/Working/FlexEFT1D/DRAM_0.9')  
+setwd('~/Working/FlexEFT1D/DRAM')  
 source('~/Working/FlexEFT1D/Rscripts/getData.R')
 source('~/Working/FlexEFT1D/Rscripts/get_obs_MLD.R')
 source('~/Working/FlexEFT1D/Rscripts/Interpolate_WOA.R')
@@ -69,7 +69,7 @@ for (Var in c('mu','C_Chl','QN')){
   #Extract model data:
     for (model in Models){
        ii  <-  ii+1
-       DIR <- paste('~/Working/FlexEFT1D/DRAM_0.9/',model,'/',Stn,'/',sep='')
+       DIR <- paste('~/Working/FlexEFT1D/DRAM/',model,'/',Stn,'/',sep='')
  
        #Get modeled data
        if (Var == 'mu'){
