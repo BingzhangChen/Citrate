@@ -18,7 +18,7 @@ integer, parameter :: TNFo       = ewstr ! TOtal number of forcings
 
 ! Total of observation times in forcing data
 character(LEN=5), parameter :: LabelForc(TNFo) &
-     = (/'temp','NO3','Aks','wROMS','par', 'Dust','fer', 'PO4', 'wstr'/)
+     = (/'temp','NO3','Aks','wROMS','par', 'solfe','fer', 'PO4', 'wstr'/)
 
 integer,          parameter :: NFobs(TNFo)     & 
      = (/    12,   12, 360,     12,  12,      12,   12,    12, 12 /)
