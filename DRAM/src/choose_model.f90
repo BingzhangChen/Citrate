@@ -613,7 +613,7 @@ if(Model_ID.eq.NPZD2sp .OR. Model_ID.eq.EFTdisc .OR. &
    Model_ID.eq.EFT2sp  .OR. Model_ID.eq.NPZDcont.OR. &
    Model_ID.eq.NPPZDD  .OR. Model_ID.eq.EFTPPDD) then
    ParamLabel(ialphaG)='alphaG'
-   params(ialphaG)    =1D-3
+   params(ialphaG)    =1D-30
 endif
 !
 ParamLabel(iwDET) = 'wDET   '
@@ -634,7 +634,7 @@ if(Model_ID==NPZDdisc.or.Model_ID==NPZD2sp.or.Model_ID==NPPZDD.or.Model_ID==NPZD
      ParamLabel(igb) ='gb'
      params(igb)     =-1D-12
      ParamLabel(iVTR)='VTR'
-     params(iVTR)    =1D-30
+     params(iVTR)    =0.01
      ParamLabel(ibetamu)='betamu'
      params(ibetamu)    =-0.017
      if (do_IRON) then

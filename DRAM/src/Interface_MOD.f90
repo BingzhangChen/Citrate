@@ -378,7 +378,7 @@ if (Model_ID .eq. NPZDN2) then
    MaxValue(imz) =  0.3*16.   !P as the unit
    MinValue(imz) =  0.05*16.
 else
-   MaxValue(imz) =  0.3
+   MaxValue(imz) =  0.2
    MinValue(imz) =  0.05
 endif
 ! Fennel et al. (2006) gave a range of 0.5~1.0, but used 0.6
@@ -463,7 +463,7 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
      if (Model_ID.eq.NPZDcont) then
         MaxValue(igb) =0d0
         MinValue(igb) =-1D-10   !No size-dependent feeding for now
-        MaxValue(iVTR)=1D-30
+        MaxValue(iVTR)=0.1
         MinValue(iVTR)=0D0
         if (do_IRON) then
            MaxValue(iKFe)    =0.2
@@ -491,7 +491,7 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
 
      MaxValue(ialphaI )=0.2d0
      MinValue(ialphaI )=-0.3d0
-     MaxValue(ialphaG )=0.1  ! Only trait diffusion
+     MaxValue(ialphaG )=1D-20  ! Only trait diffusion
      MinValue(ialphaG )=0.
 
      if(nutrient_uptake .eq. 1) then

@@ -552,7 +552,7 @@ do j = 1, Nstn
 
       if (bot_bound .eq. Dirichlet) then  ! Read iron time
          call Readcsv(forcfiletime(eFer), 1,NFobs(eFer), obs_time_fer(:,j)) 
-         obs_time_fer(:,j) = obs_time_fer(:,j) *3d1*dble(d_per_s)  ! fer deposition
+         obs_time_fer(:,j) = obs_time_fer(:,j) *3d1*dble(d_per_s)  ! Bottom fer
       endif
    endif
 
@@ -831,13 +831,11 @@ DO jj = 1, Nstn
         call time_interp(int(current_sec),ncff,1,pb,pc, dust0)
   
      ! Iron atmospheric deposition:
-     ! Dust deposition unit: kg/m2/month. Assume 0.035g Fe per g of dust
+     ! Soluble iron deposition unit: kg/m2/s.
      ! so need to convert into nM at each time step
-     ! Deposition = Dust*10^12*solubility*Fe%/56*dt/mon2sec*surface_area/surface_grid_volume/1000
+     ! Deposition = Dust*10^12/56*dtsec*surface_area/surface_grid_volume
          
-       !cff= Dust_solubility*dust0(1)*1D9*Dust_ironfrac/55.85/Hz(nlev)/mon2sec*dtsec                     
-       Dust_solubility=params(idustsol)
-       cff= Dust_solubility*dust0(1)*1D9/55.85/Hz(nlev)/mon2sec*dtsec                     
+       cff= dust0(1)*1D12/55.85/Hz(nlev)*dtsec                     
        
        ! added dissolved Fe (nM/d) on top grid: 
        Varout(odstdep,nlev)=cff/dtsec*d_per_s
