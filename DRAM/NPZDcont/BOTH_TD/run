@@ -23,6 +23,15 @@ if [[ $CFT == ifort ]]; then
      FFLAGS="-fast -r8 -i4"
      echo 'Run model without debug options...'
   fi
+elif [[ $CFT == pgfortran ]]; then
+  if [[ $Test == 1 ]]; then
+     echo 'Run model with debug options...'
+     FFLAGS="-Mbounds -Minfo=all -traceback -Mchkfpstk -Mchkstk -Mdalign 
+-Mdclchk -Mdepchk -Miomutex -Mrecursive -Msave -Ktrap=fp -O0 -g -byteswapio"
+  else
+     FFLAGS="-fast -Mipa=fast,inline"
+     echo 'Run model without debug options...'
+  fi
 elif [[ $CFT == gfortran ]]; then
   if [[ $Test == 1 ]]; then
      echo 'Run model with debug options...'

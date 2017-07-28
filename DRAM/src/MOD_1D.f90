@@ -834,8 +834,7 @@ DO jj = 1, Nstn
      ! Soluble iron deposition unit: kg/m2/s.
      ! so need to convert into nM at each time step
      ! Deposition = Dust*10^12/56*dtsec*surface_area/surface_grid_volume
-         
-       cff= dust0(1)*1D12/55.85/Hz(nlev)*dtsec                     
+       cff= dust0(1)*1D12/55.85/Hz(nlev)*dtsec/1D3                     
        
        ! added dissolved Fe (nM/d) on top grid: 
        Varout(odstdep,nlev)=cff/dtsec*d_per_s

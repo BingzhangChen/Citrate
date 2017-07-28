@@ -363,7 +363,7 @@ endif
 
 ! Phytoplankton growth rate at the mean size:
  muNet = mu0hat*SI*fN
- dmudl = dmu0hatSIdl*fN - mu0hatSI*alphaK*Kn*NO3/(NO3 + Kn)**2
+ dmudl = dmu0hatSIdl*fN + mu0hatSI*dfNdl
 d2mudl2=2*dmu0hatSIdl*dfNdl+d2mu0hatSIdl2*fN+mu0hatSI*d2fNdl2 
 d3mudl3=3.*(d2mu0hatSIdl2*dfNdl+dmu0hatSIdl*d2fNdl2) +fN*d3muIhatdl3 + mu0hatSI*d3fNdl3 !Correct
 d4mudl4=4.*d3muIhatdl3*dfNdl+6.*d2mu0hatSIdl2*d2fNdl2+4.*dmu0hatSIdl*d3fNdl3 + fN*d4muIhatdl4 + mu0hatSI*d4fNdl4  !Correct
