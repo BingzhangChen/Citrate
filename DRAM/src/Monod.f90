@@ -31,7 +31,7 @@ real, parameter   :: thetamin = 0.02, thetamax = 0.47
   endif
   muNet = rmax_T*Lno3*SI
 
-  QN = Qnmin/(1d0-(1d0-Qnmin/Qnmax)*(NO3/(NO3+KN)))
+  QN = Qnmin/(1d0-(1d0-Qnmin/Qnmax)*Lno3)
 
   if (N2fix) QP=Qpmin/(1d0-(1d0-Qpmin/Qpmax)*(PO4/(PO4+KP)))
   

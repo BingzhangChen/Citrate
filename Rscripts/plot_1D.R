@@ -2,7 +2,7 @@ library(plot3D)
 source('~/Working/FlexEFT1D/Rscripts/getData.R')
 plot_1D <- function(Var,model,Stn,title='',ZLIM=NULL, finalyr = F, BOTH = T, Dmax = -500){
     if (BOTH){
-     filedir  <- paste0('~/working/FlexEFT1D/DRAM/',model,'/BOTH_TD/')
+     filedir  <- paste0('~/working/FlexEFT1D/DRAM/',model,'/BOTH/')
     } else{
      filedir  <- paste0('~/working/FlexEFT1D/DRAM/',model,'/',Stn,'/')
     }
@@ -37,8 +37,8 @@ plot_1D <- function(Var,model,Stn,title='',ZLIM=NULL, finalyr = F, BOTH = T, Dma
     #Add Variable name and units:
     if (Var == 'NO3'){
       Varname  <- bquote('TIN (mmol '*m^-3*')')
-    }else if (Var == 'Fer'){
-      Varname  <- expression(paste("Fer "*'(µmol '*m^-3*')'))
+    }else if (Var == 'Fer' || Var == 'DETFe'){
+      Varname  <- bquote(.(Var) ~ ' (µmol '*m^-3*')')
     }else if (Var == 'CHL_T'){
       Varname  <- expression(paste("Chl "*'(mg '*m^-3*')'))
     }else if (Var == 'NPP'){

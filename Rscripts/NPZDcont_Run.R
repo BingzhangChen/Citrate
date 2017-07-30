@@ -1,15 +1,15 @@
-Model <- 'NPZDcont'
-DIR   <- paste0('~/Working/FlexEFT1D/DRAM/',Model,'/BOTH_TD/')
+Model <- 'NPZDcont_sRun'
+DIR   <- paste0('~/Working/FlexEFT1D/DRAM/',Model,'/BOTH/')
 setwd(DIR)
 source('~/Working/FlexEFT1D/Rscripts/plot_1D.R')
 source('~/Working/FlexEFT1D/Rscripts/loglike_size.R')  #Plot Log-Likelihoods of size model
 source('~/Working/FlexEFT1D/Rscripts/params.R')  #Plot Log-Likelihoods of size model
 
-setwd('/Users/apple/Working/FlexEFT1D/DRAM_0.9/NPZDcont_sRun/BOTH')
+setwd('/Users/apple/Working/FlexEFT1D/DRAM/NPZDcont_sRun/BOTH')
 Model   <- 'NPZDcont_sRun'
 
 #Calculate total nitrogen and iron:
-
+source('~/Working/FlexEFT1D/Rscripts/plot_TN.R')
 
 #Plot an example of four years to show seasonal cycle:
 VARs    <- c('NO3','CHL_T','Fer','ZOO','R_PMU','R_VAR')
@@ -43,7 +43,8 @@ dev.off()
 
 
 #One plot for one station (only final year):
-VARs <- c('NO3','Fer','CHL_T','PHY1','R_PMU','R_VAR','muAvg','dmudl','d2mu','TD_VAR')
+VARs <- c('NO3','Fer','CHL_T','PHY1','ZOO','DET','DETFe',
+          'R_PMU','R_VAR','muAvg','dmudl','d2mu','TD_VAR')
 NVar <- length(VARs)
 #TD_VAR is the contribution of "trait diffusion" to changes of size variance
 
@@ -54,12 +55,12 @@ for (Stn in c('K2','S1')){
       FigNo = 10
    }
    pdffile <- paste0('Fig_',FigNo,Stn,'_1D.pdf')
-   pdf(pdffile, width = 8, height = 10, paper = 'a4')
+   pdf(pdffile, width = 8, height = 8, paper = 'a4')
    op <- par(font.lab = 1,
                family ="serif", cex.axis=1.2, cex.lab=1.2,
                mar    = c(2,2,1.5,3.5),
                mgp    = c(2.3,1,0),
-               mfrow  = c(ceiling(NVar/2),2),
+               mfrow  = c(3,2),
                oma    = c(4,4,1,0)) 
    for (i in 1:NVar){
        VAR = VARs[i]

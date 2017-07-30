@@ -1,8 +1,7 @@
 #!/bin/bash
-export DATADIR=../../../Forcing
 export SCRATCHDIR=Compile
 export SRCDIR=../../src
-Test=1 
+Test=0 
 
 rm -rf ${SCRATCHDIR}
 mkdir ${SCRATCHDIR}
@@ -10,7 +9,6 @@ mkdir ${SCRATCHDIR}
 /bin/cp -f  ${SRCDIR}/*.f90    $SCRATCHDIR
 /bin/cp -f  ${SRCDIR}/*.f      $SCRATCHDIR
 /bin/cp -f  ${SRCDIR}/Makefile_singlerun ${SCRATCHDIR}/Makefile1
-/bin/cp -f ${DATADIR}/*.dat    ./
 
 #Replace global setting with local setting
 /bin/cp -f params.f90 ${SCRATCHDIR}/

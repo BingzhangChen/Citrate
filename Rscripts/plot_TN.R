@@ -1,14 +1,14 @@
 source('~/Working/FlexEFT1D/Rscripts/Hz.R')
 source('~/Working/FlexEFT1D/Rscripts/getData.R')
-Hz        <- Hz(hmax=250, thetaS=2, nlev=30)
+Hz        <- Hz(hmax=500, thetaS=2, nlev=30)
 model_ID  <- 'NPZDcont_sRun'
 BOTH      <- T
 Stns      <- c('S1', 'K2')
 for (Stn in Stns){
   if (BOTH){
-   filedir  <- paste0('~/working/FlexEFT1D/DRAM_0.9/',model_ID,'/BOTH/')
+   filedir  <- paste0('~/working/FlexEFT1D/DRAM/',model_ID,'/BOTH/')
   } else{
-   filedir  <- paste0('~/working/FlexEFT1D/DRAM_0.9/',model_ID,'/',Stn,'/')
+   filedir  <- paste0('~/working/FlexEFT1D/DRAM/',model_ID,'/',Stn,'/')
   }
   
   setwd(filedir)

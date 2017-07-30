@@ -1,5 +1,4 @@
 #!/bin/bash
-export DATADIR=../../../Forcing
 export SCRATCHDIR=Compile
 export SRCDIR=../../src
 CFT=ifort

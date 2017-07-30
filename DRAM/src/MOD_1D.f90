@@ -835,7 +835,6 @@ DO jj = 1, Nstn
      ! so need to convert into nM at each time step
      ! Deposition = Dust*10^12/56*dtsec*surface_area/surface_grid_volume
        cff= dust0(1)*1D12/55.85/Hz(nlev)*dtsec/1D3                     
-       
        ! added dissolved Fe (nM/d) on top grid: 
        Varout(odstdep,nlev)=cff/dtsec*d_per_s
        
@@ -1182,7 +1181,7 @@ DO jj = 1, Nstn
      !case (Dirichlet)
      if (j .eq. iNO3 .or. j .eq. ifer .or. j .eq. iPO4) then
 
-     ! At bottom,  assume constant values obtained from observation (Dirichlet boundary condition)
+     !! At bottom,  assume constant values obtained from observation (Dirichlet boundary condition)
        call diff_center(nlev,dtsec,cnpar,1,Hz, Neumann, Dirichlet, &
                        zero, VarsBom(1,j),Aks,Vec0,Vec0,Taur,Vars1,Vars1,Vars2)
      else
@@ -1196,6 +1195,7 @@ DO jj = 1, Nstn
      !  stop
      !end select
      endif
+
      ! Save diffusion fluxes (normalized to per day)
      Varout(oD_NO3+j-1,:) = (Vars2(:) - Vars1(:))/dtdays
   

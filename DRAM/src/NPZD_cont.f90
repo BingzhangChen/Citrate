@@ -225,7 +225,8 @@ DO k = nlev, 1, -1
    PHY1 = PHY + PP_PN         - PP_ZP
    ZOO  = ZOO + PP_ZP         - PP_NZ - PP_DZ
    
-   call IRONCYCLE(tC, DET, PP_NZ, PP_PN, PP_DZ, Fescav, DETFe, Fe)
+   call IRONCYCLE(tC, DET, PP_NZ, PP_ND, PP_PN, PP_DZ, Fescav, DETFe, Fe)
+
    Varout(oFescav,k) = Fescav
 
    PMUPHY = PMUPHY + PHY*(PMU1-PMU) + PMU*(PHY1-PHY)
@@ -409,10 +410,10 @@ real                :: Kn
  d4fNdl4 = alphaK**4*N*Kn*(11.*Kn*N*(N-Kn)+Kn**3-N**3)/(N+Kn)**5  !Correct
 end subroutine
 !
-subroutine IRONCYCLE(Temp, DET, PP_NZ,PP_PN,PP_DZ, Fe_scav, DETFe, DFe)
+subroutine IRONCYCLE(Temp, DET, PP_NZ,PP_ND, PP_PN,PP_DZ, Fe_scav, DETFe, DFe)
 use bio_MOD, only : Femin,TEMPBOL,Ez,dtdays,Fe_N
 implicit none
-real, intent(in)    :: Temp,DET, PP_NZ, PP_PN, PP_DZ
+real, intent(in)    :: Temp,DET, PP_NZ, PP_PN, PP_DZ, PP_ND
 real, intent(inout) :: DFe, DETFe
 real, intent(out)   :: Fe_scav     !Iron scavenging for diagonosis
 real                :: keq, cff
@@ -437,10 +438,11 @@ keq  = 10**(17.27-1565.7/(273.15 + Temp))
 !Following TOM10Appendix, Eq. 45
 !Iron scavenging rate = (Basal scavenging rate + particle asorbtion)*FEprime
 cff     = 1D0+(lFe-DFe)*keq 
+
 Fe_scav = (Kscm + Ksc*DET*TEMPBOL(Ez,Temp))             &
                * (-cff + sqrt(cff**2 + 4D0*DFe*keq))/2D0/keq  
 
-cff = dtdays*DETFe*Rdn*TEMPBOL(Ez,Temp) !The regeneration flux from DETFe ==> DFe
+cff = Fe_N*PP_ND !The regeneration flux from DETFe ==> DFe
 
 DFe = DFe + cff + ((PP_NZ-PP_PN)*Fe_N - Fe_scav*dtdays)
 
