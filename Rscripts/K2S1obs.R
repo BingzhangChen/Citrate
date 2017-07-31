@@ -272,6 +272,43 @@ for (Stn in c('S1','K2')){
   write.table(dat, filedir, row.names=F)
 }
 
+#Iron data for K2S1:
+setwd('~/Working/FlexEFT1D')
+#Cannot use obs. data because of no measurements:
+dat1  <- dat1[,1:10]
+#Limit to 1 x 1 degree of each station:
+depth_total    <- 500 #Total depth (m) of the station
+
+Add_DFe <- function(stn, depth_total = 500){
+   if (stn == 'S1'){
+       lon  = 145
+       lat  = 30
+   } else if(stn == 'K2'){
+       lon  = 160 
+       lat  = 47
+   } else if(stn == 'HOT'){
+       lon  = -158
+       lat  = 22.75
+   }
+   
+   File  <- paste0(stn,'/',stn,'_fer.dat')
+   dat1  <- read.table(File, header = T)
+   dat1  <- dat1[dat1$Depth >= -depth_total,]
+   
+   #Convert into obs. data format:
+   #Correct the format:
+   DFe <- data.frame(matrix(NA, nr = (ncol(dat1)-1)*nrow(dat1), nc = 3))
+   colnames(DFe) <- c('DOY','Depth','DFe')
+   for (i in 1:12){
+       for (j in 1:nrow(dat1)){
+           DFe[j+(i-1)*nrow(dat1),]$DOY   <- i*30-15
+           DFe[j+(i-1)*nrow(dat1),]$Depth <- abs(dat1[j,1])
+           DFe[j+(i-1)*nrow(dat1),]$DFe   <- dat1[j,i+1]
+       }
+   }
+   filedir <- paste0('~/Working/FlexEFT1D/',stn,'/',stn,'_DFe.dat')
+   write.table(DFe,filedir,row.names=F)
+}
 
 #Get DOC and pico data for HOT:
 #Read csv file:
@@ -316,6 +353,6 @@ write.VAR('EUK')
 
 
 #Test likelihood function:
-p <- function(n,sigma,SS){
-        return(-n*log(sigma*sqrt(2*pi)) - SS/2/sigma**2)
-     }
+#p <- function(n,sigma,SS){
+#        return(-n*log(sigma*sqrt(2*pi)) - SS/2/sigma**2)
+#     }

@@ -5,7 +5,7 @@ public
 ! Grid parameters
 real, private, parameter :: hmax   = 5D2   ! Total water depth
 real, private, parameter :: thetaS = 2d0   ! surface stretching parameter
-real, private, parameter :: dtsec  = 6D2   ! time step in seconds
+real, private, parameter :: dtsec  = 1800d0   ! time step in seconds
 real, private, parameter ::d_per_s = 864d2 ! how many seconds in one day
 real, private, parameter :: zero   = 0d0
                       !how many seconds of one year
@@ -89,6 +89,7 @@ integer  :: itP10 = 8
 integer  :: itP03 = 9
 integer  :: itP01 = 10
 integer  :: itP_1 = 11
+integer  :: itDFe = 5
 
 ! The number of days for model run, needs to change at different stages during MCMC
 integer              :: NDays = 1080
@@ -107,7 +108,7 @@ real,    allocatable ::  NPPData(:,:)
 real,    allocatable ::  PONData(:,:)
 real,    allocatable ::  POPData(:,:)
 real,    allocatable ::  DIAData(:,:)
-real,    allocatable ::  C2NData(:,:)
+real,    allocatable ::  DFeData(:,:)
 real,    allocatable :: SizeData(:,:)
 real,    allocatable ::  OBSData(:,:)
 
@@ -118,6 +119,7 @@ real,    allocatable ::  NPPout(:,:)
 real,    allocatable ::  PONout(:,:) 
 real,    allocatable ::  PO4out(:,:) 
 real,    allocatable ::  POPout(:,:) 
+real,    allocatable ::  DFeout(:,:) 
 real,    allocatable ::  DIAout(:,:) 
 real,    allocatable :: Sizeout(:,:) 
 
@@ -145,6 +147,7 @@ character(LEN=20)    :: CHL_OBS_file(Nstn)
 character(LEN=20)    :: NPP_OBS_file(Nstn)
 character(LEN=20)    :: PON_OBS_file(Nstn)
 character(LEN=20)    :: POP_OBS_file(Nstn)
+character(LEN=20)    :: DFe_OBS_file(Nstn)
 character(LEN=20)    :: DIA_OBS_file(Nstn)
 character(LEN=20)    :: SIZE_OBS_file(Nstn)
 real,    allocatable :: DOY(:), Depth(:)
@@ -166,7 +169,11 @@ Select case(Model_ID)
      N2fix       = .TRUE.
  
   case(NPZDdisc, EFTdisc,EFTcont, Geiderdisc,NPZDCONT)
-     NDTYPE = 8  !TIN, CHL, PP, PON, CHL>10, CHL3-10,CHL1-3,CHL<1
+     if (do_IRON) then
+       NDTYPE = 9 !TIN, CHL, PP, PON, DFe, CHL>10, CHL3-10,CHL1-3,CHL<1
+     else
+       NDTYPE = 8 
+     endif
      INCLUDESIZE = .TRUE.
      if (trim(Stn(1))  .eq. 'HOT' .and. Nstn .eq. 1) then
           NDTYPE = 4
@@ -183,9 +190,16 @@ DataLabel(itNO3) = 'TIN'
 DataLabel(itCHL) = 'CHL'
 DataLabel(itNPP) = 'NPP'
 DataLabel(itPON) = 'PON'
-
+if(DO_IRON) then 
+   DataLabel(itDFe) = 'DFe'
+   itDFe            = itPON + 1       
+endif
 if (Model_ID .eq. NPZDN2) then
-    itPO4            = itPON + 1
+    if (DO_IRON) then
+      itPO4          = itDFe + 1
+    else
+      itPO4          = itPON + 1
+    endif
     itPOP            = itPO4 + 1
     itDIA            = itPOP + 1
     DataLabel(itPO4) = 'PO4'
@@ -194,7 +208,11 @@ if (Model_ID .eq. NPZDN2) then
 endif
 
 If (INCLUDESIZE .and. (.not. N2fix)) then
-  itP10            = itPON + 1
+  if (DO_IRON) then
+    itP10          = itDFe + 1
+  else
+    itP10          = itPON + 1
+  endif
   itP03            = itP10 + 1
   itP01            = itP03 + 1
   itP_1            = itP01 + 1
@@ -202,12 +220,16 @@ If (INCLUDESIZE .and. (.not. N2fix)) then
   DataLabel(itP03) = 'P03'
   DataLabel(itP01) = 'P01'
   DataLabel(itP_1) = 'P_1'
-  allocate(nrow(5,Nstn), STAT = AllocateStatus)
+  allocate(nrow(NDTYPE-3,Nstn), STAT = AllocateStatus)
   IF (AllocateStatus /= 0) STOP "*** Error in allocating nrow ***"
-  allocate(ncol(5,Nstn), STAT = AllocateStatus)
+  allocate(ncol(NDTYPE-3,Nstn), STAT = AllocateStatus)
   IF (AllocateStatus /= 0) STOP "*** Error in allocating ncol ***"
 Elseif (INCLUDESIZE .and. N2fix) then
-  itPO4            = itPON + 1
+  if (DO_IRON) then
+    itPO4          = itDFe + 1
+  else
+    itPO4          = itPON + 1
+  endif
   itPOP            = itPO4 + 1
   itP10            = itPOP + 1
   itP03            = itP10 + 1
@@ -219,9 +241,10 @@ Elseif (INCLUDESIZE .and. N2fix) then
   DataLabel(itP03) = 'P03'
   DataLabel(itP01) = 'P01'
   DataLabel(itP_1) = 'P_1'
-  allocate(nrow(7,Nstn), STAT = AllocateStatus)
+
+  allocate(nrow(NDTYPE-3,Nstn), STAT = AllocateStatus)
   IF (AllocateStatus /= 0) STOP "*** Error in allocating nrow ***"
-  allocate(ncol(7,Nstn), STAT = AllocateStatus)
+  allocate(ncol(NDTYPE-3,Nstn), STAT = AllocateStatus)
   IF (AllocateStatus /= 0) STOP "*** Error in allocating ncol ***"
 
 Else
@@ -243,7 +266,7 @@ Do j = 1, Nstn
       NDPTS(itCHL,j) = 426
       NDPTS(itNPP,j) = 128
       NDPTS(itPON,j) = 32
-
+      if (DO_IRON) NDPTS(itDFe,j) = 168
       if (INCLUDESIZE) then
          NDPTS(itP10,j) = 166
          NDPTS(itP03,j) = NDPTS(itP10,j)
@@ -256,6 +279,7 @@ Do j = 1, Nstn
       NDPTS(itCHL,j) = 470
       NDPTS(itNPP,j) = 112
       NDPTS(itPON,j) = 29
+      if (DO_IRON) NDPTS(itDFe,j) = 168
       if (INCLUDESIZE) then
          NDPTS(itP10,j) = 143
          NDPTS(itP03,j) = NDPTS(itP10,j)
@@ -308,23 +332,29 @@ Do i = 1, NN
 Enddo
 
 !Start to assign TIN,Chl, and NPP data:
-allocate( TINData(Tnrow(1),ncol(1,1)), STAT = AllocateStatus)
+allocate( TINData(Tnrow(itNO3),ncol(itNO3,1)), STAT = AllocateStatus)
 IF (AllocateStatus /= 0) STOP "*** Problem in allocating TINData ***"
 
-allocate( CHLData(Tnrow(2),ncol(2,1)), STAT = AllocateStatus)
+allocate( CHLData(Tnrow(itCHL),ncol(itCHL,1)), STAT = AllocateStatus)
 IF (AllocateStatus /= 0) STOP "*** Problem in allocating CHLData ***"
 
-allocate( NPPData(Tnrow(3),ncol(3,1)), STAT = AllocateStatus)
+allocate( NPPData(Tnrow(itNPP),ncol(itNPP,1)), STAT = AllocateStatus)
 IF (AllocateStatus /= 0) STOP "*** Problem in allocating NPPData ***"
 
-allocate( PONData(Tnrow(4),ncol(4,1)), STAT = AllocateStatus)
+allocate( PONData(Tnrow(itPON),ncol(itPON,1)), STAT = AllocateStatus)
+IF (AllocateStatus /= 0) STOP "*** Problem in allocating PONData ***"
+
+if (do_IRON) then
+   allocate( DFeData(Tnrow(itDFe),ncol(itDFe,1)), STAT = AllocateStatus)
+   IF (AllocateStatus /= 0) STOP "*** Problem in allocating PONData ***"
+endif
 
 if (N2fix) then
-   allocate( PO4Data(Tnrow(5),ncol(5,1)), STAT = AllocateStatus)
+   allocate( PO4Data(Tnrow(itPO4),ncol(itPO4,1)), STAT = AllocateStatus)
    IF (AllocateStatus /= 0) STOP "*** Problem in allocating PO4Data ***"
-   allocate( POPData(Tnrow(6),ncol(6,1)), STAT = AllocateStatus)
+   allocate( POPData(Tnrow(itPOP),ncol(itPOP,1)), STAT = AllocateStatus)
    IF (AllocateStatus /= 0) STOP "*** Problem in allocating POPData ***"
-   allocate( DIAData(Tnrow(7),ncol(7,1)), STAT = AllocateStatus)
+   allocate( DIAData(Tnrow(itDIA),ncol(itDIA,1)), STAT = AllocateStatus)
    IF (AllocateStatus /= 0) STOP "*** Problem in allocating DIAData ***"
 endif
 
@@ -343,6 +373,7 @@ if (N2fix) then
     DIAData(:,:) = 0.
 endif
 
+if (do_IRON) DFeData(:,:) = 0d0
 OBSData(:,:) = 0d0
 
 ! Initialize size data:
@@ -374,6 +405,7 @@ Do j = 1, Nstn
   CHL_OBS_file(j) = trim(Stn(j))//'_CHL.dat'
   NPP_OBS_file(j) = trim(Stn(j))//'_NPP.dat'
   PON_OBS_file(j) = trim(Stn(j))//'_PON.dat'
+  DFe_OBS_file(j) = trim(Stn(j))//'_DFe.dat'
   DIA_OBS_file(j) = trim(Stn(j))//'_DIA.dat'
   
   call Readcsv(TIN_OBS_file(j),nrow(1,j),ncol(1,j), TINData((kk(1)+1):(kk(1)+nrow(1,j)),:))
@@ -382,10 +414,13 @@ Do j = 1, Nstn
   call Readcsv(PON_OBS_file(j),nrow(4,j),ncol(4,j), PONData((kk(4)+1):(kk(4)+nrow(4,j)),:))
 
   if (N2fix) then
-  call Readcsv(PO4_OBS_file(j),nrow(5,j),ncol(5,j), PO4Data((kk(5)+1):(kk(5)+nrow(5,j)),:))
-  call Readcsv(POP_OBS_file(j),nrow(6,j),ncol(6,j), POPData((kk(6)+1):(kk(6)+nrow(6,j)),:))
-  call Readcsv(DIA_OBS_file(j),nrow(7,j),ncol(7,j), DIAData((kk(7)+1):(kk(7)+nrow(7,j)),:))
+  call Readcsv(PO4_OBS_file(j),nrow(itPO4,j),ncol(itPO4,j), PO4Data((kk(itPO4)+1):(kk(itPO4)+nrow(itPO4,j)),:))
+  call Readcsv(POP_OBS_file(j),nrow(itPOP,j),ncol(itPOP,j), POPData((kk(itPOP)+1):(kk(itPOP)+nrow(itPOP,j)),:))
+  call Readcsv(DIA_OBS_file(j),nrow(itDIA,j),ncol(itDIA,j), DIAData((kk(itDIA)+1):(kk(itDIA)+nrow(itDIA,j)),:))
   endif
+
+  if (do_IRON) &
+  call Readcsv(DFe_OBS_file(j),nrow(itDFe,j),ncol(itDFe,j), DFeData((kk(itDFe)+1):(kk(itDFe)+nrow(itDFe,j)),:))
 
   if (INCLUDESIZE) then
      ! Use percentage data
@@ -411,21 +446,49 @@ Do j = 1, Nstn
     else if (i .eq. itPON) then  ! PON
       DOY   = PONData((kk(4)+1):(kk(4)+nrow(4,j)),1)
       Depth = PONData((kk(4)+1):(kk(4)+nrow(4,j)),2)
-    else if (i .eq. itPO4 .and. N2fix) then   ! PO4
-      DOY   = PO4Data((kk(5)+1):(kk(5)+nrow(5,j)),1)
-      Depth = PO4Data((kk(5)+1):(kk(5)+nrow(5,j)),2)
-    else if (i .eq. itPOP .and. N2fix) then   ! POP
-      DOY   = POPData((kk(6)+1):(kk(6)+nrow(6,j)),1)
-      Depth = POPData((kk(6)+1):(kk(6)+nrow(6,j)),2)
-    else if (i .eq. itDIA .and. N2fix) then   ! DIA
-      DOY   = DIAData((kk(7)+1):(kk(7)+nrow(7,j)),1)
-      Depth = DIAData((kk(7)+1):(kk(7)+nrow(7,j)),2)
-    else if (i .gt. itPON .and. (.not. N2fix)) then   ! Size-fractionated Chl
-      DOY   = SizeData((kk(ncff)+1):(kk(ncff)+nrow(ncff,j)),1)
-      Depth = SizeData((kk(ncff)+1):(kk(ncff)+nrow(ncff,j)),2)
     else
-      print *, 'Errors in selecting data types! Quit!'
-      stop
+      if (do_IRON) then
+        if (i .eq. itDFe) then  !DFe
+           DOY   = DFeData((kk(itDFe)+1):(kk(itDFe)+nrow(itDFe,j)),1)
+           Depth = DFeData((kk(itDFe)+1):(kk(itDFe)+nrow(itDFe,j)),2)
+        elseif (N2fix) then
+          if (i .eq. itPO4) then   ! PO4
+             DOY   = PO4Data((kk(itPO4)+1):(kk(itPO4)+nrow(itPO4,j)),1)
+             Depth = PO4Data((kk(itPO4)+1):(kk(itPO4)+nrow(itPO4,j)),2)
+          else if (i .eq. itPOP) then   ! POP
+             DOY   = POPData((kk(itPOP)+1):(kk(itPOP)+nrow(itPOP,j)),1)
+             Depth = POPData((kk(itPOP)+1):(kk(itPOP)+nrow(itPOP,j)),2)
+          else if (i .eq. itDIA) then   ! DIA
+             DOY   = DIAData((kk(itDIA)+1):(kk(itDIA)+nrow(itDIA,j)),1)
+             Depth = DIAData((kk(itDIA)+1):(kk(itDIA)+nrow(itDIA,j)),2)
+          else   ! Size-fractionated Chl
+             DOY   = SizeData((kk(ncff)+1):(kk(ncff)+nrow(ncff,j)),1)
+             Depth = SizeData((kk(ncff)+1):(kk(ncff)+nrow(ncff,j)),2)
+          endif
+        else  ! Size-fractionated Chl
+            DOY   = SizeData((kk(ncff)+1):(kk(ncff)+nrow(ncff,j)),1)
+            Depth = SizeData((kk(ncff)+1):(kk(ncff)+nrow(ncff,j)),2)
+        endif ! <== if (i .eq. itDFe)
+      else ! .not. do_IRON
+        if (N2fix) then
+          if (i .eq. itPO4) then   ! PO4
+             DOY   = PO4Data((kk(itPO4)+1):(kk(itPO4)+nrow(itPO4,j)),1)
+             Depth = PO4Data((kk(itPO4)+1):(kk(itPO4)+nrow(itPO4,j)),2)
+          else if (i .eq. itPOP) then   ! POP
+             DOY   = POPData((kk(itPOP)+1):(kk(itPOP)+nrow(itPOP,j)),1)
+             Depth = POPData((kk(itPOP)+1):(kk(itPOP)+nrow(itPOP,j)),2)
+          else if (i .eq. itDIA) then   ! DIA
+             DOY   = DIAData((kk(itDIA)+1):(kk(itDIA)+nrow(itDIA,j)),1)
+             Depth = DIAData((kk(itDIA)+1):(kk(itDIA)+nrow(itDIA,j)),2)
+          else   ! Size-fractionated Chl
+             DOY   = SizeData((kk(ncff)+1):(kk(ncff)+nrow(ncff,j)),1)
+             Depth = SizeData((kk(ncff)+1):(kk(ncff)+nrow(ncff,j)),2)
+          endif
+        else  ! Size-fractionated Chl
+           DOY   = SizeData((kk(ncff)+1):(kk(ncff)+nrow(ncff,j)),1)
+           Depth = SizeData((kk(ncff)+1):(kk(ncff)+nrow(ncff,j)),2)
+        endif
+      endif
     endif
 
     do oi = 1, NDPTS(i,j)
@@ -635,12 +698,10 @@ real     :: cff,current_sec
 real     :: I_0(1), dust0(1),Aks(0:nlev),w(0:nlev)
 real     :: depth(1)
 real     :: CHL_(nlev),Vars1(nlev),Vars2(nlev),ww_(0:nlev)
-real     :: Dust_solubility = 0.02  !Aumont et al. (2003)
 real, allocatable  :: a(:,:)
 integer, parameter :: mode0 = 0
 integer, parameter :: mode1 = 1
 real,    parameter :: Aks_th= 1D-3 ! Aks threshold for calculating average PAR in MLD 
-real,    parameter :: Dust_ironfrac   = 0.035 !TOM10Appendix p. 24, unit: g/g
 real,    parameter :: mon2sec         = 2592D3
 
 character(LEN=20)  :: outfile
@@ -662,6 +723,12 @@ NPPout(:,:) = 0d0
 if (.not. allocated(PONout)) allocate(PONout(size(PONData,1),1),STAT = AllocateStatus)
 if (AllocateStatus /= 0) STOP "Problem in allocating PONout!"
 PONout(:,:) = 0d0
+
+if (do_IRON) then
+  if (.not. allocated(DFeout)) allocate(DFeout(size(DFeData,1),1),STAT = AllocateStatus)
+  if (AllocateStatus /= 0) STOP "Problem in allocating DFeout!"
+  DFeout(:,:) = 0.
+endif
 
 if (N2fix) then
    if (.not. allocated(PO4out)) allocate(PO4out(size(PO4Data,1),1),STAT = AllocateStatus)
@@ -835,6 +902,7 @@ DO jj = 1, Nstn
      ! so need to convert into nM at each time step
      ! Deposition = Dust*10^12/56*dtsec*surface_area/surface_grid_volume
        cff= dust0(1)*1D12/55.85/Hz(nlev)*dtsec/1D3                     
+
        ! added dissolved Fe (nM/d) on top grid: 
        Varout(odstdep,nlev)=cff/dtsec*d_per_s
        
@@ -1001,6 +1069,7 @@ DO jj = 1, Nstn
                 enddo
                 nm = nm + i - nrow(1,jj)
              endif
+
           ! Calculate CHL output:
            a(:,1) = Varout(oCHLt,:)
            call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
@@ -1038,62 +1107,132 @@ DO jj = 1, Nstn
            call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
                 PONout(nm,1))  
 
+          elseif (do_IRON .and. (i .le. (nrow(1,jj)+nrow(2,jj)+nrow(3,jj)+nrow(4,jj)+nrow(5,jj)))) then
+
+             if (jj .eq. 1) then
+                nm = i- nrow(1,jj) - nrow(2,jj) - nrow(3,jj) - nrow(4,jj)
+             else
+                nm = 0
+                do j = 1, (jj-1)
+                   nm = nm + nrow(5, j)
+                enddo
+                nm = nm + i - nrow(1,jj) - nrow(2,jj) - nrow(3,jj)-nrow(4,jj)
+             endif
+
+          ! Calculate DFe output:
+           a(:,1) = Varout(oFER,:)   ! Total DFe
+           call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
+                DFeout(nm,1))  
+
           elseif (.not. N2fix) then  ! Separate NPZDN2 and NPZDCONT models
 
            goto 1000   ! <== for models without N2 fixation but with size
 
           else
-           ! For models with N2fixation 
-           if (i.le.(nrow(1,jj)+nrow(2,jj)+nrow(3,jj)+nrow(4,jj)+nrow(5,jj))) then
-            if (jj .eq. 1) then
-               nm = i- nrow(1,jj) - nrow(2,jj) - nrow(3,jj)-nrow(4,jj)
-            else
-               nm = 0
-               do j = 1, (jj-1)
-                  nm = nm + nrow(5, j)
-               enddo
-               nm = nm + i - nrow(1,jj) - nrow(2,jj) - nrow(3,jj) - nrow(4,jj)
-            endif
+           If (.not. do_IRON) then
+             ! For models with N2fixation but without iron
+             if (i.le.(nrow(1,jj)+nrow(2,jj)+nrow(3,jj)+nrow(4,jj)+nrow(5,jj))) then
+              if (jj .eq. 1) then
+                 nm = i- nrow(1,jj) - nrow(2,jj) - nrow(3,jj)-nrow(4,jj)
+              else
+                 nm = 0
+                 do j = 1, (jj-1)
+                    nm = nm + nrow(5, j)
+                 enddo
+                 nm = nm + i - nrow(1,jj) - nrow(2,jj) - nrow(3,jj) - nrow(4,jj)
+              endif
 
-          ! Calculate PO4 output:
-            a(:,1) = Varout(oPO4,:)   ! PO4
-            call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
-                 PO4out(nm,1))  
+          !   Calculate PO4 output:
+              a(:,1) = Varout(oPO4,:)   ! PO4
+              call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
+                   PO4out(nm,1))  
 
-           elseif (&
-            i.le.(nrow(1,jj)+nrow(2,jj)+nrow(3,jj)+nrow(4,jj)+nrow(5,jj)+nrow(6,jj))) then
-             if (jj .eq. 1) then
-                nm = i- nrow(1,jj) - nrow(2,jj) - nrow(3,jj)-nrow(4,jj)-nrow(5,jj)
+             elseif (&
+              i.le.(nrow(1,jj)+nrow(2,jj)+nrow(3,jj)+nrow(4,jj)+nrow(5,jj)+nrow(6,jj))) then
+               if (jj .eq. 1) then
+                  nm = i- nrow(1,jj) - nrow(2,jj) - nrow(3,jj)-nrow(4,jj)-nrow(5,jj)
+               else
+                  nm = 0
+                  do j = 1, (jj-1)
+                     nm = nm + nrow(6, j)
+                  enddo
+                  nm = nm + i - nrow(1,jj) - nrow(2,jj) - nrow(3,jj) - nrow(4,jj)-nrow(5,jj)
+               endif
+
+          !   Calculate POP output:
+              a(:,1) = Varout(oPOP,:)   ! POP
+              call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
+                   POPout(nm,1))  
+
              else
-                nm = 0
-                do j = 1, (jj-1)
-                   nm = nm + nrow(6, j)
-                enddo
-                nm = nm + i - nrow(1,jj) - nrow(2,jj) - nrow(3,jj) - nrow(4,jj)-nrow(5,jj)
-             endif
+               if (jj .eq. 1) then
+                  nm = i- nrow(1,jj)-nrow(2,jj)-nrow(3,jj)-nrow(4,jj)-nrow(5,jj)-nrow(6,jj)
+               else
+                  nm = 0
+                  do j = 1, (jj-1)
+                     nm = nm + nrow(7, j)
+                  enddo
+                  nm=nm+i-nrow(1,jj)-nrow(2,jj)-nrow(3,jj)- nrow(4,jj)-nrow(5,jj)-nrow(6,jj)
+               endif
 
-          ! Calculate POP output:
-            a(:,1) = Varout(oPOP,:)   ! POP
-            call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
-                 POPout(nm,1))  
+              ! Calculate DIA output:
+               a(:,1) = Varout(oDIA,:)   ! POP
+               call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
+                    DIAout(nm,1))  
+             endif ! <== End of selection of special data types in NPZDN2 model
+           Else
+           ! For models with N2fixation and iron
+             if (i.le.(nrow(1,jj)+nrow(2,jj)+nrow(3,jj)+nrow(4,jj)+nrow(5,jj)+nrow(6,jj))) then
+              if (jj .eq. 1) then
+                 nm = i- nrow(1,jj) - nrow(2,jj) - nrow(3,jj)-nrow(4,jj) -nrow(5,jj)
+              else
+                 nm = 0
+                 do j = 1, (jj-1)
+                    nm = nm + nrow(6, j)
+                 enddo
+                 nm = nm + i - nrow(1,jj) - nrow(2,jj) - nrow(3,jj) - nrow(4,jj) - nrow(5,jj)
+              endif
 
-           else
-             if (jj .eq. 1) then
-                nm = i- nrow(1,jj)-nrow(2,jj)-nrow(3,jj)-nrow(4,jj)-nrow(5,jj)-nrow(6,jj)
+          !   Calculate PO4 output:
+              a(:,1) = Varout(oPO4,:)   ! PO4
+              call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
+                   PO4out(nm,1))  
+
+             elseif (&
+              i.le.(nrow(1,jj)+nrow(2,jj)+nrow(3,jj)+nrow(4,jj)+nrow(5,jj)+nrow(6,jj)+nrow(7,jj))) then
+               if (jj .eq. 1) then
+                  nm = i- nrow(1,jj) - nrow(2,jj) - nrow(3,jj)-nrow(4,jj)-nrow(5,jj)-nrow(6,jj)
+               else
+                  nm = 0
+                  do j = 1, (jj-1)
+                     nm = nm + nrow(7, j)
+                  enddo
+                  nm = nm + i - nrow(1,jj) - nrow(2,jj) - nrow(3,jj) - nrow(4,jj)-nrow(5,jj)-nrow(6,jj)
+               endif
+
+          !   Calculate POP output:
+              a(:,1) = Varout(oPOP,:)   ! POP
+              call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
+                   POPout(nm,1))  
+
              else
-                nm = 0
-                do j = 1, (jj-1)
-                   nm = nm + nrow(7, j)
-                enddo
-                nm=nm+i-nrow(1,jj)-nrow(2,jj)-nrow(3,jj)- nrow(4,jj)-nrow(5,jj)-nrow(6,jj)
-             endif
+               if (jj .eq. 1) then
+                  nm = i- nrow(1,jj)-nrow(2,jj)-nrow(3,jj)-nrow(4,jj)-nrow(5,jj)-nrow(6,jj)-nrow(7,jj)
+               else
+                  nm = 0
+                  do j = 1, (jj-1)
+                     nm = nm + nrow(8, j)
+                  enddo
+                  nm=nm+i-nrow(1,jj)-nrow(2,jj)-nrow(3,jj)- nrow(4,jj)-nrow(5,jj)-nrow(6,jj)-nrow(7,jj)
+               endif
 
-            ! Calculate DIA output:
-             a(:,1) = Varout(oDIA,:)   ! POP
-             call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
-                  DIAout(nm,1))  
-           endif ! <== End of selection of special data types in NPZDN2 model
+              ! Calculate DIA output:
+               a(:,1) = Varout(oDIA,:)   ! POP
+               call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
+                    DIAout(nm,1))  
+             endif ! <== End of selection of special data types in NPZDN2 model
 
+           Endif  ! <== endof both do_IRON and N2 fixation
 1000      if(INCLUDESIZE) then
 
              ncff = NDTYPE-4  !Number of data types excluding size
@@ -1249,23 +1388,22 @@ subroutine End_model
   implicit none
 
 !  ! Release memory:
-  deallocate(Vars)
-  deallocate(Varout)
-  deallocate(params)
-  deallocate(iPHY)
-  deallocate(Labelout)
-  deallocate(Windex)
-  deallocate(oPHY)
-  deallocate(oCHL)
-  deallocate(oTheta)
-  deallocate(oQN)
-  deallocate(omuNET)
-  deallocate(oGraz)
-!  deallocate(ow_p)
-  deallocate(oSI)
-  deallocate(oLno3)
-  deallocate(oD_PHY)
-  deallocate(oD_CHL)
+  if(allocated(Vars))     deallocate(Vars)
+  if(allocated(Varout))   deallocate(Varout)
+  if(allocated(params))   deallocate(params)
+  if(allocated(iPHY))     deallocate(iPHY)
+  if(allocated(Labelout)) deallocate(Labelout)
+  if(allocated(Windex))   deallocate(Windex)
+  if(allocated(oPHY))     deallocate(oPHY)
+  if(allocated(oCHL))     deallocate(oCHL)
+  if(allocated(oTheta))   deallocate(oTheta)
+  if(allocated(oQN))      deallocate(oQN)
+  if(allocated(omuNET))   deallocate(omuNET)
+  if(allocated(oGraz))    deallocate(oGraz)
+  if(allocated(oSI))      deallocate(oSI)
+  if(allocated(oLno3))    deallocate(oLno3)
+  if(allocated(oD_PHY))   deallocate(oD_PHY)
+  if(allocated(oD_CHL))   deallocate(oD_CHL)
 
 END subroutine End_model
 !========================================================

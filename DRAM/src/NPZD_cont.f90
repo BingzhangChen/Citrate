@@ -69,7 +69,7 @@ DO k = nlev, 1, -1
    PMU    = PMUPHY/PHY
    PMU    = PMU - PMU0     !Correct PMU to the real one
    VAR    = VARPHY/PHY**2  !Correct VAR to the real one
-   Fe     = max(Vars(ifer,k),Femin)
+   Fe     = Vars(ifer,k)
 
    call PHY_NPZDCONT(NO3,par_,tC,Fe,PMU,muNet,dmuNetdl,d2muNetdl2,d3mudl3,d4mudl4,SI,Lno3, theta, QN)
 
@@ -417,14 +417,11 @@ real, intent(in)    :: Temp,DET, PP_NZ, PP_PN, PP_DZ, PP_ND
 real, intent(inout) :: DFe, DETFe
 real, intent(out)   :: Fe_scav     !Iron scavenging for diagonosis
 real                :: keq, cff
-real, parameter     :: Kscm= 3D-5  !Minimal scavenging rate
+real, parameter     :: Kscm= 5D-3  !Minimal scavenging rate (d-1)
 real, parameter     :: Ksc = 3D-2  !Particle dependent scavenging rate (umolN-1 d-1)
 !Iron:Nitrogen ratio, Aumont et al. (2003) set Fe/C = 4D-6 (mol:mol). 
 !assume redfield ratio of C/N. Times 1000 to convert umol N to nmol Fe
 real, parameter     :: lFe  = 0.6    ! Iron ligand concentration (nM). (TOM10 P. 19)
-real, parameter     :: Rdn  = .1     ! Regeneration rate from detritus to dissolved Fe
-DFe  = max(DFe,Femin)
-
 !dFedt = -phytouptake + Zoo excretion - scavenging + remineralization + dust deposition
 ! (From TOM10 and PISCES)
 

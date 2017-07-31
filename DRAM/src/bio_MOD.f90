@@ -61,7 +61,7 @@ integer  :: iVTR, ifer,od3mu,od4mu
 integer  :: iEp,iEz,izetaN,izetaChl, iaI0_C 
 integer  :: ialphaI,iA0N,ialphaA,ialphaG,ialphaK, ialphaFe
 integer  :: iQ0N,ialphaQ,iPenfac,iLref,iwDET,irdN,imz
-integer  :: ithetamin,iQNmin,itau,iwDET2,idustsol,igb,oFescav,odstdep
+integer  :: ithetamin,iQNmin,itau,iwDET2,igb,oFescav,odstdep
 integer, allocatable :: iPHY(:), oPHY(:),oTheta(:),oQN(:),oQp(:)
 integer, allocatable :: iCHL(:), oCHL(:),omuNet(:),oD_PHY(:),oD_CHL(:)
 integer, allocatable :: oGraz(:),oSI(:), oLno3(:)
@@ -76,7 +76,7 @@ real, parameter :: GGE    =0.3, unass =0.24
 real, parameter :: Fe_N   =0.0265 ! Fe:Nitrogen molar ratio (nmol : umol)
 real, parameter :: thetm  =0.65
 real, parameter :: RMchl0 =0.1
-real, parameter :: Ep     =0.5, Ez    =0.6 
+real, parameter :: Ep     =0.41, Ez   =0.65 
 real            :: alphamu,     betamu=0d0
 
 !Temperature senstivity tuned by the algorithm

@@ -477,8 +477,7 @@ if (Model_ID==NPZDFix .or.Model_ID==NPZD2sp    .or.Model_ID==NPPZDD  &
            if (do_IRON) then
              iKFe =igb     +1
           ialphaFe=iKFe    +1
-          idustsol=ialphaFe+1
-             NPar =idustsol
+             NPar =ialphaFe
            else
              NPar =iVTR
            endif
@@ -529,14 +528,7 @@ else
 endif
 params(igmax)    = 1.0
 params(iKPHY)    = 0.5
-if (Model_ID == NPZDdisc .or. Model_ID==NPZDcont &
-.or.Model_ID == NPZDN2) then
-   params(imu0)     = 0.44  ! growth rate at 15 C for 1 um3
-else if (Model_ID == NPZDFix) then
-   params(imu0)     = 1.2
-else
-   params(imu0)     = 2.5d0
-endif
+params(imu0)     = 2.5d0
 
 if(Model_ID==EFT2sp .or. Model_ID==EFTPPDD .or.  Model_ID==NPZD2sp .or. Model_ID==NPPZDD) then
    ParamLabel(imu0B)='mu0B'
@@ -574,7 +566,7 @@ endif
 
 if (nutrient_uptake .eq. 1) then
    ParamLabel(iKN)  = 'KN'
-      params(iKN )  = 5d-1
+      params(iKN )  = 2d-1
   if (Model_ID .eq. NPZDN2) then
    !ParamLabel(iKP)  = 'KP'
   ParamLabel(iKPnif)= 'KPnif'
@@ -640,10 +632,8 @@ if(Model_ID==NPZDdisc.or.Model_ID==NPZD2sp.or.Model_ID==NPPZDD.or.Model_ID==NPZD
      if (do_IRON) then
             ParamLabel(iKFe)='KFe'
         ParamLabel(ialphaFe)='alphaFe'
-        ParamLabel(idustsol)='dustsol'
                 params(iKFe)=0.08
             params(ialphaFe)=0.27
-            params(idustsol)=0.02
      endif
   endif
 endif

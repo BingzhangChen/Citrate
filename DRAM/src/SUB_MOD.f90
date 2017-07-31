@@ -72,21 +72,21 @@ DO j = 1, Nstn
      elseif (i .eq. itPON) then  ! PON
        OBS_data = PONData((kk(i)+1):(kk(i)+nrow(4,j)),3)
        MOD_data =  PONout((kk(i)+1):(kk(i)+nrow(4,j)),1)
+     elseif (i .eq. itDFE .and. do_IRON) then ! DFe
+       OBS_data = DFeData((kk(i)+1):(kk(i)+nrow(itDFe,j)),3)
+       MOD_data =  DFeout((kk(i)+1):(kk(i)+nrow(itDFe,j)),1)
      elseif (i .eq. itPO4 .and. N2fix) then   ! DIP
-       OBS_data = PO4Data((kk(i)+1):(kk(i)+nrow(5,j)),3)
-       MOD_data =  PO4out((kk(i)+1):(kk(i)+nrow(5,j)),1)
+       OBS_data = PO4Data((kk(i)+1):(kk(i)+nrow(itPO4,j)),3)
+       MOD_data =  PO4out((kk(i)+1):(kk(i)+nrow(itPO4,j)),1)
      elseif (i .eq. itPOP .and. N2fix) then   ! POP
-       OBS_data = POPData((kk(i)+1):(kk(i)+nrow(6,j)),3)
-       MOD_data =  POPout((kk(i)+1):(kk(i)+nrow(6,j)),1)
-     elseif (i .eq. itDIA .and. N2fix) then   ! POP
-       OBS_data = DIAData((kk(i)+1):(kk(i)+nrow(7,j)),3)
-       MOD_data =  DIAout((kk(i)+1):(kk(i)+nrow(7,j)),1)
-     elseif (i .gt. itPON .and. (.not. N2fix)) then  ! Size-fractionated Chl
-       OBS_data = SizeData((kk(i)+1):(kk(i)+nrow(5,j)),i-2)
-       MOD_data =  Sizeout((kk(i)+1):(kk(i)+nrow(5,j)),i-4)
-     elseif (i .gt. itDIA .and. N2fix) then  ! Size-fractionated Chl
-       OBS_data = SizeData((kk(i)+1):(kk(i)+nrow(8,j)),i-2)
-       MOD_data =  Sizeout((kk(i)+1):(kk(i)+nrow(8,j)),i-4)
+       OBS_data = POPData((kk(i)+1):(kk(i)+nrow(itPOP,j)),3)
+       MOD_data =  POPout((kk(i)+1):(kk(i)+nrow(itPOP,j)),1)
+     elseif (i .eq. itDIA .and. N2fix) then   ! DIA
+       OBS_data = DIAData((kk(i)+1):(kk(i)+nrow(itDIA,j)),3)
+       MOD_data =  DIAout((kk(i)+1):(kk(i)+nrow(itDIA,j)),1)
+     elseif (INCLUDESIZE) then  ! Size-fractionated Chl
+       OBS_data = SizeData((kk(i)+1):(kk(i)+nrow(NDTYPE-3,j)), i-(NDTYPE-6))
+       MOD_data =  Sizeout((kk(i)+1):(kk(i)+nrow(NDTYPE-3,j)), i-(NDTYPE-4))
      else
        print *, 'Errors in selecting data types! Quit!'
        stop

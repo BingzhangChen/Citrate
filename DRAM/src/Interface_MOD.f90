@@ -402,7 +402,7 @@ case(1)
 ! Chai et al. (2002): 0.05~1
 ! Franks (2009): 0.005~3
   MaxValue(iKN) =  2D0
-  MinValue(iKN) =  0.1
+  MinValue(iKN) =  0.05
   if (Model_ID .eq. NPZDN2) then  ! The unit based on P
      MaxValue(iKPnif)=2D-3
      MinValue(iKPnif)=5D-5
@@ -452,7 +452,7 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
   MinValue(imu0) =  0.3
 
   if (Model_ID .eq. NPZDcont .or. Model_ID .or. NPZDdisc) then
-     MaxValue(imu0) =  0.7
+     MaxValue(imu0) =  2.7
      MinValue(imu0) =  0.2
   endif
 
@@ -467,11 +467,9 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
         MinValue(iVTR)=0D0
         if (do_IRON) then
            MaxValue(iKFe)    =0.2
-           MinValue(iKFe)    =0.04
+           MinValue(iKFe)    =0.02
            MaxValue(ialphaFe)=0.3
            MinValue(ialphaFe)=0.1
-           MaxValue(idustsol)=0.05
-           MinValue(idustsol)=0.01
         endif
      endif
   endif
