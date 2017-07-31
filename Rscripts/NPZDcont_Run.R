@@ -1,5 +1,5 @@
-Model <- 'NPZDcont_sRun'
-DIR   <- paste0('~/Working/FlexEFT1D/DRAM/',Model,'/BOTH/')
+Model <- 'NPZDcont'
+DIR   <- paste0('~/Working/FlexEFT1D/DRAM/',Model,'/BOTH_TD/')
 setwd(DIR)
 source('~/Working/FlexEFT1D/Rscripts/plot_1D.R')
 source('~/Working/FlexEFT1D/Rscripts/loglike_size.R')  #Plot Log-Likelihoods of size model

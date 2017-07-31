@@ -2,7 +2,7 @@ library(plot3D)
 source('~/Working/FlexEFT1D/Rscripts/getData.R')
 plot_1D <- function(Var,model,Stn,title='',ZLIM=NULL, finalyr = F, BOTH = T, Dmax = -500){
     if (BOTH){
-     filedir  <- paste0('~/working/FlexEFT1D/DRAM/',model,'/BOTH/')
+     filedir  <- paste0('~/working/FlexEFT1D/DRAM/',model,'/BOTH_TD/')
     } else{
      filedir  <- paste0('~/working/FlexEFT1D/DRAM/',model,'/',Stn,'/')
     }
