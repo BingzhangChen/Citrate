@@ -1,8 +1,8 @@
 subroutine  Readcsv(filename,nrow,ncol,dat)
 implicit none
 character(LEN=20),intent(in)      :: filename
-character(LEN=10),dimension(ncol) :: header
 integer,          intent(in)      :: nrow, ncol
+character(LEN=10),dimension(ncol) :: header
 integer,          parameter       :: stdout=6, funit = 9
 real, dimension(nrow,ncol), intent(out):: dat
 integer    :: err, ix

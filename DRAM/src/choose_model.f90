@@ -619,7 +619,8 @@ if (Model_ID == NPPZDD .or. Model_ID == EFTPPDD) then
    params(itau)=5D-3
 endif
 !
-if(Model_ID==NPZDdisc.or.Model_ID==NPZD2sp.or.Model_ID==NPPZDD.or.Model_ID==NPZDFix .or. Model_ID==NPZDFixIRON .or. Model_ID==NPZDcont.or. Model_ID==NPZDN2) then
+if(Model_ID==NPZDdisc.or.Model_ID==NPZD2sp.or.Model_ID==NPPZDD.or.Model_ID==NPZDFix &
+ .or. Model_ID==NPZDFixIRON .or. Model_ID==NPZDcont.or. Model_ID==NPZDN2) then
   ParamLabel(iaI0_C)='aI0_C'
   params(iaI0_C)    =0.055
   if (Model_ID == NPZDcont) then
@@ -646,7 +647,8 @@ endif
 ParamLabel(iQ0N   ) = 'Q0N    '
    params(iQ0N)     = 0.06
 
-if (Model_ID .ne. NPZDFix .and. Model_ID .ne. NPZDcont .and. Model_ID .ne. NPZDdisc .and. Model_ID .ne. NPZD2sp .and. Model_ID .ne. NPPZDD .and. Model_ID .ne. NPZDN2) then
+if (Model_ID .ne. NPZDFix .and. Model_ID .ne. NPZDcont .and. Model_ID .ne. NPZDdisc &
+  .and. Model_ID .ne. NPZD2sp .and. Model_ID .ne. NPPZDD .and. Model_ID .ne. NPZDN2) then
 ParamLabel(iaI0    ) = 'aI0'
    params(iaI0   )   = 0.2      ! aI0_Chl, Chl-specific P-I slope
 endif

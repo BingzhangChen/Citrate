@@ -138,7 +138,7 @@ real ::  XX
 !!        IF(E12*DELX.LT.TB**2.AND.M.EQ.1) WRITE(NN,60)DELX
 !    ELSE
        IF(X.LT.EM) THEN
-          WAP = 1./0.
+          WAP = -1.
           RETURN
        END IF
        IF(X.EQ.EM) THEN

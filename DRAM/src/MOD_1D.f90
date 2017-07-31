@@ -1001,13 +1001,13 @@ DO jj = 1, Nstn
       if (savefile) then
 
       ! Save Temp data into the output file:
-         write(10, 2) Labelout(oTemp), it, current_day, Temp
+         write(10, 200) Labelout(oTemp), it, current_day, Temp
 
       ! Save PAR data into the output file:
-         write(10, 2) Labelout(oPAR),  it, current_day, PAR
+         write(10, 200) Labelout(oPAR),  it, current_day, PAR
   
       ! Save Aks data into the output file:
-         write(10, 2) Labelout(oAks),  it, current_day, Aks(1:nlev)
+         write(10, 200) Labelout(oAks),  it, current_day, Aks(1:nlev)
 
       ! Save w data into the output file:
       !   write(9+ow  , 4) it, current_day, w
@@ -1015,11 +1015,11 @@ DO jj = 1, Nstn
       ! Save state variables and diagnostics:
          do i=(ow+1),(Nout+ow)
             Vars1(:) = Varout(i-ow,:)
-            write(10, 2) Labelout(i),  it, current_day, Vars1
+            write(10, 200) Labelout(i),  it, current_day, Vars1
          enddo
       endif  !==> End of saving results
     
-  2 format(A10,1x, I10,1x,I7, <nlev  >(2x,1pe12.3))
+200        format(A10,1x,I10,1x,I7,<nlev>(2x,1pe12.3))
   !-------------------------------------------------------------------------
     ! Calculate model outputs (final year) to match with obs. data
    If ((NDays-current_day) .le. 360) Then
