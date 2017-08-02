@@ -1,7 +1,7 @@
 MODULE SUB_MOD
 USE Interface_MOD
 USE gammaf90
-USE mtmod
+!USE mtmod
 USE gasdevf90
 USE mGf90
 implicit none
@@ -158,9 +158,10 @@ real    :: Ymod(ANobs)
 integer :: don
 
 ! assign Apv at each step
-  Apv=Apv_(subp)
+Apv = Apv_(subp)
+call CalcYSSE(Apv,Ymod,SS)
 
-  call CalcYSSE(Apv,Ymod,SS)
+if (taskid .eq. 0) then
   write(fint, 3000) '  DOY    ',                                        &
                     'Depth    ',                                        &
                     'Data_type',                                        &
@@ -169,6 +170,7 @@ integer :: don
   do don = 1, ANobs
      write(fint, 3100) OBS_DOY(don),OBS_Depth(don),OBS_Label(don),Ymod(don)
   enddo
+endif
       
 3000   format(1x,     3(A10), 3x, A10)
 3100   format(1x, 2(F6.1, 2x), 5x, A5, 1x, 1pe12.3)
@@ -184,6 +186,7 @@ real,    intent(OUT) :: SS(NDTYPE  * Nstn)
 real                 :: Ymod(ANobs)
 integer              :: don
 
+if (taskid .eq. 0) then 
   Apv = Apv_(subp)
 
   ! Save model outputs
@@ -192,7 +195,7 @@ integer              :: don
   savefile = .FALSE.
   
    ! Open ensout for writing
-  open(eofint, file=eofn,status='old',&
+  open(efint, file=eofn,status='old',&
        action='write',position='append')
 
   do don = 1, ANobs
@@ -200,9 +203,9 @@ integer              :: don
                                 OBS_Label(don), Ymod(don)
   enddo
 
-  close(eofint)
-
-3100   format(1x, I10,1x,  2(F6.1, 2x), A10, 1x, 1pe12.4)
+  close(efint)
+endif
+3100   format(I6,1x,  2(F6.1, 2x), A10, 1x, 1pe12.4)
 end subroutine modelensout
 !-----------------------------------------------------------------------
 subroutine modelnooutput(subp, SS)
@@ -222,22 +225,24 @@ subroutine write_bestsigma
 implicit none
 integer :: i,k
 
-! Write into best sigma file:
-open(bsfint, file=bsfn, action='write',status='replace' )
-write(bsfint,1200) 'At Run #        ',jrun
-write(bsfint,1210) 1D2*real(AMacc)/real(jrun-startrun),       &
-                   1D2*real(DRacc)/real(jrun-startrun)
-write(bsfint,1220) 'Best LogL =    ', BestLogLike
-
-! To calculate weighted SSqE(SS/sigma**2, Eq. 20), just to compare to previous non-adaptive MCMC runs
-TwtSSE = 0
-do k = 1, NDTYPE * Nstn
-   TwtSSE = TwtSSE + BestSSqE(k)/(sigmabest(k)**2)
-enddo
-write(bsfint,1220) 'Best weighted SSqE = ', TwtSSE
-write(bsfint,1300)  NewLogLike, CurrLogLike, BestLogLike
-write(bsfint,1400) (SigmaLabel(i), sigmabest(i), sigmamean(i), i = 1, NDTYPE * Nstn)
-close(bsfint)
+if (taskid .eq. 0) then
+   ! Write into best sigma file:
+   open(bsfint, file=bsfn, action='write',status='replace' )
+   write(bsfint,1200) 'At Run #        ',jrun
+   write(bsfint,1210) 1D2*real(AMacc)/real(jrun-startrun),       &
+                      1D2*real(DRacc)/real(jrun-startrun)
+   write(bsfint,1220) 'Best LogL =    ', BestLogLike
+   
+   ! To calculate weighted SSqE(SS/sigma**2, Eq. 20), just to compare to previous non-adaptive MCMC runs
+   TwtSSE = 0
+   do k = 1, NDTYPE * Nstn
+      TwtSSE = TwtSSE + BestSSqE(k)/(sigmabest(k)**2)
+   enddo
+   write(bsfint,1220) 'Best weighted SSqE = ', TwtSSE
+   write(bsfint,1300)  NewLogLike, CurrLogLike, BestLogLike
+   write(bsfint,1400) (SigmaLabel(i), sigmabest(i), sigmamean(i), i = 1, NDTYPE * Nstn)
+   close(bsfint)
+endif
 1400 format('                  sigmabest              sigmamean ',/, &
            <NDTYPE*Nstn>(a15,2(1x,1pe20.3),/) )
 1200 format(a15,1x,i16)
@@ -255,26 +260,28 @@ end subroutine
 subroutine write_bestpar
 implicit none
 integer :: i
-! Write into best parameter file:
-open(bpfint, file=bpfn, action='write',status='replace'  )
-write(bpfint,1200) 'At Run #        ',jrun
-write(bpfint,1210) 1D2*real(AMacc)/real(jrun-startrun),         &
-                   1D2*real(DRacc)/real(jrun-startrun)
-
-write(bpfint,1220) 'Best logL =    ', BestLogLike
-write(bpfint,1300)  NewLogLike, CurrLogLike, BestLogLike
-
-Apvcurr = Apv_(subpcurr)
-Apvguess= Apv_(subpguess)
-Apvbest = Apv_(subpbest)
-Apvmean = Apv_(subpmean)
-
-write(bpfint,1330) (ParamLabel(i),   &
-  Apvcurr(i),                        &
-  Apvguess(i),                       &
-  Apvbest(i),                        &
-  Apvmean(i), i = 1, Np2Vary)
-close(bpfint)
+if (taskid .eq. 0) then
+   ! Write into best parameter file:
+   open(bpfint, file=bpfn, action='write',status='replace'  )
+   write(bpfint,1200) 'At Run #        ',jrun
+   write(bpfint,1210) 1D2*real(AMacc)/real(jrun-startrun),         &
+                      1D2*real(DRacc)/real(jrun-startrun)
+   
+   write(bpfint,1220) 'Best logL =    ', BestLogLike
+   write(bpfint,1300)  NewLogLike, CurrLogLike, BestLogLike
+   
+   Apvcurr = Apv_(subpcurr)
+   Apvguess= Apv_(subpguess)
+   Apvbest = Apv_(subpbest)
+   Apvmean = Apv_(subpmean)
+   
+   write(bpfint,1330) (ParamLabel(i),   &
+     Apvcurr(i),                        &
+     Apvguess(i),                       &
+     Apvbest(i),                        &
+     Apvmean(i), i = 1, Np2Vary)
+   close(bpfint)
+endif
 
 1200 format(a15,1x,i16)
 1210 format('** % 1st Accept. = ',1x,1f8.2,                         &
@@ -472,68 +479,98 @@ end subroutine MCMC_DR_alpha13
 subroutine MCMC_adapt
 ! Major MCMC subroutine
 implicit none
-real   :: SS3(NDTYPE*Nstn), alpha13
+real   :: SS3(NDTYPE*Nstn), alpha13, DR_p
 real   :: NewLogLike2
 real   :: PCVM2(NPar*(NPar+1)/2)
+
+! Data stored in each subprocess
+real, allocatable :: par_(:), SSqE_(:), LogLike_(:), sigma_(:)
+
+! Data stored in the root
+real, allocatable :: par0(:), SSqE0(:), LogLike0(:), sigma0(:)
+real, allocatable :: par1(:,:),SSqE1(:,:), sigma1(:,:)
+
 ! Output also includes:
 ! 1) Params, CVM, PCVM, SSqE, sigma, loglikehood at each step
 ! 2) Best of the above quantities so far
-integer :: i,j, k, EnsLen1,intv,jrun1,row,col
+integer :: i,j, k, intv,row,col
 
+integer :: stat(MPI_STATUS_SIZE)   ! required variable for receive routines
+
+integer, parameter  :: tag2 = 2
 ! Downscaling factor for Delayed Rejection MCMC
 real,    parameter        :: DRScale = 1d-2
 
 ! The number of times of adaptation (i.e. number of ensembles)
-
-if (EnsLen .ge. (nruns-startrun)) then
-   EnsLen1 = 1
-else 
-   EnsLen1 = EnsLen
+if ( (nruns-startrun) < EnsLen) then
+   EnsLen  = 1
 endif
-intv = (nruns-startrun)/EnsLen1
 
-! Acceptance counts for Adaptive MCMC
-AMacc = 0
-! Acceptance counts for Delayed Rejection MCMC
-DRacc = 0
+intv = (nruns-startrun)/EnsLen
+
+! At each process, construct a matrix to save the accepted params:
+allocate(par_(intv * NPar)) ! Allocate the params for each process
+allocate(LogLike_(intv))
+allocate(sigma_(intv * NDTYPE * Nstn))
+allocate( SSqE_(intv * NDTYPE * Nstn))
+
+allocate(LogLike0(intv*numtasks))
+LogLike0(:) = 0d0
+   
+if (taskid == 0) then
+   allocate(par1(intv*numtasks, NPar))
+   par1(:,:) = 0d0
+   
+   allocate(sigma1(intv*numtasks, NDTYPE*Nstn))
+   sigma1(:,:) = 0d0
+   
+   allocate(SSqE1(intv*numtasks,  NDTYPE*Nstn))
+   SSqE1(:,:) = 0d0
+endif
+
+! Initialize par_:
+do i = 1, intv
+  do j = 1, NPar
+   par_((i-1)*NPar + j) = subpcurr(j)
+  enddo
+  
+  LogLike_(i) = CurrLogLike
+
+  do j = 1, NDTYPE * Nstn
+     sigma_( (i-1)*NDTYPE*Nstn + j ) = sigma(j)
+      SSqE_( (i-1)*NDTYPE*Nstn + j ) = CurrSSqE(j)
+  enddo
+enddo
+
 MeanLogLike = 0d0
 
-DO i = 1, EnsLen1
+DO i = 1, EnsLen
 
- write(6,*) 'The ',(jrun-startrun), ' run.'
+ ! Synchronize all processes:
+ if (MPIRUN==1) call MPI_BARRIER (MPI_COMM_WORLD,ierr)
 
- if (jrun > 1) then
-   ! write output to Ensemble files for simulated values
-     call modelensout(eofint,jrun,subpcurr, dumE)
-   !Write status file(s) (snapshot of: Run #, Cost, acceptance and Parameters)
-   !Open & Close each time, so that it is written even if the program crashes
-     call write_bestpar
-     call write_bestsigma
-   
-   ! write best results into the best file
-     open(bofint, file=bofn, action='write',status='replace')
-     savefile=.FALSE.
-     call model(bofint, subpbest, dumE ) !dumE: SSqE for best parameters
-     close(bofint)
+ if (taskid .eq. 0) then
+   if (i > 1) then
+     ! write output to Ensemble files for simulated values
+       call modelensout(eofint,jrun,subpcurr, dumE)
+   endif
+!   %%%%%%%end of block of outputting code
+   if (MPIRUN == 1) then
+      do j = 1, numtasks-1
+        ! Send the Pcvm (only) to child processes:
+        call MPI_SEND(Pcvm, NPar*(NPar+1)/2, MPI_REAL8, j, tag2, MPI_COMM_WORLD, ierr)
+      enddo
+   endif
+ else
+   if (MPIRUN == 1) then
+    ! Receive Pcvm from root (child processes):
+    call MPI_RECV(Pcvm, NPar*(NPar+1)/2, MPI_REAL8, 0, tag2, MPI_COMM_WORLD, stat, ierr)
+   endif
  endif
-! %%%%%%%end of block of outputting code
-
- ! Open enspar for writing
- open(epfint,file=epfn,status='old',&
-      action='write',position='append')
- ! Open enssig for writing
- open(esfint,file=esfn,status='old',&
-      action='write',position='append')
 
  ! Start subcycle:
  subcycle: DO j = 1, intv
    
-        jrun1 = jrun -startrun
-     subpmean =((real(jrun1)-1d0)*subpmean + subpcurr)    /real(jrun1)
-     sigmamean=((real(jrun1)-1d0)*sigmamean+    sigma)    /real(jrun1)
-   MeanLogLike=((real(jrun1)-1d0)*MeanLogLike+CurrLogLike)/real(jrun1)
- ! write current parameters and sigma into output file
-    Call write_ensemble
     call modelnooutput(subppro, SSqE)
 
     !   New log-likelihood
@@ -541,9 +578,10 @@ DO i = 1, EnsLen1
 
     !   Old log-likelihood
     CurrLogLike = CalcLogLike(CurrSSqE, sigma,subpcurr)
-    IF( log(grnd())  .lt. (NewLogLike - CurrLogLike) ) THEN
-    !acc is a tally of the acceptance rate, the rest are parameters
-         AMacc       = AMacc+1
+
+    call random_number(DR_p)
+    IF (log(DR_p) < (NewLogLike - CurrLogLike)) THEN
+
          CurrLogLike = NewLogLike
          CurrSSqE    = SSqE
          subpcurr    = subppro
@@ -563,63 +601,138 @@ DO i = 1, EnsLen1
                 subppro2,      SS3,  NewLogLike2, alpha13)
 
          ! Judge whether the second move should be accepted or not
-         if( GRND() .lt. alpha13 ) then
+         call random_number(DR_p)
+         if (DR_p < alpha13) then
              !accept the second move (Y1)
-            DRacc       = DRacc+1
             CurrLogLike = NewLogLike2
             CurrSSqE    = SS3
             subpcurr    = subppro2
          endif
     ENDIF
-    !	this is to keep track of the 'best' run which 
-    !	is not strictly speaking the purpose of the
-    !	assimilation but an interesting output
-    !
-    IF( NewLogLike .GT. BestLogLike ) THEN
-       BestLogLike = NewLogLike     
-       BestSSqE    = SSqE
-       sigmabest   = sigma
-       subpbest    = subppro
-    ENDIF
 
-! Update the Covariance matrix for the Parameter values, using the recursion formula
-! assuming a weight of 1 for each step, updating at every step. 
-        
-    call UpdateCVM(Cvm,subpcurrmean, Rwtold, subpcurr, subpcurrmean, Cvm)
+    ! save to the par_
+     do col = 1, NPar
+        par_((j-1)*NPar + col) = subpcurr(col)
+     enddo
 
-    ! increment the wt. for the existing covariance matrix
-    Rwtold = Rwtold + 1d0 !Weight of Cvm (Covariance matrix)
+    ! save to LogLike_
+    LogLike_(j) = CurrLogLike  
+    
+    ! save to SSqE and sigma:
+    do col = 1, NDTYPE * Nstn
+       SSqE_((j-1)*NDTYPE*Nstn + col) = CurrSSqE(col)
+      sigma_((j-1)*NDTYPE*Nstn + col) =    sigma(col)
+    enddo
 
-    !   sdwt   = sdwt   + 1 
     ! Propose newpar based on old par
     subppro = NewPAR(Pcvm, subpcurr)
 
     ! Update sigma:
-     sigma = newsigma(CurrSSqE)
-
-    ! Update the counter for number of simulations
-    jrun= jrun+ 1
+    sigma = newsigma(CurrSSqE)
 
    ENDDO subcycle ! END of loop of each cycle 
-   close(epfint)
-   close(esfint)
-
-! Calculate new PCVM based on CVM
-! Set the Proposal covariance matrix, by scaling the Parameter Covariance matrix
-   Pcvm = Cvm*Spcvm/NPar
-! Add a small term to the diagonal entries, so that the matrix will not be singular. 
-   do k = 1, NPar
-     Pcvm(k*(k+1)/2)=Pcvm(k*(k+1)/2) + CvEpsilon*Spcvm/NPar
-   enddo
-
-   write(6, *) 'Proposal Covariance matrix for ',i+1,' ensemble run ='
    
-   DO row = 1, NPar
-      write(6,3000) (Pcvm(row*(row-1)/2+col), col = 1, row )
-   End do
+   if (MPIRUN == 1) &
+   ! Synchronize all processes:
+   call MPI_BARRIER (MPI_COMM_WORLD,ierr)
 
+   ! MPI root: receive matrix of accepted params from child processes:
+   ! Collect the data (par_, LogLike_, sigma, SSqE_, acceptance ratios) from all tasks to the root:
+   ! The dimension of output data cannot exceed 30*50:
+   if (.not. allocated(par0))   allocate(par0(intv*NPar*numtasks))
+   par0(:)   = 0d0
+   if (.not. allocated(sigma0)) allocate(sigma0(intv*NDTYPE*Nstn*numtasks))
+   sigma0(:) = 0d0
+   if (.not. allocated(SSqE0))  allocate(SSqE0(intv*NDTYPE*Nstn*numtasks))
+   SSqE0(:)  = 0d0
+
+   if (MPIRUN == 1) then
+      call MPI_Gather(par_, NPar*intv,         MPI_REAL8,     &
+                      par0, NPar*intv,         MPI_REAL8,     &
+                       0,  MPI_COMM_WORLD, ierr)
+
+      call MPI_Gather(LogLike_, intv,          MPI_REAL8,     &
+                      LogLike0, intv,          MPI_REAL8,     &
+                       0,  MPI_COMM_WORLD, ierr)
+
+      call MPI_Gather(sigma_, NDTYPE*intv*Nstn, MPI_REAL8,     &
+                      sigma0, NDTYPE*intv*NStn, MPI_REAL8,     &
+                       0,  MPI_COMM_WORLD, ierr)
+
+      call MPI_Gather(SSqE_,  NDTYPE*intv*Nstn, MPI_REAL8,     &
+                      SSqE0,  NDTYPE*intv*NStn, MPI_REAL8,     &
+                       0,  MPI_COMM_WORLD, ierr)
+   endif
+
+   if (taskid == 0) then
+
+      do k = 1, intv*numtasks
+         ! Convert par0 into a matrix (par1):
+         do col = 1, NPar
+            par1(k, col) = par0((k-1)*NPar + col) 
+         enddo
+
+         ! Convert sigma0 and SSqE0 into a matrix:
+         do col = 1, Nstn * NDTYPE
+            sigma1(k, col) = sigma0((k-1)*Nstn*NDTYPE + col) 
+             SSqE1(k, col) =  SSqE0((k-1)*Nstn*NDTYPE + col) 
+         enddo
+
+      enddo
+
+      ! Open enspar for writing
+      open(epfint,file=epfn,status='old',&
+           action='write',position='append')
+
+      ! Open enssig for writing
+      open(esfint,file=esfn,status='old',&
+           action='write',position='append')
+
+      do k = 1, intv*numtasks
+
+         cffpar = Apv_(par1(k,:))
+         
+         ! Write Ensemble file(s) (Run #, LogLike and Parameters)
+         
+         write(epfint,1850) LogLike0(k), (cffpar(col), col = 1,NPar)
+
+         write(esfint,1850) LogLike0(k),                   &
+              (sigma1(k,col),  col = 1, NDTYPE*Nstn),      &
+              ( SSqE1(k,col),  col = 1, NDTYPE*Nstn)
+      enddo
+
+      close(epfint)
+      close(esfint)
+
+! MPI root: Calculate new CVM based on collected accepted params:
+      call cov(intv*numtasks, par1, Cvm)  
+
+!   Calculate new PCVM based on CVM
+!   Set the Proposal covariance matrix, by scaling the Parameter Covariance matrix
+      Pcvm = Cvm*Spcvm/NPar
+
+!   Add a small term to the diagonal entries, so that the matrix will not be singular. 
+      do k = 1, NPar
+        Pcvm(k*(k+1)/2)=Pcvm(k*(k+1)/2) + CvEpsilon*Spcvm/NPar
+      enddo
+
+      write(6, *) 'Proposal Covariance matrix for ',i+1,' ensemble run ='
+      
+      DO row = 1, NPar
+         write(6,3000) (Pcvm(row*(row-1)/2+col), col = 1, row )
+      End do
+
+      ! Release memory
+      if (allocated(par0))   deallocate(par0)
+      if (allocated(sigma0)) deallocate(sigma0)
+      if (allocated(SSqE0))  deallocate(SSqE0)
+
+      ! Update jrun:
+      jrun = jrun + intv * numtasks
+
+     endif  !==> end of taskid ==0
 ENDDO
-
+1850 format(100(1pe12.3,2x))
 3000 format(5x,<NPar>(1pe8.1,1x))
 End subroutine MCMC_adapt
 !-----------------------------------------------------------------------

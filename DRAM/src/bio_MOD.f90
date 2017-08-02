@@ -1,7 +1,10 @@
 Module BIO_MOD
 use    param_MOD
+use    mpi
 implicit none
-public
+
+! MPI variables:
+integer            :: numtasks, taskid, ierr, MPIRUN
 
 ! Number of vertical layers
 integer, parameter :: nlev        = 30  

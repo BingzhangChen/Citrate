@@ -4,7 +4,7 @@ module mGf90
   implicit none
 
 contains
- real(8) function multigauss(R,mu,n) result(G)
+ real function multigauss(R,mu,n) result(G)
 !!$ Generates a one dimensional array of length n containing multivariate Gaussian pseudo-random numbers
 !!$ where R is the lower-triangular Cholesky factor of the covariance matrix of the desired distribution 
 !!$ and mu is a one dimensional array of length n, containing the mean value for each random variable. 
@@ -12,9 +12,9 @@ contains
 !!$ uppermost, leftmost entry (first row, first column). 
    implicit none
    integer, intent(in) :: n
-   real(8), intent(in) :: R(n*(n+1)/2)
-   real(8), intent(in) :: mu(n)
-   real(8) :: Nu(n)
+   real, intent(in) :: R(n*(n+1)/2)
+   real, intent(in) :: mu(n)
+   real :: Nu(n)
    dimension :: G(n)
    integer :: i, j
    

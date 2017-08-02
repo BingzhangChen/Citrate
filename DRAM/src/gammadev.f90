@@ -19,8 +19,10 @@ contains
 
    if( alpha .gt. 1.0d0 ) then  
       do while( g .le. 0.0d0 ) 
-         u1 = grnd()
-         u2 = grnd()
+         !u1 = grnd()
+         !u2 = grnd()
+         call random_number(u1)
+         call random_number(u2)
          v = (alpha - 1.0d0/(6.0d0*alpha))*u1/(am1*u2)
          if( 2.0d0 * (u2 - 1.0d0) /am1 + v + 1.0d0/v .le. 2.0d0 ) then
             g = am1 * v
@@ -32,8 +34,10 @@ contains
       t = 0.07 + 0.75*sqrt(1.0d0 - alpha)
       b = 1.0d0 + exp(-t)*alpha/t
       do while( g .le. 0.0d0 ) 
-         u1 = grnd()
-         u2 = grnd()
+         !u1 = grnd()
+         !u2 = grnd()
+         call random_number(u1)
+         call random_number(u2)
          v = b * u1
          if( v .le. 1 ) then
             x = t * v**(1.0d0/alpha)

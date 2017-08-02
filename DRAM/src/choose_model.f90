@@ -11,59 +11,59 @@ read(namlst,nml=Model)
 close(namlst)
 
 if (Model_ID     == NPZDdisc) then
-  write(6,*) 'Inflexible NPZD discrete model selected!'
+  if(taskid==0) write(6,*) 'Inflexible NPZD discrete model selected!'
   NPHY    = 20
 else if (Model_ID== NPZDdiscFe) then
-  write(6,*) 'Inflexible NPZD discrete model with Iron selected!'
+  if(taskid==0) write(6,*) 'Inflexible NPZD discrete model with Iron selected!'
   NPHY    = 20
   do_IRON = .TRUE.
 else if (Model_ID== Geiderdisc) then
-  write(6,*) 'Geider discrete model selected!'
+  if(taskid==0) write(6,*) 'Geider discrete model selected!'
   NPHY    = 20
 else if (Model_ID== EFTdisc) then
-  write(6,*) 'Flexible discrete model selected!'
+  if(taskid==0) write(6,*) 'Flexible discrete model selected!'
   NPHY    = 20
 else if (Model_ID== EFTdiscFe) then
-  write(6,*) 'Flexible discrete model selected!'
+  if(taskid==0) write(6,*) 'Flexible discrete model selected!'
   NPHY    = 20
   do_IRON = .TRUE.
 else if (Model_ID==NPZDFix) then
-  write(6,*) 'Inflexible NPZD model selected!'
+  if(taskid==0) write(6,*) 'Inflexible NPZD model selected!'
   NPHY = 1
 else if (Model_ID==NPZDN2) then
-  write(6,*) 'NPZD model with N2 fixation selected!'
+  if(taskid==0) write(6,*) 'NPZD model with N2 fixation selected!'
   NPHY = 1
   N2fix= .true.
 else if (Model_ID==NPZDFixIRON) then
-  write(6,*) 'Inflexible NPZD model with Iron selected!'
+  if(taskid==0) write(6,*) 'Inflexible NPZD model with Iron selected!'
   do_IRON = .TRUE.
   NPHY    = 1
 else if (Model_ID==Geidersimple) then
-  write(6,*) 'Geider simple model selected!'
+  if(taskid==0) write(6,*) 'Geider simple model selected!'
   NPHY = 1
 else if (Model_ID==GeidsimIRON) then
-  write(6,*) 'Geider simple model with Iron selected!'
+  if(taskid==0) write(6,*) 'Geider simple model with Iron selected!'
   do_IRON = .TRUE.
   NPHY = 1
 else if (Model_ID==EFTsimple) then
-  write(6,*) 'Flexible simple model selected!'
+  if(taskid==0) write(6,*) 'Flexible simple model selected!'
   NPHY = 1
 else if (Model_ID==EFTsimIRON) then
-  write(6,*) 'Flexible simple model with Iron selected!'
+  if(taskid==0) write(6,*) 'Flexible simple model with Iron selected!'
   do_IRON = .TRUE.
   NPHY = 1
 else if (Model_ID==EFTcont) then
-  write(6,*) 'Flexible continous model selected!'
+  if(taskid==0) write(6,*) 'Flexible continous model selected!'
   NPHY = 1
 else if (Model_ID==NPZDcont) then
-  write(6,*) 'NPZD continous model selected!'
+  if(taskid==0) write(6,*) 'NPZD continous model selected!'
   NPHY    = 1
   DO_IRON = .TRUE.
 else if (Model_ID==EFT2sp .OR. Model_ID==NPZD2sp) then
-  write(6,*) 'Two species phytoplankton model selected!'
+  if(taskid==0) write(6,*) 'Two species phytoplankton model selected!'
   NPHY = 2
 else if (Model_ID==NPPZDD .OR. Model_ID==EFTPPDD) then
-  write(6,*) 'Two phytoplankton two detritus model selected!'
+  if(taskid==0) write(6,*) 'Two phytoplankton two detritus model selected!'
   NPHY = 2
 endif
 
@@ -379,9 +379,11 @@ if(Model_ID==Geiderdisc.or.Model_ID==NPZDdisc .or.Model_ID==EFTdisc .or.&
    enddo
 endif
 
-do i = 1, Nout+ow
-   write(6,*) 'Labelout(',i,') = ',trim(Labelout(i))
-enddo
+if (taskid == 0) then
+   do i = 1, Nout+ow
+      write(6,*) 'Labelout(',i,') = ',trim(Labelout(i))
+   enddo
+endif
 
 ! Initialize parameters
 ! Indices for parameters that will be used in MCMC                 
@@ -427,7 +429,7 @@ if (nutrient_uptake .eq. 1) then
    endif
 elseif (nutrient_uptake.eq.2) then
    if (Model_ID==NPZD2sp .or. Model_ID==NPZDFix .or. Model_ID==NPPZDD .or. Model_ID==NPZDcont .or. Model_ID==NPZDN2) then
-      write(6,*) 'We do not use affinity-based equation for NPZD model!'
+      if (taskid==0) write(6,*) 'We do not use affinity-based equation for NPZD model!'
       stop
    endif
    iA0N    =  imz   + 1
@@ -512,7 +514,7 @@ else
   NPar = iwDET
 endif
 
-write(6,'(I2,1x,A20)') NPar,'parameters in total to be estimated.'
+if (taskid==0) write(6,'(I2,1x,A20)') NPar,'parameters in total to be estimated.'
 allocate(params(NPar))
 allocate(ParamLabel(NPar))
 

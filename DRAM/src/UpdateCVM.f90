@@ -31,3 +31,22 @@ ELSE
 ENDIF
 End subroutine
 
+! This generic subroutine updates covariance matrix from a data matrix of params:
+subroutine cov(nr, dat, cvm)
+Use Interface_MOD, only: NPar
+implicit none
+integer, intent(in)     :: nr
+real,    intent(in)     :: dat(nr, NPar)
+real,    intent(inout)  :: cvm(NPar*(NPar+1)/2)
+
+real                    :: mean(NPar)
+integer                 :: i
+
+mean(:) = 0d0
+call UpdateCVM(cvm,mean, 1d0, dat(1,:), mean, cvm)
+do i=2, nr
+   call UpdateCVM(cvm,mean,dble(i),dat(i,:), mean, cvm)
+enddo
+
+end subroutine cov
+

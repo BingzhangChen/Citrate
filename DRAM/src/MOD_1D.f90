@@ -258,7 +258,7 @@ allocate(NDPTS(NDTYPE,Nstn),  STAT = AllocateStatus)
 IF (AllocateStatus /= 0) STOP "*** Error in allocating NDPTS ***"
 
 Do j = 1, Nstn
-  write(6,*) 'Stn name: ',Stn(j)
+  if(taskid==0) write(6,*) 'Stn name: ',Stn(j)
 ! Assign the data dimension, must be consistent with external file:
   if (trim(Stn(j)) .eq. 'S1') then
       N_Aks(j)       = 40
@@ -321,6 +321,7 @@ Do j = 1, Nstn
         ncol(i,j)=3
      enddo
   ENDIF
+  if (taskid==0) &
   write(6,'(A31,1x,A3,1x,A1,1x,I5)') 'Total number of observations of',Stn(j),'=',TNobs(j)
 Enddo  ! ==> End of assigning data numbers at different stations
   
@@ -507,7 +508,7 @@ Do j = 1, Nstn
   enddo
   !Update NL (for OBS_DOY et al.)
   NL = NL + k
-  write(6,'(A27,1x,A3)') 'Observation data set up for', Stn(j)
+  if (taskid==0) write(6,'(A27,1x,A3)') 'Observation data set up for', Stn(j)
 Enddo
 end subroutine Setup_OBSdata
 !========================================================
@@ -521,6 +522,7 @@ character(LEN=20)  :: forcfile(TNFo), forcfiletime(TNFo)
 
 !the fraction of a time step in one day
 dtdays = dtsec/d_per_s
+if (taskid==0) &
 write(6,'(A13,1x,F12.3,A12)') 'Timestepping: ',dtdays,'of one day.'
 
 ! Setup grid
@@ -676,7 +678,7 @@ do j = 1, Nstn
          nlev+1, Z_w, VAks(:,:,j)) 
    
    savefile = .FALSE.
-   write(6,*) 'Model setup finished for ', Stn(j)
+   if(taskid==0) write(6,*) 'Model setup finished for ', Stn(j)
    deallocate(obs_Aks)
 Enddo
 End subroutine Model_setup
@@ -840,7 +842,7 @@ DO jj = 1, Nstn
   enddo
 
   ! Create output files:
-  if (savefile) then
+  if (savefile .and. taskid == 0) then
 
     ! Merge all data into one output file (Oct. 15 2016)
      outfile = trim(Stn(jj))//'.out'
@@ -998,7 +1000,7 @@ DO jj = 1, Nstn
        current_DOY = mod(current_day, 360)
   
       ! Save data to output files:
-      if (savefile) then
+      if (savefile .and. taskid == 0) then
 
       ! Save Temp data into the output file:
          write(10, 200) Labelout(oTemp), it, current_day, Temp
@@ -1374,7 +1376,7 @@ DO jj = 1, Nstn
   ENDDO    ! ==> End of time stepping
   
   ! Close files:
-  if (savefile) then
+  if (savefile .and. taskid == 0) then
      do i = 1, (Nout+ow)
         close (unit=9+i)
      enddo

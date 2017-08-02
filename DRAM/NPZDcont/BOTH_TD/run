@@ -1,8 +1,13 @@
 #!/bin/bash
 export SCRATCHDIR=Compile
 export SRCDIR=../../src
-CFT=ifort
+MPI=1
 Test=0 
+if [[ $MPI == 1 ]]; then
+  CFT=mpifort
+else
+  CFT=ifort
+fi
 
 rm -rf ${SCRATCHDIR}
 mkdir ${SCRATCHDIR}
@@ -21,6 +26,14 @@ if [[ $CFT == ifort ]]; then
   else
      FFLAGS="-fast -r8 -i4"
      echo 'Run model without debug options...'
+  fi
+elif [[ $CFT == mpifort ]]; then
+  if [[ $Test == 1 ]]; then
+     echo 'Using mpi with debug options...'
+     FFLAGS="-O0 -r8 -i4 -g -check all -fpe0 -warn -traceback -debug extended -nogen-interface -L/usr/local/lib -lmpi"
+  else
+     FFLAGS="-fast -r8 -i4 -L/usr/local/lib -lmpi"
+     echo 'Using mpi without debug options...'
   fi
 elif [[ $CFT == pgfortran ]]; then
   if [[ $Test == 1 ]]; then
