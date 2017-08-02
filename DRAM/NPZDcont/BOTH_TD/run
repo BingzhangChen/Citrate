@@ -2,7 +2,7 @@
 export SCRATCHDIR=Compile
 export SRCDIR=../../src
 MPI=1
-Test=0 
+Test=1 
 if [[ $MPI == 1 ]]; then
   CFT=mpifort
 else
@@ -28,11 +28,12 @@ if [[ $CFT == ifort ]]; then
      echo 'Run model without debug options...'
   fi
 elif [[ $CFT == mpifort ]]; then
+  LFLAGS="-L/usr/local/lib -lmpi"
   if [[ $Test == 1 ]]; then
      echo 'Using mpi with debug options...'
-     FFLAGS="-O0 -r8 -i4 -g -check all -fpe0 -warn -traceback -debug extended -nogen-interface -L/usr/local/lib -lmpi"
+     FFLAGS="-O0 -r8 -i4 -g -check all -fpe0 -warn -traceback -debug extended -nogen-interface"
   else
-     FFLAGS="-fast -r8 -i4 -L/usr/local/lib -lmpi"
+     FFLAGS="-fast -r8 -i4"
      echo 'Using mpi without debug options...'
   fi
 elif [[ $CFT == pgfortran ]]; then
@@ -65,7 +66,10 @@ sed -f flags.tmp $MAKEFILE > Makefile2
 rm -rf flags.tmp
 
 echo 's?$(CFT)?'$CFT'?g' >> flags.tmp
-sed -f flags.tmp Makefile2 > Makefile
+sed -f flags.tmp Makefile2 > Makefile3
+rm -rf flags.tmp
+echo 's?$(LFLAGS)?'$LFLAGS'?g' >> flags.tmp
+sed -f flags.tmp Makefile3 > Makefile
 make
 rm -rf flags.tmp
 

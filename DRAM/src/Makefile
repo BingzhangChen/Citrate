@@ -23,5 +23,5 @@ SRCS = dsymv.f lsame.f xerbla.f Readcsv.f90 tridiagonal.f90\
 OBJS =$(patsubst %.f,%.o,$(patsubst %.f90,%.o,$(SRCS)))
 #Executable file
 $(MAIN): $(OBJS)
-	$(CFT) $(FFLAGS) -o $(MAIN) $(OBJS)
+	$(CFT) $(FFLAGS) $(LFLAGS) -o $(MAIN) $(OBJS)
 

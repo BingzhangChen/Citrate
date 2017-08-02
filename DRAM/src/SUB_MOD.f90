@@ -17,7 +17,7 @@ integer           :: nruns   = 10
 ! number of runs for initial 'Burn-in'
 integer           :: BurnInt = 100 
 integer           :: jrun
-integer           :: AMacc, DRacc, paramrc, startrun = 0, length
+integer           :: AMacc, DRacc, startrun = 0, length
 
 CONTAINS
 

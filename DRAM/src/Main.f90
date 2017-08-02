@@ -293,8 +293,8 @@ if (taskid .eq. 0) then
 
      cffpar= Apv_(subpcurr)
 
-     write(epfint,1850) taskid, CurrLogLike, (cffpar(i), i = 1, Np2Vary)
-     write(esfint,1850) taskid, CurrLogLike,                &
+     write(epfint,1850) CurrLogLike, (cffpar(i), i = 1, Np2Vary)
+     write(esfint,1850) CurrLogLike,                &
                         (sigma(i),   i = 1, NDTYPE*Nstn), &
                         (CurrSSqE(i),i = 1, NDTYPE*Nstn)
      close(epfint)
@@ -320,7 +320,7 @@ if (taskid .eq. 0) then
            '   acceptance = ',f10.2,' %',/,                          &
            ' with Subpcurr  = ',100(f11.5,/,70x) )
 1800 format('LogL     ', 100(a15) )
-1850 format(i9,1x,100(1pe12.3,2x))
+1850 format(100(1pe12.3,2x))
 1900 format('LogL     ', 100(a12,2x) )
 3000 format(5x,<NPar>(1pe8.1,1x))
    call cpu_time(finish)
