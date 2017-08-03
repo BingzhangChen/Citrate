@@ -704,6 +704,21 @@ DO i = 1, EnsLen
       close(epfint)
       close(esfint)
 
+      ! MPI root: find the best LogL
+      col  = maxloc(LogLike0, 1)
+      DR_p = maxval(LogLike0)
+
+      !	this is to keep track of the 'best' run which 
+      !	is not strictly speaking the purpose of the
+      !	assimilation but an interesting output
+      !
+      if( DR_p > BestLogLike ) then
+         BestLogLike = DR_p     
+         BestSSqE    =  SSqE1(col,:)
+         sigmabest   = sigma1(col,:)
+         subpbest    =   par1(col,:)
+      endif
+
 ! MPI root: Calculate new CVM based on collected accepted params:
       call cov(intv*numtasks, par1, Cvm)  
 

@@ -56,6 +56,7 @@ subpguess = Npv
 subpcurr  = subpguess
 subppro   = subpguess
 subppro2  = subpguess
+BestLogLike = -1d12  
 startrun  = 0
       
 ! Estimate the priors based on initial parameter values
@@ -260,7 +261,7 @@ jrun        = startrun + 1
 
 ! Total number of runs
 nruns       = nruns + startrun
-
+BestLogLike = CurrLogLike 
 call MCMC_adapt
 
 if (taskid .eq. 0) then
@@ -274,53 +275,17 @@ if (taskid .eq. 0) then
    write(6, *) ' Writing the last entry in',          &
                ' the ensembles of simulated values.'
    !write output of Ensemble file for simulated values
-   
-   savefile=.TRUE.
    call modelensout(eofint, jrun, subpcurr, dumE)
+
+   write(6,*) ' Write out the simulated results with best parameters:'
+   call modelensout(eofint, jrun, subpbest, dumE)
+
    close(eofint)
 
-   !end of main loop...now we are basically finished and
-   !just produce a few summary statistics
-   if( nruns .gt. 1 ) then
-     ! Write the Ensemble of Parameters for each Incubation simulated.
-     ! Write Ensemble file(s) (Run #, Cost and Parameters)
-     ! Open enspar for writing
-     open(epfint,file=epfn,status='old',&
-          action='write',position='append')
-     ! Open enssig for writing
-     open(esfint,file=esfn,status='old',&
-          action='write',position='append')
-
-     cffpar= Apv_(subpcurr)
-
-     write(epfint,1850) CurrLogLike, (cffpar(i), i = 1, Np2Vary)
-     write(esfint,1850) CurrLogLike,                &
-                        (sigma(i),   i = 1, NDTYPE*Nstn), &
-                        (CurrSSqE(i),i = 1, NDTYPE*Nstn)
-     close(epfint)
-     close(esfint)
-   endif
-      
 101  format(A8, 2(1x, 1pe12.2))
 1001 format(/,'LogL = ',1pe13.3,/)
-1010 format(5x,' i = ',i4,', read the following line:')
-1050 format(/,'Starting the main loop to Assimilate ',/) 
-1200 format(a15,1x,i16)
-1210 format('** % 1st Accept. = ',1x,1f8.2,                         &
-            '     ** % 2nd Accept. = ',1f8.2)
-1220 format(a25,1x,1pe11.3)
-1300 format('*** LogL:    New ',1pe11.3,'     Curr ',1pe11.3,  &
-           '     Best ',1pe11.3)
-1310 format('*** LogL:    New ',1pe11.3,'     Curr ',1pe11.3,  &
-           '     Best ',1pe11.3,'     Mean ',1pe11.3)
 
-1320 format(    a15,1x,1pe20.13,4(1x,1pe20.3), /) 
-
-1350 format('LogL:    New ',f10.1,'   Curr ',f10.1,'   Best ',f10.1, &
-           '   acceptance = ',f10.2,' %',/,                          &
-           ' with Subpcurr  = ',100(f11.5,/,70x) )
 1800 format('LogL     ', 100(a15) )
-1850 format(100(1pe12.3,2x))
 1900 format('LogL     ', 100(a12,2x) )
 3000 format(5x,<NPar>(1pe8.1,1x))
    call cpu_time(finish)

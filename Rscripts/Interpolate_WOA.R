@@ -152,6 +152,7 @@ Intp <- function(variable,DFin,method = 'bilinear'){
 
 # A useful function reads from a nc file and generates an list that contains lon,lat and the real data (3D array)
 readnc <- function(variable, sourcefile = ROMSFile, ROMS=T, nameit='npacS'){
+  Vname <- ''
   if (variable == 'sst'){
     sourcefile <- WOATFile
     Vname      <- 't_an'
