@@ -21,6 +21,6 @@ character(LEN=5), parameter :: LabelForc(TNFo) &
      = (/'temp','NO3','Aks','wROMS','par', 'solfe','fer', 'PO4', 'wstr'/)
 
 integer,          parameter :: NFobs(TNFo)     & 
-     = (/    12,   12, 360,     12,  12,      12,   12,    12, 12 /)
+     = (/    12,   12, 36,     12,  12,      12,   12,    12, 12 /)
 
 end module
