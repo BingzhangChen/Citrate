@@ -1,6 +1,5 @@
 Module BIO_MOD
 use    param_MOD
-use    mpi
 implicit none
 
 ! MPI variables:

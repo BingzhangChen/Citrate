@@ -176,7 +176,7 @@ Select case(Model_ID)
      endif
      INCLUDESIZE = .TRUE.
      if (trim(Stn(1))  .eq. 'HOT' .and. Nstn .eq. 1) then
-          NDTYPE = 4
+          NDTYPE = 5  !TIN, CHL, PP, PON, DFe
      INCLUDESIZE = .FALSE.
      endif
   case default
