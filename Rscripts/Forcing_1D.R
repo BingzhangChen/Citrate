@@ -21,7 +21,7 @@ load(WOA13TFile)
 #system('ifort -c FlexEFT.f90')
 #system('ifort -shared -o FlexEFT.so FlexEFT.o')
 
-Stn_name <- 'S1'
+Stn_name <- 'HOT'
 
 if (Stn_name == 'S1'){
     stn_lon  = 145
@@ -56,7 +56,7 @@ wROMS_data$time  <- time
 
 
 #Write into data files:
-for (var in c('temp','par','Aks','NO3','PO4','wROMS','wSODA','wstr','solfe')){
+for (var in c('temp','par','Aks','NO3','PO4','fer','wROMS','wSODA','wstr','solfe')){
 
     if (var == 'wstr'){
        taux = getdata_station('taux3',stn_lon,stn_lat)
@@ -85,6 +85,31 @@ for (var in c('temp','par','Aks','NO3','PO4','wROMS','wSODA','wstr','solfe')){
                   append = F,row.names=FALSE,col.names=TRUE)  
     time      <-  read.table(timefile,header=T)
 }
+
+#Correct NA in HOT_fer.dat:
+Stn_name <- 'HOT'
+var      <- 'fer'
+outfile  <-  paste('~/Working/FlexEFT1D/',
+                        Stn_name,'/',Stn_name,'_',var,'.dat',sep='')
+data     <-  read.table(outfile,header=T)
+data     <-  data[data$Depth >= -2000, ]
+Depth    <-  data[,1]
+for (i in 2:ncol(data)){
+    y  <- data[,i]
+    Y1 <- which(is.na(y))
+    Y2 <- which(!is.na(y))
+    x  <- Depth[Y2]
+    for (j in Y1){
+        if (j >= max(Y2)) {
+           data[j,i] <- data[max(Y2),i]
+        }else{
+           data[j,i] <- approx(x = x, y = y[!is.na(y)], xout = Depth[j])$y
+        }
+    }
+}
+write.table(data,file=outfile,  
+                  append = F,row.names=FALSE,col.names=TRUE) 
+
 
 plot_forcing <- function(Stn_name,var,useTaketo=FALSE){
     outfile  =  paste('~/Working/FlexEFT1D/',

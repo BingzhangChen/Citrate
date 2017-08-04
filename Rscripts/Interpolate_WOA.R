@@ -18,7 +18,7 @@ MLDFile <- '~/Working/Global_PP/MLD_month.nc'
 KD490File <- '~/Working/Global_PP/KD490_month.nc'
 POCFile   <- '~/Working/Global_PP/POC_month.nc'
 bathyFile <- '/Users/apple/ROMS/Data/ETOPO1_Ice_g_gmt4.grd'
-DFeFile   <- '~/ROMS/Data/fed_Noguchi_roms.nc'
+DFeFile   <- '~/ROMS/Data/WOAPISCES/fer_seas.cdf'
 Dustfile  <- '~/ROMS/Data/scenario3.nc'
 
 #w data:
@@ -201,7 +201,7 @@ readnc <- function(variable, sourcefile = ROMSFile, ROMS=T, nameit='npacS'){
   } else if(variable == 'DFe'){
     sourcefile <- DFeFile
     nvar       <- 3
-    Vname      <- 'FED'
+    Vname      <- 'fer'
   } else{
     stop('Variable name does not match, 
          must be one of "sst, no3, par, MLD, KD490"!')
