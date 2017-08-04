@@ -1,5 +1,5 @@
 &Model
-  Stn                 ='S1','K2',
+  Stn                 ='HOT',
   Model_ID            = 4,
   nutrient_uptake     = 1,
   grazing_formulation = 3,

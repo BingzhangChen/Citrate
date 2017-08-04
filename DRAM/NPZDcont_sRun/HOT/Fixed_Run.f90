@@ -1,5 +1,5 @@
 Program Single_Run
-use sub_mod
+USE Interface_MOD
 implicit none
 real :: start, finish
 

@@ -2,7 +2,7 @@ Module param_MOD
 implicit none
 
 ! Number of stations to run
-integer, parameter :: Nstn       = 2
+integer, parameter :: Nstn       = 1
 
 !  Indices for external forcing variables
 integer, parameter :: etemp      = 1

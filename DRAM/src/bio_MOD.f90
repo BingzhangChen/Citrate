@@ -111,6 +111,7 @@ integer              :: Model_ID = NPZDFix
 real :: INGES,gbar,EGES,Zmort,RES
 real :: pp_ZP, pp_NZ, pp_ND, pp_DZ, tf_p, tf_z
 
+integer, parameter :: Yes = 1, No = 0
 
 CONTAINS
 !========================================================

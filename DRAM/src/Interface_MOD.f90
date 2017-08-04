@@ -161,7 +161,6 @@ real              :: Rwtold = 1d0
 !!$ For Input/Output (file names, indeces, etc). 
   ! indeces and labels
   ! for variables used to interface the main program with the Phytoplankton model
-integer, parameter :: Yes = 1, No = 0
 integer            :: First = Yes
 integer            :: nullty  ! i/o for cholesky subroutine
 
