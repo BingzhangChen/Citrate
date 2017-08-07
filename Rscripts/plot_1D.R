@@ -91,3 +91,21 @@ plot_1D <- function(Var,model,Stn,title='',ZLIM=NULL, finalyr = F, BOTH = T, Dma
 }
 
 
+get_Final_Data <- function(filedir, Stn, Var, finalyr = T, Dmax = -500){
+      data    <- getData(filedir,Stn,Var)
+      days    <- data$days
+     depth    <- data$depth
+      data    <- data$data
+      Kdep    <- which(depth >= Dmax)
+     depth    <- depth[Kdep]
+      data    <- data[,Kdep]
+     if (finalyr) {
+        #Take the final year   
+      fday <- days[length(days)]  #Final day
+      cff  <- which( (days > fday-360) & (days <= fday))
+      days <- days[cff]%%360
+      days[days==0] <- 360
+      data <- data[cff,]
+    }
+    return(list(days=days,depth=depth,data=data))
+}
