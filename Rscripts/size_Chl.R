@@ -58,7 +58,6 @@ op <- par(font.lab = 1,
 #Surface:
 plot_theta(NO3=.1, PAR=300)
 
-
 #Deep
 plot_theta(NO3=10, PAR=10)
 
