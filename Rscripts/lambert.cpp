@@ -4,7 +4,7 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-NumericMatrix TEMPBOL(double Ea, NumericMatrix tC){
+double TEMPBOL(double Ea, double tC){
   //DESCRIPTION:
   //The temperature dependence of plankton rates are fomulated according to the Arrhenuis equation. 
   // tC: in situ temperature
@@ -14,17 +14,16 @@ NumericMatrix TEMPBOL(double Ea, NumericMatrix tC){
   // boltzman constant constant [ eV /K ]
   double kb = 8.62E-5;
   double Tr = 15.;
-  int nrow = tC.nrow();
-  int ncol = tC.ncol();
+  //int nrow = tC.nrow();
+  //int ncol = tC.ncol();
+  double Y;
 
-  NumericMatrix Y(nrow,ncol);
+  //for (int ii = 0; ii < nrow; ii++) {
+  //   for (int jj = 0; jj < ncol; jj++) {
 
-  for (int ii = 0; ii < nrow; ii++) {
-     for (int jj = 0; jj < ncol; jj++) {
-
-       Y[ii,jj] = exp(-(Ea/kb)*(1./(273.15 + tC[ii,jj])-1./(273.15 + Tr)));
-     }
-  }
+    Y = exp(-(Ea/kb)*(1./(273.15 + tC)-1./(273.15 + Tr)));
+  //   }
+  //}
   return Y;
 } 
 
