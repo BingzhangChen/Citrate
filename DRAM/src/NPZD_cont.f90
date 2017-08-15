@@ -169,6 +169,18 @@ DO k = nlev, 1, -1
    Varout(oCHLt,k) = CHLt
    Varout(oPPt, k) = NPPt*12d0 ! Correct the unit to ug C/L
 
+! Calculate total platable prey:
+! Grazing rate on the mean size of PHY (specific to N-based Phy biomass, unit: d-1) (Eq. 12)
+   rl   = exp(Cf*PMU)
+
+   ! The probability density at avg. size
+   Pl   = normal(PMU,VAR,PMU)*PHY
+
+   ! Second derivative of P(l) (d2P(l)dl2):
+   d2PdL2=-Pl/VAR
+   ! d2PrhodL2
+   d2PrhodL2=rl*d2PdL2+Pl*Cf**2*rl
+
 ! The grazing dependence on total prey
    gbar = grazing(grazing_formulation,Kp,PHY)
 
@@ -181,11 +193,6 @@ DO k = nlev, 1, -1
    !ZOOPLANKTON EGESTION (-> POM)
    EGES = INGES*unass
 
-! Grazing rate on the mean size of PHY (specific to N-based Phy biomass, unit: d-1) (Eq. 12)
-   rl   = exp(Cf*PMU)
-
-   ! The probability density at avg. size
-   Pl   = normal(PMU,VAR,PMU)*PHY
 
    ! Grazing rate on the mean size
    gbar = INGES*ZOO*rl*Pl**(alphaG-1D0)/max(Ptot1,eps) 
@@ -449,4 +456,6 @@ DETFe = DETFe + PP_DZ*Fe_N + dtdays*Fe_scav - cff
 ! In this way, although we do not explicitly model the iron contents in PHY and ZOO, the total mass of iron is conserved (excluding dust deposition which should balance with detritus sinking)
 end subroutine
 
+subroutine 
 
+end subroutine
