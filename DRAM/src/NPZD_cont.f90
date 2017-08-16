@@ -7,7 +7,7 @@ integer :: k,j,i
 real :: tC,par_
 !LOCAL VARIABLES of phytoplankton:
 real :: PMUPHY,VARPHY,PHY1
-real :: NO3, Fe, PHY, ZOO, DET, DETFe, DET1
+real :: NO3, Fe, PHY, MIC, MES, DET, DETFe, DET1
 real :: PMU,VAR,PMU1,VAR1
 real :: mu0,aI0
 real :: QN,QP  ! cell quota related variables
@@ -58,11 +58,12 @@ DO k = nlev, 1, -1
    endif
    Varout(oPAR_,k)=par_
    NO3    = Vars(iNO3,    k)
-   ZOO    = Vars(iZOO,    k)
+   MIC    = Vars(iZOO,    k)   !Microzooplankton
+   MES    = Vars(iZOO2,   k)   !Mesozoo.
    DET    = Vars(iDET,    k)
    DETFe  = Vars(iDETFe,  k)
    PHY    = Vars(iPHY(1), k)
-   Varout(oPON,k)=ZOO+DET+PHY
+   Varout(oPON,k)=MIC+MES+DET+PHY
    PMUPHY = Vars(iPMU,    k)
    VARPHY = Vars(iVAR,    k)
 
@@ -101,11 +102,8 @@ DO k = nlev, 1, -1
 
    ! Calculate total phytoplankton palatable prey (Ptot,Eq. 13):
    ! Ptot roughly equals to Phy
-   Cf    = params(igb)
-   Ptot  = 0D0  ! Total palatable prey
    NPPt  = 0D0
    PCtot = 0D0  ! Phytoplankton carbon
-   Ptot1 = 0D0
    CHLt  = 0D0
    pCHL(:)=0D0  ! Size fractionated Chl
 
@@ -124,13 +122,13 @@ DO k = nlev, 1, -1
                  Fe,KFe_,mu, QN, QP, theta, SI, Lno3)
    
       !Probability function
-      Pl=PHY*normal(PMU,VAR,x(i))
+      Pl   = PHY*normal(PMU,VAR,x(i))
 
       ! Chl in this size class:
       dCHL = Pl*dx*theta/QN
 
        ! Calculate total Chl:
-       CHLt = CHLt + dCHL
+      CHLt = CHLt + dCHL
 
    !   Calculate size-fractionated Chl:
    !   Here the PMU_1 is already the normal PMU + log(10) (to avoid negative values)
@@ -152,15 +150,9 @@ DO k = nlev, 1, -1
                   Fe,KFe_,muNet1, QN1,QP, theta1, SI1, Lno31)
 
        NPPt = NPPt + Pl*dx*muNet1/QN
-
-       !Feeding preference
-       rl   = exp(Cf*x(i))
-       Ptot = Ptot +Pl*dx*rl   ! Total palatable prey
-
-    !   Considering killing-the-winner strategy
-       Ptot1= Ptot1+Pl**alphaG*dx*rl
      endif
    enddo
+
    do j = 1, 4
       Varout(oCHLs(j),k)=pCHL(j)/max(CHLt,eps) !Get the percentage of size-fractionated CHL
    enddo
@@ -169,23 +161,65 @@ DO k = nlev, 1, -1
    Varout(oCHLt,k) = CHLt
    Varout(oPPt, k) = NPPt*12d0 ! Correct the unit to ug C/L
 
-! Calculate total platable prey:
-! Grazing rate on the mean size of PHY (specific to N-based Phy biomass, unit: d-1) (Eq. 12)
+! Microzoo.
+! Feeding selectivity at the mean size:
+   Cf   = params(igb1)
    rl   = exp(Cf*PMU)
 
    ! The probability density at avg. size
    Pl   = normal(PMU,VAR,PMU)*PHY
 
-   ! Second derivative of P(l) (d2P(l)dl2):
-   d2PdL2=-Pl/VAR
-   ! d2PrhodL2
-   d2PrhodL2=rl*d2PdL2+Pl*Cf**2*rl
+! Calculate total platable prey:
+   Ptot = PHY*rl*(1d0+VAR/2d0*Cf**2)
+! The grazing dependence on total prey
+   gbar = grazing(grazing_formulation,Kp1,Ptot)
+
+   !MicroZooplankton per capita total ingestion rate
+   INGES1 = tf_z*gmax1*gbar
+
+   ! Microzoo Grazing rate on the mean size
+   gbar = INGES1*MIC*rl/Ptot
+
+! First derivative of microzoo. grazing rate evaluated at the mean size (negative)
+
+   dgdlbar1  = Cf*gbar*2d0*Kp1**2/(Kp1**2+Ptot**2) 
+   d2gdl2bar1= 4d0*Cf**2*Kp1**2*gbar*(Kp1**2-Ptot**2)/((Kp1**2+Ptot**2)**2)
+
+! Mesozoo.
+! Feeding selectivity at the mean size:
+   Cf   = params(igb2)
+   rl   = exp(Cf*PMU)
+
+! Calculate total platable prey:
+   Ptot = PHY*rl*(1d0+VAR/2d0*Cf**2)
 
 ! The grazing dependence on total prey
-   gbar = grazing(grazing_formulation,Kp,PHY)
+   gbar = grazing(grazing_formulation,Kp2,(Ptot+MIC))
 
-   !Zooplankton per capita total ingestion rate
-   INGES = tf_z*gmax*gbar
+   !MesoZooplankton per capita total ingestion rate
+   INGES2 = tf_z*gmax2*gbar
+
+   ! Mesozoo Grazing rate on the mean size
+   gbar = INGES2*MES*rl/(Ptot+MIC)
+
+! First derivative of mesozoo. grazing rate evaluated at the mean size (negative)
+
+   dgdlbar1  = Cf*gbar*2d0*Kp1**2/(Kp1**2+Ptot**2) 
+   d2gdl2bar1= 4d0*Cf**2*Kp1**2*gbar*(Kp1**2-Ptot**2)/((Kp1**2+Ptot**2)**2)
+
+
+! Feeding selectivity at the mean size:
+   Cf   = params(igb2)
+   rl   = exp(Cf*PMU)
+
+   ! The probability density at avg. size
+   Pl   = normal(PMU,VAR,PMU)*PHY
+
+! Calculate total platable prey:
+   Ptot = PHY*rl*(1d0+VAR/2d0*Cf**2)
+! The grazing dependence on total prey
+   gbar = grazing(grazing_formulation,Kp,Ptot)
+
 
    !Zooplankton excretion rate (-> DOM)
    RES = INGES*(1D0-GGE-unass)
@@ -193,16 +227,7 @@ DO k = nlev, 1, -1
    !ZOOPLANKTON EGESTION (-> POM)
    EGES = INGES*unass
 
-
-   ! Grazing rate on the mean size
-   gbar = INGES*ZOO*rl*Pl**(alphaG-1D0)/max(Ptot1,eps) 
-
-! First derivative of grazing rate evaluated at the mean size (negative)
-
-   dgdlbar  = Cf*gbar 
-   d2gdl2bar= ((1D0-alphaG)/VAR+Cf*Cf)*gbar
-
-!!End of zooplankton section
+! End of zooplankton section
 !=============================================================
 !! Solve ODE functions:
    Zmort = ZOO*ZOO*mz*tf_z  !Mortality term for ZOO
@@ -456,6 +481,36 @@ DETFe = DETFe + PP_DZ*Fe_N + dtdays*Fe_scav - cff
 ! In this way, although we do not explicitly model the iron contents in PHY and ZOO, the total mass of iron is conserved (excluding dust deposition which should balance with detritus sinking)
 end subroutine
 
-subroutine 
+subroutine FeedingSize(tC, PHY, PMU, VAR, Cf, ZOO, gmax, Kp, INGES, dgdlbar, d2gdl2bar)
+use bio_MOD, only: grazing, grazing_formulation,TEMPBOL, Ez
+implicit none
+real, intent(in)   :: PHY, PMU, VAR, Cf, ZOO, gmax, Kp
+real, intent(out)  :: INGES, dgdlbar, d2gdl2bar
+real               :: rl, Pl, Ptot, gbar, tf_z
+real, external     :: normal
 
-end subroutine
+! Feeding selectivity at the mean size:
+   rl   = exp(Cf*PMU)
+
+   ! The probability density at avg. size
+   Pl   = normal(PMU,VAR,PMU)*PHY
+
+! Calculate total platable prey:
+   Ptot = PHY*rl*(1d0+VAR/2d0*Cf**2)
+! The grazing dependence on total prey
+   gbar = grazing(grazing_formulation,Kp,Ptot)
+
+   !Zooplankton per capita total ingestion rate
+   tf_z  = TEMPBOL(Ez,tC)
+   INGES = tf_z*gmax*gbar
+
+   ! Grazing rate on the mean size
+   gbar = INGES*ZOO*rl/Ptot
+
+! First derivative of grazing rate evaluated at the mean size (negative)
+
+   dgdlbar  = Cf*gbar*2d0*Kp**2/(Kp**2+Ptot**2) 
+   d2gdl2bar= 4d0*Cf**2*Kp**2*gbar*(Kp**2-Ptot**2)/((Kp**2+Ptot**2)**2)
+
+
+end subroutine FeedingSize
