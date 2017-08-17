@@ -385,6 +385,10 @@ Labelout(oPAR_ + ow)='PAR_'
 Labelout(omuAvg+ ow)='muAvg'
 Labelout(oD_NO3+ ow)='D_NO3'
 Labelout(oD_ZOO+ ow)='D_ZOO'
+if (Model_ID .eq. NPZDcont) then
+    Labelout(oD_ZOO + ow)='D_MIC'
+    Labelout(oD_ZOO2+ ow)='D_MES'
+endif
 Labelout(oD_DET+ ow)='D_DET'
 if(Model_ID==NPPZDD.or.Model_ID==EFTPPDD) Labelout(oD_DET2+ow)='DDET2'
 if(Model_ID==Geiderdisc.or.Model_ID==NPZDdisc .or.Model_ID==EFTdisc .or.&

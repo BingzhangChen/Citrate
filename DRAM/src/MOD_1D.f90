@@ -760,7 +760,7 @@ DO jj = 1, Nstn
      enddo
      Vars(iZOO,k) = 0.1
      Vars(iDET,k) = 0.1
-  
+     if (Model_ID .eq. NPZDcont) Vars(iZOO2,k)=.05 
      if (NVAR > iDET) then
         do i = (iDET+1), NVAR
            Vars(i,k) = 1D-2
