@@ -54,6 +54,7 @@ integer  :: oPO4, oPOP, oDIA, oDIAu,oDETp, oDET2, oDETFe
 integer  :: oPMU, oVAR, odmudl,odgdl,od2mu,od2gdl  
 integer  :: oD_NO3,oD_ZOO,oD_ZOO2,oD_DET,oD_DET2,oD_fer,oD_PMU,oD_VAR
 integer  :: oPAR_,oD_DETp,oD_DETFe,oD_PO4,oD_DIA
+integer  :: oMESg,oMESgMIC,odgdl1,odgdl2,od2gdl1,od2gdl2
 integer  :: oCHLs(4)   ! Four size fractions of CHL
 
 ! Indices for parameters used in DRAM

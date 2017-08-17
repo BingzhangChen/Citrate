@@ -376,10 +376,6 @@ endif
 if (Model_ID .eq. NPZDN2) then
    MaxValue(imz) =  0.3*16.   !P as the unit
    MinValue(imz) =  0.05*16.
-elseif (Model_ID .eq. NPZDcont) then
-    ! For mesozoo:
-   MaxValue(imz) =  0.1
-   MinValue(imz) =  0.01
 else
    MaxValue(imz) =  0.2
    MinValue(imz) =  0.05
@@ -394,7 +390,7 @@ if (igmax > 0) then
 endif
 
  MaxValue(iKPHY) = 2d0
- MinValue(iKPHY) = .1
+ MinValue(iKPHY) = .05
 
 if (Model_ID .eq. NPZDDISC .or. Model_ID .eq. EFTdisc) then
    MaxValue(ialphaG)=.1
