@@ -2,11 +2,15 @@
 export SCRATCHDIR=Compile
 export SRCDIR=../../src
 MPI=1
-Test=0 
+Test=1 
 if [[ $MPI == 1 ]]; then
   CFT=mpifort
+  MPIINC="-I/usr/local/include"
+  LFLAGS="-L/usr/local/lib -lmpi"
 else
   CFT=ifort
+  MPIINC=""
+  LFLAGS=""
 fi
 
 rm -rf ${SCRATCHDIR}
@@ -19,7 +23,6 @@ mkdir ${SCRATCHDIR}
 #Replace global setting with local setting
 /bin/cp -f params.f90 ${SCRATCHDIR}/
 
-MPIINC="-I/usr/local/include"
 
 if [[ $CFT == ifort ]]; then
   if [[ $Test == 1 ]]; then
@@ -30,7 +33,6 @@ if [[ $CFT == ifort ]]; then
      echo 'Run model without debug options...'
   fi
 elif [[ $CFT == mpifort ]]; then
-  LFLAGS="-L/usr/local/lib -lmpi"
   if [[ $Test == 1 ]]; then
      echo 'Using mpi with debug options...'
      FFLAGS="-O0 -r8 -i4 -g -check all -fpe0 -warn -traceback -debug extended -nogen-interface"
