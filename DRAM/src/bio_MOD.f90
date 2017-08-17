@@ -47,12 +47,13 @@ real     :: Temp(nlev), PAR(nlev), dtdays, Ntot, PARavg, wstr0(1)
 real     :: DFe(nlev)                           ! Dissolved iron concentration
 real     :: Z_r(1:nlev), Z_w(0:nlev), Hz(nlev)  ! Grid variables
 real     :: I_zero
-integer  :: NVAR, Nout, iZOO, iDET,iDET2,iDETp,iDETFe, iPMU, iVAR, iPO4,iDIA
+integer  :: NVAR, Nout, iZOO, iZOO2, iDET,iDET2,iDETp,iDETFe, iPMU, iVAR, iPO4,iDIA
 integer  :: NVsinkterms,NPHY, NPar
-integer  :: oZOO, oDET, oPON, oFER, oZ2N, oD2N, oPHYt,oCHLt,oPPt,omuAvg
+integer  :: oZOO, oZOO2,oDET, oPON, oFER, oZ2N, oD2N, oPHYt,oCHLt,oPPt,omuAvg
 integer  :: oPO4, oPOP, oDIA, oDIAu,oDETp, oDET2, oDETFe
 integer  :: oPMU, oVAR, odmudl,odgdl,od2mu,od2gdl  
-integer  :: oD_NO3,oD_ZOO,oD_DET,oD_DET2,oD_fer,oD_PMU,oD_VAR,oPAR_,oD_DETp,oD_DETFe,oD_PO4,oD_DIA
+integer  :: oD_NO3,oD_ZOO,oD_ZOO2,oD_DET,oD_DET2,oD_fer,oD_PMU,oD_VAR
+integer  :: oPAR_,oD_DETp,oD_DETFe,oD_PO4,oD_DIA
 integer  :: oCHLs(4)   ! Four size fractions of CHL
 
 ! Indices for parameters used in DRAM

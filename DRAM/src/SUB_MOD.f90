@@ -1,7 +1,6 @@
 MODULE SUB_MOD
 USE Interface_MOD
 USE gammaf90
-!USE mtmod
 USE gasdevf90
 USE mGf90
 implicit none

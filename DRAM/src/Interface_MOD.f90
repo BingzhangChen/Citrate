@@ -376,6 +376,10 @@ endif
 if (Model_ID .eq. NPZDN2) then
    MaxValue(imz) =  0.3*16.   !P as the unit
    MinValue(imz) =  0.05*16.
+elseif (Model_ID .eq. NPZDcont) then
+    ! For mesozoo:
+   MaxValue(imz) =  0.1
+   MinValue(imz) =  0.01
 else
    MaxValue(imz) =  0.2
    MinValue(imz) =  0.05
@@ -384,8 +388,10 @@ endif
 ! Lima and Doney (2004) gave 2.75 to 3.75
 ! Hansen et al. (1997) gave a range of 10**(-2) ~ 10**(0) (unit: h-1)
 ! after conversion to d-1, 0.2 ~ 2.4
+if (igmax > 0) then
  MaxValue(igmax) =  2d0
  MinValue(igmax) =  0.5
+endif
 
  MaxValue(iKPHY) = 2d0
  MinValue(iKPHY) = .1
@@ -393,7 +399,6 @@ endif
 if (Model_ID .eq. NPZDDISC .or. Model_ID .eq. EFTdisc) then
    MaxValue(ialphaG)=.1
    MinValue(ialphaG)=0.
-
 endif
 select case(nutrient_uptake)
 case(1)
@@ -460,8 +465,6 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
      MaxValue(iaI0_C) =0.1
      MinValue(iaI0_C) =0.01
      if (Model_ID.eq.NPZDcont) then
-        MaxValue(igb) =0d0
-        MinValue(igb) =-1D-10   !No size-dependent feeding for now
         MaxValue(iVTR)=0.1
         MinValue(iVTR)=0D0
         if (do_IRON) then
@@ -488,8 +491,11 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
 
      MaxValue(ialphaI )=0.2d0
      MinValue(ialphaI )=-0.3d0
-     MaxValue(ialphaG )=1D-20  ! Only trait diffusion
-     MinValue(ialphaG )=0.
+
+     if (Model_ID .ne. NPZDcont) then
+       MaxValue(ialphaG )=1D-20  ! Only trait diffusion
+       MinValue(ialphaG )=0.
+     endif
 
      if(nutrient_uptake .eq. 1) then
         MaxValue(ialphaKN)=0.3

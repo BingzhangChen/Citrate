@@ -56,7 +56,7 @@ else if (Model_ID==EFTcont) then
   if(taskid==0) write(6,*) 'Flexible continous model selected!'
   NPHY = 1
 else if (Model_ID==NPZDcont) then
-  if(taskid==0) write(6,*) 'NPZD continous model selected!'
+  if(taskid==0) write(6,*) 'Continuous size (CITRATE) model selected!'
   NPHY    = 1
   DO_IRON = .TRUE.
 else if (Model_ID==EFT2sp .OR. Model_ID==NPZD2sp) then
@@ -86,7 +86,13 @@ do i=1,NPHY
 enddo 
 
 iZOO = iPHY(NPHY)+1
-iDET = iZOO+1
+
+if (Model_ID==NPZDcont) then
+   iZOO2= iZOO +1
+   iDET = iZOO2+1
+else
+   iDET = iZOO+1
+endif
 
 if (Model_ID==Geiderdisc .or. Model_ID==Geidersimple .or. Model_ID==GeidsimIRON) then
    do i=1,NPHY
@@ -153,7 +159,12 @@ do i=1,NPHY
    oPHY(i)=i+oNO3
 enddo
 oZOO =oPHY(NPHY)+1
-oDET =oZOO+1
+if (Model_ID==NPZDcont) then
+    oZOO2=oZOO +1
+    oDET =oZOO2+1
+else
+    oDET =oZOO+1
+endif
 if(Model_ID==EFTcont .or. Model_ID==NPZDcont) then
    oDETFe=oDET+1
    oPMU=oDETFe+1
@@ -255,7 +266,12 @@ do i=1,NPHY
 enddo
 
 oD_ZOO=oD_PHY(NPHY)+1
-oD_DET=oD_ZOO+1
+if (Model_ID==NPZDcont) then
+    oD_ZOO2=oD_ZOO+1
+    oD_DET=oD_ZOO2+1
+else
+    oD_DET=oD_ZOO+1
+endif
 if (Model_ID==Geiderdisc .or. Model_ID==Geidersimple .or. Model_ID==GeidsimIRON) then
    do i=1,NPHY
       oD_CHL(i)=oD_DET+1
@@ -308,6 +324,10 @@ do i=1,NPHY
 enddo
 
 Labelout(oZOO +ow)='ZOO'
+if (Model_ID==NPZDcont) then
+    Labelout(oZOO  +ow)='MIC'
+    Labelout(oZOO2 +ow)='MES'
+endif
 Labelout(oDET +ow)='DET'
 if (Model_ID==NPPZDD  .or. Model_ID==EFTPPDD) Labelout(oDET2 +ow)='DET2'
 !
@@ -391,8 +411,12 @@ endif
 ! Need to have tradeoffs for maximal growth rate (mu0) and Kn
 ! Common parameters:
 imu0    =  1
-igmax   =  imu0+1
-iKPHY   =  igmax  + 1  
+if (Model_ID .ne. NPZDcont) then
+  igmax   =  imu0  + 1
+  iKPHY   =  igmax + 1  
+else
+  iKPHY   =  imu0  + 1  
+endif
 if (Model_ID == EFT2sp .OR. Model_ID==EFTPPDD .OR. Model_ID==NPZD2sp .OR. Model_ID==NPPZDD) then
     imu0B   =  iKPHY + 1  ! The ratio of mu0 of the second species to the first
     iaI0B   =  imu0B + 1  ! The ratio of aI0 of the second species to the first
@@ -467,7 +491,11 @@ if (Model_ID==NPZDFix .or.Model_ID==NPZD2sp    .or.Model_ID==NPPZDD  &
       ialphamu=iaI0_C+1
       ibetamu =ialphamu+1
       ialphaI =ibetamu+1
-      ialphaG =ialphaI +1
+      if (Model_ID .ne. NPZDcont) then
+         ialphaG =ialphaI +1
+      else
+         ialphaG =ialphaI
+      endif
       if (nutrient_uptake.eq.1) then
 
          ialphaKN=ialphaG+1
@@ -475,9 +503,8 @@ if (Model_ID==NPZDFix .or.Model_ID==NPZD2sp    .or.Model_ID==NPPZDD  &
          if (Model_ID == NPZDcont) then
            
            iVTR   =ialphaKN+1
-           igb    =iVTR    +1
            if (do_IRON) then
-             iKFe =igb     +1
+             iKFe =iVTR    +1
           ialphaFe=iKFe    +1
              NPar =ialphaFe
            else
@@ -520,15 +547,20 @@ allocate(ParamLabel(NPar))
 
 ParamLabel(imu0) = 'mu0hat '
 ParamLabel(imz)  = 'mz'
-ParamLabel(igmax)= 'gmax'
+if (igmax > 0) then
+   ParamLabel(igmax)= 'gmax'
+   params(igmax)    = 1.35
+endif
+
 ParamLabel(iKPHY)= 'KPHY'
 
 if (Model_ID .eq. NPZDN2) then
    params(imz)   = 0.15*16d0
+elseif (Model_ID .eq. NPZDcont) then
+   params(imz)   = 0.05  !For mesozoo.
 else
    params(imz)   = 0.15
 endif
-params(igmax)    = 1.0
 params(iKPHY)    = 0.5
 params(imu0)     = 2.5d0
 
@@ -604,7 +636,7 @@ if (Model_ID .eq. EFT2sp .or. Model_ID .eq. EFTPPDD .or. Model_ID .eq. NPZD2sp .
 endif
 
 if(Model_ID.eq.NPZD2sp .OR. Model_ID.eq.EFTdisc .OR. &
-   Model_ID.eq.EFT2sp  .OR. Model_ID.eq.NPZDcont.OR. &
+   Model_ID.eq.EFT2sp  .OR. &
    Model_ID.eq.NPPZDD  .OR. Model_ID.eq.EFTPPDD) then
    ParamLabel(ialphaG)='alphaG'
    params(ialphaG)    =1D-30
@@ -626,8 +658,6 @@ if(Model_ID==NPZDdisc.or.Model_ID==NPZD2sp.or.Model_ID==NPPZDD.or.Model_ID==NPZD
   ParamLabel(iaI0_C)='aI0_C'
   params(iaI0_C)    =0.055
   if (Model_ID == NPZDcont) then
-     ParamLabel(igb) ='gb'
-     params(igb)     =-1D-12
      ParamLabel(iVTR)='VTR'
      params(iVTR)    =0.01
      ParamLabel(ibetamu)='betamu'
