@@ -289,7 +289,13 @@ else if(Model_ID==EFTcont .or. Model_ID==NPZDcont) then
    odmudl=od2mu +1
    od3mu =odmudl+1
    od4mu =od3mu +1
-   Nout  =od4mu
+   oMESg =od4mu +1
+   oMESgMIC=oMESg+1
+   odgdl1=oMESgMIC+1
+   odgdl2=odgdl1  +1
+   od2gdl1=odgdl2 +1
+   od2gdl2=od2gdl1+1
+   Nout  =od2gdl2
 else if(Model_ID==NPZDN2) then
    oD_DETp=oD_DET +1
    oD_PO4 =oD_DETp+1
@@ -388,6 +394,12 @@ Labelout(oD_ZOO+ ow)='D_ZOO'
 if (Model_ID .eq. NPZDcont) then
     Labelout(oD_ZOO + ow)='D_MIC'
     Labelout(oD_ZOO2+ ow)='D_MES'
+    Labelout(oMESg  + ow)='MESg '
+    Labelout(oMESgMIC+ow)='MEgMI'
+    Labelout(odgdl1 + ow)='dgdl1'
+    Labelout(odgdl2 + ow)='dgdl2'
+    Labelout(od2gdl1+ ow)='d2gd1'
+    Labelout(od2gdl2+ ow)='d2gd2'
 endif
 Labelout(oD_DET+ ow)='D_DET'
 if(Model_ID==NPPZDD.or.Model_ID==EFTPPDD) Labelout(oD_DET2+ow)='DDET2'
@@ -560,12 +572,10 @@ ParamLabel(iKPHY)= 'KPHY'
 
 if (Model_ID .eq. NPZDN2) then
    params(imz)   = 0.15*16d0
-elseif (Model_ID .eq. NPZDcont) then
-   params(imz)   = 0.05  !For mesozoo.
 else
    params(imz)   = 0.15
 endif
-params(iKPHY)    = 0.5
+params(iKPHY)    = 0.25
 params(imu0)     = 2.5d0
 
 if(Model_ID==EFT2sp .or. Model_ID==EFTPPDD .or.  Model_ID==NPZD2sp .or. Model_ID==NPPZDD) then
