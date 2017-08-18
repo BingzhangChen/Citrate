@@ -234,4 +234,19 @@ END SELECT
 return
 end function grazing
 !===================================================
+
+pure real function dY_Xdl(Y, X, dYdl, dXdl) 
+implicit none
+real, intent(in)    :: Y, X, dYdl, dXdl
+   dY_Xdl = dYdl/X - Y/X**2*dXdl
+end function
+
+pure real function d2Y_Xdl2(Y, X, dYdl, dXdl, d2Ydl2, d2Xdl2) 
+implicit none
+real, intent(in)    :: Y, X, dYdl, dXdl, d2Ydl2, d2Xdl2
+ d2Y_Xdl2 = d2Ydl2/X - 2.*dYdl*dXdl/(X**2) - Y/(X**2)*d2Xdl2 +  &
+                                          2.*Y/(X**3)*(dXdl**2)
+end function
+
+
 END Module BIO_MOD

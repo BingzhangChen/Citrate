@@ -12,11 +12,13 @@ real :: PMU,VAR,PMU1,VAR1
 real :: mu0,aI0
 real :: QN,QP  ! cell quota related variables
 real :: muNet,dmuNetdl,d2muNetdl2, d3mudl3, d4mudl4
+real :: dmuNetdl1,d2muNetdl21, d3mudl31, d4mudl41
 real :: alphaK,alphaI,SI,Lno3,KFe_,Fescav
 real :: muNet1, SI1, Lno31, QN1
 real :: mu ! a scratch variable to temporally store phyto. growth rate
-real :: theta,theta1
-real :: VTR
+real :: theta,theta1,dthetadl,d2thetadl2,dQNdL,d2QNdL2
+real :: dthetadl1,d2thetadl21,dQNdL1,d2QNdL21
+real :: VTR,d2muNet_QNdl2
 
 !Declarations of zooplankton:
 real :: dgdlbar1,d2gdl2bar1,dgdlbar2,d2gdl2bar2
@@ -24,13 +26,13 @@ real :: INGES1,INGES2,RES1,RES2,EGES1,EGES2,Zmort2,mz2
 real :: dx  ! size interval
 real :: RDN,Kp1,Cf, cff, cff1  !Zooplankton variables
 real :: pp_PN, PPpn, PP_MIC_P, PP_MES_P,PP_MES_MIC
-real :: Ptot, PCtot, CHLt,KN, Pl, dCHL,NPPt,rl
+real :: Ptot,  CHLt,KN, Pl, dCHL,NPPt,rl
 real :: pCHL(4) = 0D0
 
-integer, parameter :: M     = 30    !discretize the continous normal distribution
+integer, parameter :: M     = 100    !discretize the continous normal distribution
 real               :: x(M)  = 0d0
 
-real,     external :: pnorm, normal
+real,     external :: normal
 real,    parameter :: PMU0  = log(1d1)
 real,    parameter :: PMU10 = log(pi/6*1d1**3)
 real,    parameter :: bI0   = 0D0
@@ -80,7 +82,11 @@ DO k = nlev, 1, -1
    VAR    = VARPHY/PHY**2  !Correct VAR to the real one
    Fe     = Vars(ifer,k)
 
-   call PHY_NPZDCONT(NO3,par_,tC,Fe,PMU,muNet,dmuNetdl,d2muNetdl2,d3mudl3,d4mudl4,SI,Lno3, theta, QN)
+   call PHY_NPZDCONT(NO3,par_,tC,Fe,PMU,muNet,dmuNetdl,d2muNetdl2,d3mudl3,d4mudl4,SI,Lno3, theta, &
+    QN,dQNdL,d2QNdL2,dthetadL,d2thetadl2)
+
+   Varout(oTheta(1),k)= theta+0.5*VAR*d2thetadl2
+   Varout(oQN(1)   ,k)= QN   +0.5*VAR*d2QNdl2
 
    Varout(oSI(1),k)  =SI
    Varout(oLno3(1),k)=Lno3
@@ -101,8 +107,8 @@ DO k = nlev, 1, -1
    tf_z = TEMPBOL(Ez,tC)
     
    ! Calculate the integration  
-   x(1)  = PMU-3D0*sqrt(VAR)  ! Minimal size
-   x(M)  = PMU+3D0*sqrt(VAR)  ! Maximal size
+   x(1)  = PMU-6D0*sqrt(VAR)  ! Minimal size
+   x(M)  = PMU+6D0*sqrt(VAR)  ! Maximal size
    dx    = (x(M) - x(1))/float(M-1)
    do i  = 2,M-1
      x(i) = x(i-1) + dx  !Log size of each class
@@ -110,8 +116,6 @@ DO k = nlev, 1, -1
 
    ! Calculate total phytoplankton palatable prey (Ptot,Eq. 13):
    ! Ptot roughly equals to Phy
-   NPPt  = 0D0
-   PCtot = 0D0  ! Phytoplankton carbon
    CHLt  = 0D0
    pCHL(:)=0D0  ! Size fractionated Chl
 
@@ -125,7 +129,6 @@ DO k = nlev, 1, -1
        KN =params(iKN)   *exp(alphaK*x(i))
       KFe_=params(iKFe)  *exp(alphaFe*x(i))
 
-   ! MONOD(Temp, PAR,NO3,PO4,mu0,Qnmin,Qpmin,aI0,bI0,KN,KP,DFe,KFe,muNet,QN,QP,theta,SI,Lno3)
       call MONOD(tC,par_,NO3,1d0,mu0,params(iQ0N),Qpmin,aI0,bI0,KN,KPO4,&
                  Fe,KFe_,mu, QN, QP, theta, SI, Lno3)
    
@@ -149,15 +152,6 @@ DO k = nlev, 1, -1
        else
           pCHL(1)=pCHL(1)+dCHL
        endif
-
-       ! Total Phytoplankton carbon
-       PCtot= PCtot + Pl*dx/QN
-
-       ! Total NPP (use light as the in situ incubation):
-       call MONOD(tC,PAR(k),NO3,1d0,mu0,params(iQ0N),Qpmin,aI0,bI0,KN,KPO4,&
-                  Fe,KFe_,muNet1, QN1,QP, theta1, SI1, Lno31)
-
-       NPPt = NPPt + Pl*dx*muNet1/QN
      endif
    enddo
 
@@ -165,7 +159,14 @@ DO k = nlev, 1, -1
       Varout(oCHLs(j),k)=pCHL(j)/max(CHLt,eps) !Get the percentage of size-fractionated CHL
    enddo
 
-   PCtot           = max(PCtot, eps)
+   ! Total NPP (use light as the in situ incubation):
+   call PHY_NPZDCONT(NO3,PAR(k),tC,Fe,PMU,muNet1,dmuNetdl1,d2muNetdl21,&
+       d3mudl31,d4mudl41,SI1,Lno31, theta1, &
+    QN1,dQNdL1,d2QNdL21,dthetadL1,d2thetadl21)
+
+   d2muNet_QNdl2 = d2Y_Xdl2(muNet1,QN1,dmuNetdl1, dQNdL1, d2muNetdl21, d2QNdl21) 
+   NPPt          = PHY*(muNet1/QN1+0.5*VAR*d2muNet_QNdl2) 
+
    Varout(oCHLt,k) = CHLt
    Varout(oPPt, k) = NPPt*12d0 ! Correct the unit to ug C/L
 
@@ -283,8 +284,6 @@ DO k = nlev, 1, -1
    Varout(ofer,k)      = Fe
    Varout(oPMU,k)      = PMUPHY
    Varout(oVAR,k)      = VARPHY
-   Varout(oTheta(1),k) = CHLt/PCtot 
-   Varout(oQN(1)   ,k) = PHY/PCtot
    Varout(omuNet(1),k) = muNet               !Growth rate of mean size
    Varout(omuAvg,   k) = PP_PN/dtdays/PHY    !Avg. growth rate of the total community
    Varout(oGraz(1) ,k) = PP_MIC_P/PHY/dtdays        !Microzoo. grazing rate on PHY
@@ -304,19 +303,20 @@ ENDDO
 END SUBROUTINE NPZD_CONT 
 
 ! The subroutine only for phytoplankton
-subroutine PHY_NPZDCONT(NO3,PAR_,Temp_,Fe, PMU, muNet,dmudl,d2mudl2,d3mudl3,d4mudl4,SI,fN, theta, QN)
-use bio_MOD, only : ScaleTrait, TEMPBOL, params
+subroutine PHY_NPZDCONT(NO3,PAR_,Temp_,Fe, PMU, muNet,dmudl,d2mudl2,d3mudl3,d4mudl4,SI,fN, theta, &
+    QN,dQNdL,d2QNdL2,dthetadL,d2thetadl2)
+use bio_MOD, only : ScaleTrait, TEMPBOL, params, dY_Xdl, d2Y_Xdl2
 use bio_MOD, only : ialphaI, ialphaKN,imu0, ialphamu,ibetamu, iaI0_C, iKN, iQ0N  
 use bio_MOD, only : Ep, K0Fe, alphaFe, KFe, do_IRON,betamu, alphamu, iKFe, ialphaFe
 implicit none
 real, intent(in)  :: PMU, NO3, PAR_,Temp_, Fe 
 real, intent(out) :: muNet, dmudl, d2mudl2, theta, QN, SI, fN
-real, intent(out) :: d3mudl3, d4mudl4
+real, intent(out) :: d3mudl3, d4mudl4, dQNdL,d2QNdL2,dthetadL,d2thetadl2
 real :: alphaK, alphaI, mu0hat
-real :: dmu0hatdl, d2mu0hatdl2, aI, cff,daI_mu0hatdl
+real :: dmu0hatdl, d2mu0hatdl2, aI, cff,cff1,daI_mu0hatdl
 real :: daI_mu0hat2dl
 real :: d3mu0hatdl3, d4mu0hatdl4
-real :: dSIdl
+real :: dSIdl,dcffdl
 real :: mu0hatSI 
 real :: dmu0hatSIdl, dmu0hat_aIdl,d2mu0hat_aIdl2
 real :: d2aI_mu0hatdl2,d3aI_mu0hatdl3,d2SIdl2,d2mu0hatSIdl2
@@ -325,7 +325,7 @@ real :: daI_mu0hat4dl,d2aI_mu0hat3dl2,d3aI_mu0hat2dl3, d4aI_mu0hatdl4
 real :: d3muIhatdl3, d4muIhatdl4
 real :: Kn,K0N,dfNdl,d2fNdl2,d3fNdl3, d4fNdl4, Qmin,Qmax,tf
 real :: fFe
-real, parameter :: thetamin = 0.02, thetamax = 0.5
+real, parameter :: thetamin = 0.02, thetamax = 0.47
 
 alphaK     =params(ialphaKN) 
 alphamu    =params(ialphamu)
@@ -418,8 +418,22 @@ Qmin=params(iQ0N)
 Qmax=3D0*params(iQ0N)
 
 !N:C ratio at avg. size
- QN  =Qmin/(1D0-(1D0-Qmin/Qmax)*fN)
-theta=thetamin+muNet/PAR_/aI*(thetamax-thetamin)   !Unit: gChl/molC
+
+cff1    = 1d0-Qmin/Qmax
+cff     = 1d0-cff1*fN
+QN      = Qmin/cff
+dcffdl  = -cff1*dfNdl
+dQNdL   = cff1/cff**2 * dfNdl * Qmin
+d2QNdL2 = Qmin*cff1*(d2fNdl2/cff**2 - 2./cff**3*dfNdl*dcffdl)  !Correct
+
+
+!Chl:C ratio at avg. size
+cff     = (thetamax - thetamin)/PAR_
+theta   = thetamin+muNet/aI*cff   !Unit: gChl/molC
+dthetadl = cff*dY_Xdl(muNet, aI, dmudl, aI*alphaI)  !Correct
+
+d2thetadl2 = cff*d2Y_Xdl2(muNet,aI,dmudl,aI*alphaI, d2mudl2, &
+                                               aI*alphaI**2) !Correct
 
 !! Calculate the community sinking rate of phytoplankton
 !      ! Phytoplankton sinking rate at the average size
@@ -428,7 +442,6 @@ theta=thetamin+muNet/PAR_/aI*(thetamax-thetamin)   !Unit: gChl/molC
 !      self%w_pAvg = w_p+0.5*VAR*d2wpdl2 ! Sinking rate of phytoplankton
 return
 end subroutine
-
 !Density function of normal distribution
 pure real function normal(mean,var,l)
   implicit none
