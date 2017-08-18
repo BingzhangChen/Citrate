@@ -1,0 +1,16 @@
+
+paramlab[1]    <- expression(paste(italic(µ)['0,m']))
+paramlab[2]    <- expression(paste(italic(K)[P]))
+paramlab[3]    <- expression(paste(italic(m)[z]))
+paramlab[4]    <- expression(paste(italic(K)['0,N']))
+paramlab[5]    <- expression(paste(italic(Q)['0,N']))
+paramlab[6]    <- expression(paste(italic(W)[d]))
+paramlab[7]    <- expression(paste(italic(alpha)['0,C']))
+paramlab[8]    <- expression(paste(italic(alpha)[µ]))
+paramlab[9]    <- expression(paste(italic(beta)[µ]))
+paramlab[10]   <- expression(paste(italic(alpha)[I]))
+paramlab[11]   <- expression(paste(italic(alpha)[K]))
+paramlab[12]   <- expression(paste(italic(u)))
+paramlab[13]   <- expression(paste(italic(K)['0,fer']))
+paramlab[14]   <- expression(paste(italic(alpha)['fer']))
+
