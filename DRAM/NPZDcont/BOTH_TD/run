@@ -79,5 +79,5 @@ sed -f flags.tmp Makefile3 > Makefile
 make
 rm -rf flags.tmp
 
-mv DRAM ../NPZDCONT
+mv DRAM ../citrate
 cd ../
