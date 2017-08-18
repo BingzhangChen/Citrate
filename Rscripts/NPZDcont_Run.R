@@ -2,8 +2,7 @@ Model <- 'NPZDcont'
 DIR   <- paste0('~/Working/FlexEFT1D/DRAM/',Model,'/BOTH_TD/')
 setwd(DIR)
 source('~/Working/FlexEFT1D/Rscripts/plot_1D.R')
-source('~/Working/FlexEFT1D/Rscripts/loglike_size.R')  #Plot Log-Likelihoods of size model
-source('~/Working/FlexEFT1D/Rscripts/params.R')  #Plot Log-Likelihoods of size model
+source('~/Working/FlexEFT1D/Rscripts/loglike_params.R')  #Plot time-evolution of Log-Likelihoods and parameters of size model (Fig. 3 and 4)
 
 setwd('/Users/apple/Working/FlexEFT1D/DRAM/NPZDcont_sRun/BOTH')
 Model   <- 'NPZDcont_sRun'
