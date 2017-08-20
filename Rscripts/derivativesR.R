@@ -50,6 +50,8 @@ eval(daI_mu03dl, list(aI0=0.05, PAR=100,alphaI=-0.1, L=1,mu0hat=1, alphamu=0.1,b
 
 
 SI = expression(1-exp(-aI0 * exp(alphaI*L)*PAR/(mu0hat*exp(alphamu*L+betamu*L**2))))
+
+SI = expression(1-exp(-aI0 * exp(alphaI*L)*PAR/mu0hat))
 dSIdL = D(SI,'L')
 d2SIdL2 = D(dSIdL,'L')
 d3SIdL3 = D(d2SIdL2,'L')
@@ -58,7 +60,7 @@ eval(SI, list(aI0=0.05, PAR=100,alphaI=-0.1, L=1,mu0hat=1, alphamu=0.1,betamu=-0
 eval(dSIdL, list(aI0=0.05, PAR=100,alphaI=-0.1, L=1,mu0hat=1, alphamu=0.1,betamu=-0.01))
 eval(d2SIdL2, list(aI0=0.05, PAR=100,alphaI=-0.1, L=1,mu0hat=1, alphamu=0.1,betamu=-0.01))
 eval(d3SIdL3, list(aI0=0.05, PAR=100,alphaI=-0.1, L=1,mu0hat=1, alphamu=0.1,betamu=-0.01))
-eval(d4SIdL4, list(aI0=0.05, PAR=100,alphaI=-0.1, L=1,mu0hat=1, alphamu=0.1,betamu=-0.01))
+eval(d4SIdL4, list(aI0=0.05, PAR=100,alphaI=-0.1, L=2,mu0hat=1, alphamu=0.1,betamu=-0.01))
 
 g = expression(P/(P**2 + Kp**2))
 
@@ -67,3 +69,18 @@ dgdL = D(g, 'P')
 
 f = expression((Kp^2-P^2)/(P*(Kp^2+P^2)))
 dfdL = D(f,'P')
+
+
+f = expression((P-x)/(x+P))
+dfdL = D(f,'x')
+
+mu= expression( mu0hat * exp(alphamu*L + betamu*L**2) * (1-exp(-aI0 * exp(alphaI*L)*PAR/mu0hat)) *(NO3/(NO3 + K0N* exp(alphaK*L))) )
+dmudL   = D(mu, 'L')
+d2mudL2 = D(dmudL,'L')
+d3mudL3 = D(d2mudL2,'L')
+d4mudL4 = D(d3mudL3,'L')
+eval(dmudL, list(mu0hat=1, alphamu=0.1,betamu=-0.01,L=1))
+eval(d2mudL2, list(mu0hat=1, alphamu=0.1,betamu=-0.01,L=2, aI0=0.05,alphaI=-.1,PAR=100, NO3=.2, K0N=.2, alphaK=.27 ))
+eval(d3mudL3, list(mu0hat=1, alphamu=0.1,betamu=-0.01,L=2, aI0=0.05,alphaI=-.1,PAR=100, NO3=.2, K0N=.2, alphaK=.27 ))
+eval(d4mudL4, list(mu0hat=1, alphamu=0.1,betamu=-0.01,L=2, aI0=0.05,alphaI=-.1,PAR=100, NO3=.2, K0N=.2, alphaK=.27))
+

@@ -317,7 +317,7 @@ real :: dmu0hatdl, d2mu0hatdl2, aI, cff,cff1,daI_mu0hatdl
 real :: daI_mu0hat2dl
 real :: d3mu0hatdl3, d4mu0hatdl4
 real :: dSIdl,dcffdl
-real :: mu0hatSI 
+real :: mu0hatSI, mu0hat1 
 real :: dmu0hatSIdl, dmu0hat_aIdl,d2mu0hat_aIdl2
 real :: d2aI_mu0hatdl2,d3aI_mu0hatdl3,d2SIdl2,d2mu0hatSIdl2
 real :: d3SIdl3,daI_mu0hat3dl,d2aI_mu0hat2dl2,d4SIdl4
@@ -332,58 +332,69 @@ alphamu    =params(ialphamu)
 betamu     =params(ibetamu)
 alphaI     =params(ialphaI)
 tf         =TEMPBOL(Ep,Temp_)
+cff1       =alphamu + 2.* betamu * PMU
 mu0hat     =tf*params(imu0)*exp(alphamu*PMU + betamu*PMU**2)
-dmu0hatdl  =mu0hat*(alphamu + 2D0 * betamu * PMU)
-d2mu0hatdl2=mu0hat*2D0*betamu+mu0hat*(alphamu+2D0*betamu*PMU)**2
-d3mu0hatdl3=(2.*betamu+(alphamu+2.*betamu*PMU)**2)*dmu0hatdl+4.*betamu*mu0hat*(alphamu+2.*betamu*PMU)
-
-d4mu0hatdl4=dmu0hatdl*8.*betamu*(alphamu+2.*betamu*PMU)+(2.*betamu+(alphamu+2.*betamu*PMU)**2)*d2mu0hatdl2+8.*betamu**2*mu0hat
+dmu0hatdl  =mu0hat*cff1
+d2mu0hatdl2=mu0hat*2.*betamu+mu0hat*cff1**2
+d3mu0hatdl3=(2.*betamu+cff1**2)*dmu0hatdl+4.*betamu*mu0hat*cff1
+d4mu0hatdl4=dmu0hatdl*8.*betamu*cff1+(2.*betamu+cff1**2)*d2mu0hatdl2+8.*betamu**2*mu0hat
 
 ! Initial slope of P-I curve
 aI=ScaleTrait(PMU, params(iaI0_C), alphaI)
 
 !The light limitation index (SI)
-cff=exp(-aI*PAR_/mu0hat)
-SI =1D0-cff
+mu0hat1 =tf*params(imu0)  !To simplify the size dependence of aI
+!cff=exp(-aI*PAR_/mu0hat)
 
-daI_mu0hatdl=aI*(alphaI-alphamu-2D0*betamu*PMU)/mu0hat
+!mu0hat1 = mu0hat when alphamu and betamu = 0
+cff=exp(-aI*PAR_/mu0hat1)
+SI =1.-cff
+
+!daI_mu0hatdl=aI*(alphaI-alphamu-2D0*betamu*PMU)/mu0hat
+daI_mu0hatdl=aI*alphaI/mu0hat1
 
 dSIdl=cff*PAR_*daI_mu0hatdl
 
-mu0hatSI=mu0hat*SI
-dmu0hatSIdl = mu0hatSI*(alphamu+2D0*betamu*PMU) + mu0hat*dSIdl
-dmu0hat_aIdl= (dmu0hatdl - alphaI*mu0hat)/aI
-d2mu0hat_aIdl2 = mu0hat/aI*2D0*betamu+(alphamu-alphaI+2D0*betamu*PMU)*dmu0hat_aIdl
+mu0hatSI    = mu0hat*SI
+dmu0hatSIdl = mu0hatSI*cff1 + mu0hat*dSIdl
+!dmu0hat_aIdl= (dmu0hatdl - alphaI*mu0hat)/aI
+!d2mu0hat_aIdl2 = mu0hat/aI*2D0*betamu+(alphamu-alphaI+2D0*betamu*PMU)*dmu0hat_aIdl
 
-daI_mu0hat2dl  = daI_mu0hatdl/mu0hat - aI/mu0hat**3*dmu0hatdl !Correct
+!daI_mu0hat2dl  = daI_mu0hatdl/mu0hat - aI/mu0hat**3*dmu0hatdl !Correct
 
-d2aI_mu0hatdl2 = alphaI*daI_mu0hatdl - aI/mu0hat**2*d2mu0hatdl2 - daI_mu0hat2dl*dmu0hatdl
+!d2aI_mu0hatdl2 = alphaI*daI_mu0hatdl - aI/mu0hat**2*d2mu0hatdl2 - daI_mu0hat2dl*dmu0hatdl
 
-d3aI_mu0hatdl3 = d2aI_mu0hatdl2*(alphaI-alphamu-2d0*betamu*PMU)-4d0*betamu*daI_mu0hatdl
+!d3aI_mu0hatdl3 = d2aI_mu0hatdl2*(alphaI-alphamu-2d0*betamu*PMU)-4d0*betamu*daI_mu0hatdl
 
-d2SIdl2 = -PAR_*dSIdl*daI_mu0hatdl+PAR_*cff*d2aI_mu0hatdl2
+!d2SIdl2 = -PAR_*dSIdl*daI_mu0hatdl+PAR_*cff*d2aI_mu0hatdl2
+!d2SIdl2=PAR_*alphaI**2*aI*cff/mu0hat1*(1d0-PAR_*aI/mu0hat1)
+d2SIdl2=PAR_*alphaI/mu0hat1*aI*(cff*alphaI-dSIdl)
 
-d2mu0hatSIdl2 = (alphamu+2d0*betamu*PMU)*dmu0hatSIdl + 2d0*betamu*mu0hatSI + mu0hat*(alphamu+2d0*betamu*PMU)*dSIdl + mu0hat*d2SIdl2  !Correct
+d2mu0hatSIdl2 = cff1*dmu0hatSIdl + 2.*betamu*mu0hatSI + mu0hat*cff1*dSIdl + mu0hat*d2SIdl2  !Correct
 
-d3SIdl3 = PAR_*(-2.*dSIdl*d2aI_mu0hatdl2 - d2SIdl2*daI_mu0hatdl + (1.-SI)*d3aI_mu0hatdl3)  !Correct
+!d3SIdl3 = PAR_*(-2.*dSIdl*d2aI_mu0hatdl2 - d2SIdl2*daI_mu0hatdl + (1.-SI)*d3aI_mu0hatdl3)  !Correct
+d3SIdl3=PAR_/mu0hat1*alphaI**3*aI*cff*((1.-PAR_/mu0hat1*aI)**2-aI*PAR_/mu0hat1)
 
-daI_mu0hat3dl  = daI_mu0hat2dl/mu0hat - aI*dmu0hatdl/mu0hat**4 !Correct
+!daI_mu0hat3dl  = daI_mu0hat2dl/mu0hat - aI*dmu0hatdl/mu0hat**4 !Correct
+!
+!d2aI_mu0hat2dl2= d2aI_mu0hatdl2/mu0hat - daI_mu0hatdl/mu0hat**2*dmu0hatdl - daI_mu0hat3dl * dmu0hatdl - aI/mu0hat**3*d2mu0hatdl2 !Correct 
+!
+!d3aI_mu0hatdl3 = alphaI*d2aI_mu0hatdl2 - aI/mu0hat**2*d3mu0hatdl3 -2d0*daI_mu0hat2dl*d2mu0hatdl2 -d2aI_mu0hat2dl2*dmu0hatdl !Correct
+!
+!daI_mu0hat4dl  = daI_mu0hat3dl/mu0hat - aI/mu0hat**5*dmu0hatdl  !Correct
+!
+!d2aI_mu0hat3dl2= d2aI_mu0hat2dl2/mu0hat - daI_mu0hat2dl/mu0hat**2*dmu0hatdl - aI/mu0hat**4*d2mu0hatdl2 - daI_mu0hat4dl*dmu0hatdl   !Correct
+!
+!d3aI_mu0hat2dl3= (d3aI_mu0hatdl3*mu0hat - daI_mu0hatdl*d2mu0hatdl2)/mu0hat**2 -2d0/mu0hat**3*(d2aI_mu0hatdl2*mu0hat - daI_mu0hatdl*dmu0hatdl)*dmu0hatdl - (aI/mu0hat**3*d3mu0hatdl3+2d0*daI_mu0hat3dl*d2mu0hatdl2+d2aI_mu0hat3dl2*dmu0hatdl)  !Correct
+!
+!d4aI_mu0hatdl4 = alphaI*d3aI_mu0hatdl3 - (aI/mu0hat**2*d4mu0hatdl4 + 3.* daI_mu0hat2dl*d3mu0hatdl3+3.*d2aI_mu0hat2dl2 * d2mu0hatdl2)- d3aI_mu0hat2dl3*dmu0hatdl  !Correct
 
-d2aI_mu0hat2dl2= d2aI_mu0hatdl2/mu0hat - daI_mu0hatdl/mu0hat**2*dmu0hatdl - daI_mu0hat3dl * dmu0hatdl - aI/mu0hat**3*d2mu0hatdl2 !Correct 
+!d4SIdl4 = PAR_*((1.-SI)*d4aI_mu0hatdl4 - 3.*dSIdl*d3aI_mu0hatdl3 - 3.*d2aI_mu0hatdl2*d2SIdl2-daI_mu0hatdl*d3SIdl3)   !Correct
+d4SIdl4 = PAR_/mu0hat1*alphaI**4*aI*cff*((1.-PAR_/mu0hat1*aI) &
+    * ((1.-PAR_/mu0hat1*aI)**2 - aI*PAR_/mu0hat1)  &
+    + aI*PAR_/mu0hat1*(2.*PAR_/mu0hat1*aI-3.))
 
-d3aI_mu0hatdl3 = alphaI*d2aI_mu0hatdl2 - aI/mu0hat**2*d3mu0hatdl3 -2d0*daI_mu0hat2dl*d2mu0hatdl2 -d2aI_mu0hat2dl2*dmu0hatdl !Correct
-
-daI_mu0hat4dl  = daI_mu0hat3dl/mu0hat - aI/mu0hat**5*dmu0hatdl  !Correct
-
-d2aI_mu0hat3dl2= d2aI_mu0hat2dl2/mu0hat - daI_mu0hat2dl/mu0hat**2*dmu0hatdl - aI/mu0hat**4*d2mu0hatdl2 - daI_mu0hat4dl*dmu0hatdl   !Correct
-
-d3aI_mu0hat2dl3= (d3aI_mu0hatdl3*mu0hat - daI_mu0hatdl*d2mu0hatdl2)/mu0hat**2 -2d0/mu0hat**3*(d2aI_mu0hatdl2*mu0hat - daI_mu0hatdl*dmu0hatdl)*dmu0hatdl - (aI/mu0hat**3*d3mu0hatdl3+2d0*daI_mu0hat3dl*d2mu0hatdl2+d2aI_mu0hat3dl2*dmu0hatdl)  !Correct
-
-d4aI_mu0hatdl4 = alphaI*d3aI_mu0hatdl3 - (aI/mu0hat**2*d4mu0hatdl4 + 3.* daI_mu0hat2dl*d3mu0hatdl3+3.*d2aI_mu0hat2dl2 * d2mu0hatdl2)- d3aI_mu0hat2dl3*dmu0hatdl  !Correct
-
-d4SIdl4 = PAR_*((1.-SI)*d4aI_mu0hatdl4 - 3.*dSIdl*d3aI_mu0hatdl3 - 3.*d2aI_mu0hatdl2*d2SIdl2-daI_mu0hatdl*d3SIdl3)   !Correct
-
-d3muIhatdl3 = d2mu0hatSIdl2*(alphamu + 2.*betamu*PMU) + dmu0hatSIdl*4.*betamu + d2mu0hatdl2*dSIdl + 2.*dmu0hatdl*d2SIdl2 + mu0hat*d3SIdl3  !Correct
+d3muIhatdl3 = d2mu0hatSIdl2*cff1 + dmu0hatSIdl*4.*betamu + d2mu0hatdl2*dSIdl + 2.*dmu0hatdl*d2SIdl2 + mu0hat*d3SIdl3  !Correct
 
 d4muIhatdl4 = mu0hat*d4SIdl4 + 4.*dmu0hatdl*d3SIdl3 + 6.*d2mu0hatdl2*d2SIdl2 + 4.*dSIdl*d3mu0hatdl3+SI*d4mu0hatdl4  !Correct
 
@@ -410,12 +421,12 @@ endif
 ! Phytoplankton growth rate at the mean size:
  muNet = mu0hat*SI*fN
  dmudl = dmu0hatSIdl*fN + mu0hatSI*dfNdl
-d2mudl2=2*dmu0hatSIdl*dfNdl+d2mu0hatSIdl2*fN+mu0hatSI*d2fNdl2 
+d2mudl2=2.*dmu0hatSIdl*dfNdl+d2mu0hatSIdl2*fN+mu0hatSI*d2fNdl2 
 d3mudl3=3.*(d2mu0hatSIdl2*dfNdl+dmu0hatSIdl*d2fNdl2) +fN*d3muIhatdl3 + mu0hatSI*d3fNdl3 !Correct
 d4mudl4=4.*d3muIhatdl3*dfNdl+6.*d2mu0hatSIdl2*d2fNdl2+4.*dmu0hatSIdl*d3fNdl3 + fN*d4muIhatdl4 + mu0hatSI*d4fNdl4  !Correct
 
 Qmin=params(iQ0N)
-Qmax=3D0*params(iQ0N)
+Qmax=3.*params(iQ0N)
 
 !N:C ratio at avg. size
 
