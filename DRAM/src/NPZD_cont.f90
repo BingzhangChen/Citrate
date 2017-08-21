@@ -6,16 +6,17 @@ integer :: k,j,i
 !INPUT PARAMETERS:
 real :: tC,par_
 !LOCAL VARIABLES of phytoplankton:
+real, parameter :: thetamin = 0.02, thetamax = 0.47
 real :: PMUPHY,VARPHY,PHY1
 real :: NO3, Fe, PHY, MIC, MES, DET, DETFe, DET1
 real :: PMU,VAR,PMU1,VAR1
 real :: mu0,aI0
-real :: QN,QP  ! cell quota related variables
+real :: QN,Qnmax,Qnmin  ! cell quota related variables
 real :: muNet,dmuNetdl,d2muNetdl2, d3mudl3, d4mudl4
 real :: dmuNetdl1,d2muNetdl21, d3mudl31, d4mudl41
 real :: alphaK,alphaI,SI,Lno3,KFe_,Fescav
 real :: muNet1, SI1, Lno31, QN1
-real :: mu ! a scratch variable to temporally store phyto. growth rate
+real :: rmax_T ! a scratch variable to temporally store phyto. growth rate
 real :: theta,theta1,dthetadl,d2thetadl2,dQNdL,d2QNdL2
 real :: dthetadl1,d2thetadl21,dQNdL1,d2QNdL21
 real :: VTR,d2muNet_QNdl2
@@ -29,15 +30,12 @@ real :: pp_PN, PPpn, PP_MIC_P, PP_MES_P,PP_MES_MIC
 real :: Ptot,  CHLt,KN, Pl, dCHL,NPPt,rl
 real :: pCHL(4) = 0D0
 
-integer, parameter :: M     = 100    !discretize the continous normal distribution
+integer, parameter :: M     = 60    !discretize the continous normal distribution
 real               :: x(M)  = 0d0
 
 real,     external :: normal
 real,    parameter :: PMU0  = log(1d1)
 real,    parameter :: PMU10 = log(pi/6*1d1**3)
-real,    parameter :: bI0   = 0D0
-real,    parameter :: Qpmin = 0.05/16d0
-real,    parameter :: KPO4  = 0.5/16d0
 real,    parameter :: Kp2   = 0.25 !Chai et al. (2002)
 real,    parameter :: gmax1 = 1.35 !Chai et al. (2002)
 real,    parameter :: gmax2 =  .53 !Chai et al. (2002)
@@ -129,9 +127,31 @@ DO k = nlev, 1, -1
        KN =params(iKN)   *exp(alphaK*x(i))
       KFe_=params(iKFe)  *exp(alphaFe*x(i))
 
-      call MONOD(tC,par_,NO3,1d0,mu0,params(iQ0N),Qpmin,aI0,bI0,KN,KPO4,&
-                 Fe,KFe_,mu, QN, QP, theta, SI, Lno3)
-   
+      ! Minimal N:C ratio
+      Qnmin=params(iQ0N)
+      ! Maximal N:C ratio
+      Qnmax=3.*Qnmin
+
+      tf_p=TEMPBOL(Ep,tC)
+      ! The maximal growth rate (rmax_T) under temperature tC 
+      rmax_T = mu0*tf_p
+
+      !The light limitation index (SI)
+      ! Unit of aI0_C: (W m-2)-1, different from other models (aI0_Chl)
+      ! Include photoinhibition (Platt et al. J Phycol 1980)
+      SI = 1. - exp(-aI0*par_/params(imu0)/tf_p)
+
+      ! Growth rate (d-1) is the product function of temperature, light, and nutrient   
+      Lno3  = NO3/(NO3 + KN)
+
+      if (DO_IRON) then
+         Lno3  = min(Lno3, Fe/(Fe + KFe_))
+      endif
+      muNet = rmax_T*Lno3*SI
+
+      QN = Qnmin/(1d0-(1d0-Qnmin/Qnmax)*Lno3)
+
+      theta  = thetamin+muNet/PAR_/aI0*(thetamax-thetamin)   !Unit: gChl/molC
       !Probability function
       Pl   = PHY*normal(PMU,VAR,x(i))
 
