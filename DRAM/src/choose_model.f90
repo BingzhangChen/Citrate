@@ -591,7 +591,7 @@ if(Model_ID==NPZDdisc.or.Model_ID==Geiderdisc.or.  &
    ParamLabel(ialphaI)  = 'alphaI'
 
    params(ialphamu) = 0.2
-   params(ialphaI ) = 0.08
+   params(ialphaI ) = -0.1
 
    !if (Model_ID .ne. NPZDCONT) then
    !   ParamLabel(ialphaQ) = 'alphaQ'

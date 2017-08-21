@@ -485,7 +485,7 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
      MaxValue(ibetamu) =-0.0057
      MinValue(ibetamu) =-0.029
 
-     MaxValue(ialphaI )=0.2d0
+     MaxValue(ialphaI )=0.1d0
      MinValue(ialphaI )=-0.3d0
 
      if (Model_ID .ne. NPZDcont) then
