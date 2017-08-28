@@ -40,16 +40,16 @@ real,    parameter :: Kp2   = 0.25 !Chai et al. (2002)
 real,    parameter :: gmax1 = 1.35 !Chai et al. (2002)
 real,    parameter :: gmax2 =  .53 !Chai et al. (2002)
 real,    parameter :: gb1   = -0.15 ! Feeding selectivity of microzoo.
-real,    parameter :: gb2   =  0.2  ! Feeding selectivity of microzoo.
+real,    parameter :: gb2   =  0.2  ! Feeding selectivity of mesozoo.
 real,    parameter :: unass1=  0.24 ! Fraction of unassimilated material of microzoo.
 real,    parameter :: unass2=  0.31 ! Fraction of unassimilated material of mesozoo.
 
 !-----------------------------------------------------------------------
 VTR    = params(iVTR)
-alphamu= params(ialphamu)
-betamu = params(ibetamu)
+alphamu= 0.2
+betamu = -0.017
 alphaI = params(ialphaI)
-alphaK = params(ialphaKN)
+alphaK = 0.27
 RDN    = 0.1
 Kp1    = params(iKPHY)              ! Grazing half-saturation constant for MIC
 mz2    = params(imz)
@@ -128,7 +128,7 @@ DO k = nlev, 1, -1
       KFe_=params(iKFe)  *exp(alphaFe*x(i))
 
       ! Minimal N:C ratio
-      Qnmin=params(iQ0N)
+      Qnmin=0.06
       ! Maximal N:C ratio
       Qnmax=3.*Qnmin
 
@@ -326,8 +326,8 @@ END SUBROUTINE NPZD_CONT
 subroutine PHY_NPZDCONT(NO3,PAR_,Temp_,Fe, PMU, muNet,dmudl,d2mudl2,d3mudl3,d4mudl4,SI,fN, theta, &
     QN,dQNdL,d2QNdL2,dthetadL,d2thetadl2)
 use bio_MOD, only : ScaleTrait, TEMPBOL, params, dY_Xdl, d2Y_Xdl2
-use bio_MOD, only : ialphaI, ialphaKN,imu0, ialphamu,ibetamu, iaI0_C, iKN, iQ0N  
-use bio_MOD, only : Ep, K0Fe, alphaFe, KFe, do_IRON,betamu, alphamu, iKFe, ialphaFe
+use bio_MOD, only : ialphaI,  imu0, iaI0_C, iKN, iQ0N  
+use bio_MOD, only : Ep, K0Fe, alphaFe, KFe, do_IRON,betamu, alphamu, iKFe
 implicit none
 real, intent(in)  :: PMU, NO3, PAR_,Temp_, Fe 
 real, intent(out) :: muNet, dmudl, d2mudl2, theta, QN, SI, fN
@@ -347,9 +347,9 @@ real :: Kn,K0N,dfNdl,d2fNdl2,d3fNdl3, d4fNdl4, Qmin,Qmax,tf
 real :: fFe
 real, parameter :: thetamin = 0.02, thetamax = 0.47
 
-alphaK     =params(ialphaKN) 
-alphamu    =params(ialphamu)
-betamu     =params(ibetamu)
+alphaK     =0.27
+alphamu    =0.2
+betamu     =-0.017
 alphaI     =params(ialphaI)
 tf         =TEMPBOL(Ep,Temp_)
 cff1       =alphamu + 2.* betamu * PMU
@@ -425,7 +425,7 @@ fN  = NO3/(NO3 + Kn)  !Nitrogen limitation index
 !Add iron limitation:
 if (DO_IRON) then
    K0Fe    = params(iKFe)
-   alphaFe = params(ialphaFe)
+   alphaFe = alphaK
    KFe     = ScaleTrait(PMU, K0Fe, alphaFe)
    fFe     = Fe/(Fe + KFe)
 endif
@@ -445,7 +445,7 @@ d2mudl2=2.*dmu0hatSIdl*dfNdl+d2mu0hatSIdl2*fN+mu0hatSI*d2fNdl2
 d3mudl3=3.*(d2mu0hatSIdl2*dfNdl+dmu0hatSIdl*d2fNdl2) +fN*d3muIhatdl3 + mu0hatSI*d3fNdl3 !Correct
 d4mudl4=4.*d3muIhatdl3*dfNdl+6.*d2mu0hatSIdl2*d2fNdl2+4.*dmu0hatSIdl*d3fNdl3 + fN*d4muIhatdl4 + mu0hatSI*d4fNdl4  !Correct
 
-Qmin=params(iQ0N)
+Qmin=0.06
 Qmax=3.*params(iQ0N)
 
 !N:C ratio at avg. size
@@ -473,6 +473,7 @@ d2thetadl2 = cff*d2Y_Xdl2(muNet,aI,dmudl,aI*alphaI, d2mudl2, &
 !      self%w_pAvg = w_p+0.5*VAR*d2wpdl2 ! Sinking rate of phytoplankton
 return
 end subroutine
+
 !Density function of normal distribution
 pure real function normal(mean,var,l)
   implicit none

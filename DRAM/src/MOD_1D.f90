@@ -400,7 +400,7 @@ kk(:) = 0
 NL    = 0
 Do j = 1, Nstn
   ! Read observational data:
-  TIN_OBS_file(j) = trim(Stn(j))//'_TIN.dat' 
+  TIN_OBS_file(j) = trim(Stn(j))//'_DIN.dat' 
   PO4_OBS_file(j) = trim(Stn(j))//'_DIP.dat' 
   POP_OBS_file(j) = trim(Stn(j))//'_POP.dat' 
   CHL_OBS_file(j) = trim(Stn(j))//'_CHL.dat'
