@@ -294,6 +294,7 @@ DO k = nlev, 1, -1
    ! Use VAR*PHY**2 as the tracer
    VARPHY = VARPHY + PHY**2*(VAR1-VAR) + 2d0*PHY*VAR*(PHY1-PHY)
 
+   Varout(odVAR,k)     = (VAR1-VAR)/dtdays
    Varout(oNO3,k)      = NO3
    Varout(oPHY(1),k)   = PHY1
    Varout(oPHYt,  k)   = PHY1
@@ -326,7 +327,7 @@ END SUBROUTINE NPZD_CONT
 subroutine PHY_NPZDCONT(NO3,PAR_,Temp_,Fe, PMU, muNet,dmudl,d2mudl2,d3mudl3,d4mudl4,SI,fN, theta, &
     QN,dQNdL,d2QNdL2,dthetadL,d2thetadl2)
 use bio_MOD, only : ScaleTrait, TEMPBOL, params, dY_Xdl, d2Y_Xdl2
-use bio_MOD, only : ialphaI,  imu0, iaI0_C, iKN, iQ0N  
+use bio_MOD, only : ialphaI,  imu0, iaI0_C, iKN
 use bio_MOD, only : Ep, K0Fe, alphaFe, KFe, do_IRON,betamu, alphamu, iKFe
 implicit none
 real, intent(in)  :: PMU, NO3, PAR_,Temp_, Fe 
@@ -446,7 +447,7 @@ d3mudl3=3.*(d2mu0hatSIdl2*dfNdl+dmu0hatSIdl*d2fNdl2) +fN*d3muIhatdl3 + mu0hatSI*
 d4mudl4=4.*d3muIhatdl3*dfNdl+6.*d2mu0hatSIdl2*d2fNdl2+4.*dmu0hatSIdl*d3fNdl3 + fN*d4muIhatdl4 + mu0hatSI*d4fNdl4  !Correct
 
 Qmin=0.06
-Qmax=3.*params(iQ0N)
+Qmax=3.*Qmin
 
 !N:C ratio at avg. size
 

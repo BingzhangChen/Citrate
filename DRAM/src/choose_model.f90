@@ -59,6 +59,17 @@ else if (Model_ID==NPZDcont) then
   if(taskid==0) write(6,*) 'Continuous size (CITRATE) model selected!'
   NPHY    = 1
   DO_IRON = .TRUE.
+  imu0    =  1
+  iKPHY   =  imu0   + 1  
+  imz     =  iKPHY  + 1
+  iKN     =  imz    + 1
+  iwDET   =  iKN    + 1
+  iaI0_C  =  iwDET  + 1
+  ialphaI =  iaI0_C + 1
+  iVTR    =  ialphaI+ 1
+  iKFe    =  iVTR    +1
+  NPar    =  iKFe
+
 else if (Model_ID==EFT2sp .OR. Model_ID==NPZD2sp) then
   if(taskid==0) write(6,*) 'Two species phytoplankton model selected!'
   NPHY = 2
@@ -295,7 +306,8 @@ else if(Model_ID==EFTcont .or. Model_ID==NPZDcont) then
    odgdl2=odgdl1  +1
    od2gdl1=odgdl2 +1
    od2gdl2=od2gdl1+1
-   Nout  =od2gdl2
+   odVAR =od2gdl2 +1
+   Nout  =odVAR
 else if(Model_ID==NPZDN2) then
    oD_DETp=oD_DET +1
    oD_PO4 =oD_DETp+1
@@ -351,6 +363,7 @@ if (Model_ID==EFTcont .or. Model_ID==NPZDcont) then
     Labelout(oDETFe+ow)='DETFe'
     Labelout(oPMU  +ow)='PMU'
     Labelout(oVAR  +ow)='VAR'
+    Labelout(odVAR +ow)='dVAR'
     Labelout(odmudl+ow)='dmudl'
     Labelout(od2mu +ow)='d2mu '
     Labelout(od3mu +ow)='d3mu'
@@ -426,14 +439,11 @@ endif
 ! For EFT models, the affinity approach not used for now
 ! Need to have tradeoffs for maximal growth rate (mu0) and Kn
 ! Common parameters:
-imu0    =  1
 if (Model_ID .ne. NPZDcont) then
+  imu0    =  1
   igmax   =  imu0  + 1
   iKPHY   =  igmax + 1  
-else
-  iKPHY   =  imu0  + 1  
-endif
-if (Model_ID == EFT2sp .OR. Model_ID==EFTPPDD .OR. Model_ID==NPZD2sp .OR. Model_ID==NPPZDD) then
+  if (Model_ID == EFT2sp .OR. Model_ID==EFTPPDD .OR. Model_ID==NPZD2sp .OR. Model_ID==NPPZDD) then
     imu0B   =  iKPHY + 1  ! The ratio of mu0 of the second species to the first
     iaI0B   =  imu0B + 1  ! The ratio of aI0 of the second species to the first
     if (Model_ID==NPZD2sp .OR. Model_ID==NPPZDD) then
@@ -443,14 +453,14 @@ if (Model_ID == EFT2sp .OR. Model_ID==EFTPPDD .OR. Model_ID==NPZD2sp .OR. Model_
        iaI0 =  iaI0B  + 1
        imz  =  iaI0   + 1
     endif
-else if(Model_ID==NPZDN2) then
-       imz  =  iKPHY  + 1
-else if(Model_ID==NPZDcont .or. Model_ID==NPZDdisc .or. Model_ID==NPZDFix) then
-      imz   =  iKPHY  + 1
-else
-    iaI0    =  iKPHY  + 1
-    imz     =  iaI0   + 1
-endif
+  else if(Model_ID==NPZDN2) then
+         imz  =  iKPHY  + 1
+  else if(Model_ID==NPZDdisc .or. Model_ID==NPZDFix) then
+        imz   =  iKPHY  + 1
+  else
+      iaI0    =  iKPHY  + 1
+      imz     =  iaI0   + 1
+  endif
 
 if (nutrient_uptake .eq. 1) then
    iKN     =  imz    + 1
@@ -491,7 +501,7 @@ else
 endif
 
 if (Model_ID==NPZDFix .or.Model_ID==NPZD2sp    .or.Model_ID==NPPZDD  &
-.or.Model_ID==NPZDdisc.or.Model_ID==NPZDFixIRON.or.Model_ID==NPZDcont&
+.or.Model_ID==NPZDdisc.or.Model_ID==NPZDFixIRON&
 .or.Model_ID==NPZDN2) then
    iaI0_C  =  iwDET    + 1
    if (Model_ID==NPZDFix .or. Model_ID==NPZDN2) then
@@ -507,28 +517,10 @@ if (Model_ID==NPZDFix .or.Model_ID==NPZD2sp    .or.Model_ID==NPPZDD  &
       ialphamu=iaI0_C+1
       ibetamu =ialphamu+1
       ialphaI =ibetamu+1
-      if (Model_ID .ne. NPZDcont) then
-         ialphaG =ialphaI +1
-      else
-         ialphaG =ialphaI
-      endif
+      ialphaG =ialphaI
       if (nutrient_uptake.eq.1) then
-
          ialphaKN=ialphaG+1
-
-         if (Model_ID == NPZDcont) then
-           
-           iVTR   =ialphaKN+1
-           if (do_IRON) then
-             iKFe =iVTR    +1
-          ialphaFe=iKFe    +1
-             NPar =ialphaFe
-           else
-             NPar =iVTR
-           endif
-         else
            NPar   =ialphaKN
-         endif
       elseif(nutrient_uptake.eq.2) then
          ialphaA  =ialphaG+1
            NPar   =ialphaA
@@ -555,6 +547,7 @@ else if (Model_ID==EFT2sp .or. Model_ID==EFTPPDD) then
   NPar = iRL2
 else
   NPar = iwDET
+endif
 endif
 
 if (taskid==0) write(6,'(I2,1x,A20)') NPar,'parameters in total to be estimated.'
@@ -584,8 +577,7 @@ if(Model_ID==EFT2sp .or. Model_ID==EFTPPDD .or.  Model_ID==NPZD2sp .or. Model_ID
 endif
 
 if(Model_ID==NPZDdisc.or.Model_ID==Geiderdisc.or.  &
-   Model_ID==EFTdisc .or.Model_ID==EFTcont   .or.  &
-   Model_ID==NPZDCONT) then
+   Model_ID==EFTdisc .or.Model_ID==EFTcont) then
 
    ParamLabel(ialphamu) = 'alphamu'
    ParamLabel(ialphaI)  = 'alphaI'
@@ -593,10 +585,6 @@ if(Model_ID==NPZDdisc.or.Model_ID==Geiderdisc.or.  &
    params(ialphamu) = 0.2
    params(ialphaI ) = -0.1
 
-   !if (Model_ID .ne. NPZDCONT) then
-   !   ParamLabel(ialphaQ) = 'alphaQ'
-   !   params(ialphaQ)     = -0.05
-   !endif
    if (nutrient_uptake.eq.1) then
 
      ParamLabel(ialphaKN)= 'alphaKN'
@@ -606,6 +594,11 @@ if(Model_ID==NPZDdisc.or.Model_ID==Geiderdisc.or.  &
      ParamLabel(ialphaA) = 'alphaA'
      params(ialphaA)     = -0.3
    endif
+endif
+if (Model_ID.eq.NPZDcont) then
+    ParamLabel(ialphaI)='alphaI'
+    params(ialphaI)    =-.1
+
 endif
 if (Model_ID.eq.NPZD2sp .OR. Model_ID.eq.NPPZDD) then
    ParamLabel(ibI0B)='bI0B'
@@ -674,14 +667,8 @@ if(Model_ID==NPZDdisc.or.Model_ID==NPZD2sp.or.Model_ID==NPPZDD.or.Model_ID==NPZD
   if (Model_ID == NPZDcont) then
      ParamLabel(iVTR)='VTR'
      params(iVTR)    =0.01
-     ParamLabel(ibetamu)='betamu'
-     params(ibetamu)    =-0.017
-     if (do_IRON) then
-            ParamLabel(iKFe)='KFe'
-        ParamLabel(ialphaFe)='alphaFe'
-                params(iKFe)=0.08
-            params(ialphaFe)=0.27
-     endif
+     ParamLabel(iKFe)='KFe'
+         params(iKFe)=0.08
   endif
 endif
 
@@ -690,8 +677,10 @@ if(Model_ID==GeidsimIRON .or. Model_ID==EFTsimIRON .or. Model_ID==NPZDFixIRON) t
   params(iKFe)      =0.08
 endif
 
+if (Model_ID .ne. NPZDcont) then
 ParamLabel(iQ0N   ) = 'Q0N    '
    params(iQ0N)     = 0.06
+endif
 
 if (Model_ID .ne. NPZDFix .and. Model_ID .ne. NPZDcont .and. Model_ID .ne. NPZDdisc &
   .and. Model_ID .ne. NPZD2sp .and. Model_ID .ne. NPPZDD .and. Model_ID .ne. NPZDN2) then

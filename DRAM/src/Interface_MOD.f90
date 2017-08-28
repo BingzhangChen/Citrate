@@ -439,8 +439,10 @@ end select
 ! different from Geidersimple model
 ! Litchman et al. (2007) gave a range from 0.01 to 0.07
 ! Pahlow et al. (2013) gave a range from 0.05 to 0.13
-MaxValue(iQ0N) =  0.12
-MinValue(iQ0N) =  0.04
+if (Model_ID .ne. NPZDcont) then
+   MaxValue(iQ0N) =  0.12
+   MinValue(iQ0N) =  0.04
+endif
 
 ! Model-specific parameters:
 select case(Model_ID)
@@ -448,14 +450,8 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
   !Based on the lab dataset from Chen and Laws (2017)
   !Growth rate normalized to 15 ºC based on linear regression
   !0.025% and 0.975% quantiles
-  MaxValue(imu0) =  2.2d0
+  MaxValue(imu0) =  2.7
   MinValue(imu0) =  0.3
-
-  if (Model_ID .eq. NPZDcont .or. Model_ID .or. NPZDdisc) then
-     MaxValue(imu0) =  2.7
-     MinValue(imu0) =  0.2
-  endif
-
 
   if (Model_ID .eq. NPZDcont .or. Model_ID .eq. NPZDFix .or. Model_ID .eq. NPPZDD .or. Model_ID.eq.NPZD2sp .or. Model_ID.eq.NPZDdisc .or. Model_ID .eq. NPZDFixIRON .or. Model_ID .eq. NPZDN2) then
      MaxValue(iaI0_C) =0.1
@@ -463,12 +459,8 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
      if (Model_ID.eq.NPZDcont) then
         MaxValue(iVTR)=0.1
         MinValue(iVTR)=0D0
-        if (do_IRON) then
-           MaxValue(iKFe)    =0.2
-           MinValue(iKFe)    =0.02
-           MaxValue(ialphaFe)=0.3
-           MinValue(ialphaFe)=0.1
-        endif
+        MaxValue(iKFe)=0.2
+        MinValue(iKFe)=0.02
      endif
   endif
   if (Model_ID .eq. NPZD2sp .or. Model_ID .eq. NPPZDD) MinValue(iaI0_C)=1D-2
@@ -480,26 +472,19 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
   endif
 
   if (Model_ID==NPZDdisc .or. Model_ID==NPZDCONT) then
+    if (Model_ID==NPZDdisc) then
      MaxValue(ialphamu)=0.356
      MinValue(ialphamu)=0.044
      MaxValue(ibetamu) =-0.0057
      MinValue(ibetamu) =-0.029
+     MaxValue(ialphaG )=1D-20  ! Only trait diffusion
+     MinValue(ialphaG )=0.
+     MaxValue(ialphaKN)=0.3
+     MinValue(ialphaKN)=0.2
+    endif
 
      MaxValue(ialphaI )=0.1d0
      MinValue(ialphaI )=-0.3d0
-
-     if (Model_ID .ne. NPZDcont) then
-       MaxValue(ialphaG )=1D-20  ! Only trait diffusion
-       MinValue(ialphaG )=0.
-     endif
-
-     if(nutrient_uptake .eq. 1) then
-        MaxValue(ialphaKN)=0.3
-        MinValue(ialphaKN)=0.2
-     else if(nutrient_uptake .eq. 2) then
-        MaxValue(ialphaA)=-0.2
-        MinValue(ialphaA)=-1d0
-     endif
   endif
 !-------------------------------
 case(EFTsimple, EFTdisc, EFTcont,EFT2sp,EFTPPDD, EFTsimIRON)

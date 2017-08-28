@@ -94,11 +94,44 @@ TEMPBOL = function(Ea = 0.65, kb= 8.62E-5, tC, Tr=15) exp(-(Ea/kb)*(1./(273.15 +
      Ez       <- .6
      model    <- 'NPZDcont'
      Stn      <- 'K2'
-     Var      <- 'Fer'
+     Var      <- 'd2mu'
      filedir  <- paste0('~/working/FlexEFT1D/DRAM/',model,'/BOTH_TD/')
       data    <- getData(filedir,Stn,Var)
       days    <- data$days
      depth    <- data$depth
+     VAR =  getData(filedir,Stn,'R_VAR')$data
+  #Find the depth corresponding to maximal VAR
+     w   = which.max(as.numeric(VAR[length(days),]))
+
+
+     d2mu=  data$data
+     d4mu=  getData(filedir,Stn,'d4mu')$data
+     d2g1=  getData(filedir,Stn,'d2gd1')$data
+     d2g2=  getData(filedir,Stn,'d2gd2')$data
+     PVAR=  getData(filedir,Stn,'VAR')$data
+     mu  =  getData(filedir,Stn,'muN1')$data
+     PHY =  getData(filedir,Stn,'PHY1')$data
+   
+     plot(days, d2mu[,w], type = 'l', ylim = c(-1E-3,1E-3))
+     points(days,d2g1[,w], type = 'l', col=2)
+     points(days,d2g2[,w], type = 'l', col=3)
+     points(days,mu[,w], type = 'l', col=3)
+     points(days,d4mu[,w]*.1, type = 'l', col=4)
+
+     #Plot VAR: at Day 460, downward diffusion too large!!
+     plot(days, VAR[,w], type = 'l')
+     plot(days, PVAR[,w], type = 'l')
+     dVAR=  getData(filedir,Stn,'dVAR')$data
+     plot(days, dVAR[,w], type = 'l')
+     plot(days, PHY[,w], type = 'l', ylim=c(0,.02))
+     points(days, PVAR[,w], type = 'l',col=2)
+     points(days, PVAR[,w+1], type = 'l',col=3)
+     points(days, PVAR[,w]/(PHY[,w]**2), type = 'l',col=3)
+
+     D_VAR=  getData(filedir,Stn,'D_VAR')$data
+     plot(days, D_VAR[,w], type = 'l',ylim=c(0,8E-5))
+     points(days, PVAR[,w], type = 'l',col=2)
+     points(days, D_VAR[,w+1], type = 'l',col=2)
     #Dissolved Fe:
       Fer     <- data$data
       #Calculate the net changes of Fer:
