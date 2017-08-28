@@ -42,8 +42,8 @@ dev.off()
 
 
 #One plot for one station (only final year):
-VARs <- c('NO3','Fer','CHL_T','PHY1','ZOO','DET','DETFe',
-          'R_PMU','R_VAR','muAvg','dmudl','d2mu','TD_VAR')
+VARs <- c('NO3','Fer','CHL_T','PHY1','MIC','MES','DET',
+          'R_PMU','R_VAR','muAvg','dmudl','d2mu')
 NVar <- length(VARs)
 #TD_VAR is the contribution of "trait diffusion" to changes of size variance
 
@@ -59,7 +59,7 @@ for (Stn in c('K2','S1')){
                family ="serif", cex.axis=1.2, cex.lab=1.2,
                mar    = c(2,2,1.5,3.5),
                mgp    = c(2.3,1,0),
-               mfrow  = c(3,2),
+               mfrow  = c(3,3),
                oma    = c(4,4,1,0)) 
    for (i in 1:NVar){
        VAR = VARs[i]
@@ -78,7 +78,7 @@ Stns     <- c('K2','S1')
 Nstn     <- length(Stns)
 source('~/Working/FlexEFT1D/Rscripts/plot_vertical_NChlNPP.R')
 for (Stn in Stns){
-    plot_v_n(Stn, Models)
+    plot_v_n(Stn, Models, VARS=c('DIN','CHL','NPP','PON'))
 }
 source('~/Working/FlexEFT1D/Rscripts/plot_vertical_size.R')
 #Plot vertical distributions of size

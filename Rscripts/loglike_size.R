@@ -16,21 +16,39 @@ stns <- c('K2','S1')
 #for (stn in c('S1','K2')){
 #  for (model in c('EFTdiscrete','EFTcont')){ 
 Nstn    = 2
-burnin  = 10
-NDTYPE  = 8
+burnin  = 2
+NDTYPE  = 9  #The number of obs. types
+np      = 4  #The number of CPUs for paralell computing
+EnsLen  = 2  #The number of ensembles
 #filedir = paste('~/working/FlexEFT1D/DRAM_0.2/',stn,'/',model,sep='')
 #setwd(filedir)
-enssig  <- read.table('enssig',header=T)
-enssig  <- enssig[burnin:nrow(enssig),]
-runno   <- enssig[,1]
-loglike <- enssig[,2]
-sigma   <- enssig[,(2+1):(2+NDTYPE*Nstn)]
-ssqe    <- enssig[,(ncol(enssig)-NDTYPE*Nstn+1):ncol(enssig)]
+enssig  = read.table('enssig',header=T)
+runno   = nrow(enssig)/np   #Number of runs for each processor
+intv    = runno/EnsLen      #Number of runs each ensemble
 
-plot(runno/1E+3,loglike,
+#To break out into several processes:
+loglike = matrix(NA,nr  = runno, nc = np)
+ssqe    = array(NA, dim = c(runno, NDTYPE*Nstn, np))
+for (j in 1:np){
+  w    = c()
+  for (i in 1:EnsLen){
+     w = c(w,((j-1)*intv+(i-1)*np*intv+1):((j-1)*intv+(i-1)*np*intv+intv))
+  }
+  loglike[,j]=enssig[w,1]
+  ssqe[,,j]  =as.matrix(enssig[w,(ncol(enssig)-NDTYPE*Nstn+1):ncol(enssig)])
+}
+
+loglike1 = apply(loglike[burnin:runno,],1,mean)
+ssqe    =    ssqe[burnin:runno,,]
+
+plot((burnin:runno)/1E+3,loglike[burnin:runno,1],
+      ylim=range(loglike[burnin:runno,]),
       xlab='',
       ylab='Log-likelihood',
-      lwd =0.4,type='l')
+      lwd =0.4,type='n')
+for (i in 1:np){
+   points((burnin:runno)/1E+3,loglike[burnin:runno,i],type='l')
+}
 
       #ii=ii+1
       mtext(letters[ii],adj=0,cex=.8)

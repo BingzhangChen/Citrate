@@ -54,9 +54,9 @@ plot_v_size <- function(Stn,Models,BOTH=T){
          for (model in Models){
             ii    <- ii+1
             if (BOTH){
-             DIR  <- paste0('~/working/FlexEFT1D/DRAM_0.9/',model,'/BOTH/')
+             DIR  <- paste0('~/working/FlexEFT1D/DRAM/',model,'/BOTH_TD/')
             } else{
-             DIR  <- paste0('~/working/FlexEFT1D/DRAM_0.9/',model,'/',Stn,'/')
+             DIR  <- paste0('~/working/FlexEFT1D/DRAM/',model,'/',Stn,'/')
             }
 
             #Get modeled data
