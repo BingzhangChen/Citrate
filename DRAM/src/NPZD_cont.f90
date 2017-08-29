@@ -1,5 +1,6 @@
 SUBROUTINE NPZD_CONT
 use bio_MOD
+use MOD_1D, only: it, nsave
 implicit none
 
 integer :: k,j,i
@@ -39,7 +40,7 @@ real,    parameter :: PMU10 = log(pi/6*1d1**3)
 real,    parameter :: Kp2   = 0.25 !Chai et al. (2002)
 real,    parameter :: gmax1 = 1.35 !Chai et al. (2002)
 real,    parameter :: gmax2 =  .53 !Chai et al. (2002)
-real,    parameter :: gb1   = -0.15 ! Feeding selectivity of microzoo.
+real,    parameter :: gb1   = -0.05 ! Feeding selectivity of microzoo.
 real,    parameter :: gb2   =  0.2  ! Feeding selectivity of mesozoo.
 real,    parameter :: unass1=  0.24 ! Fraction of unassimilated material of microzoo.
 real,    parameter :: unass2=  0.31 ! Fraction of unassimilated material of mesozoo.
@@ -77,7 +78,7 @@ DO k = nlev, 1, -1
 
    PMU    = PMUPHY/PHY
    PMU    = PMU - PMU0     !Correct PMU to the real one
-   VAR    = VARPHY/PHY**2  !Correct VAR to the real one
+   VAR    = VARPHY/PHY     !Correct VAR to the real one
    Fe     = Vars(ifer,k)
 
    call PHY_NPZDCONT(NO3,par_,tC,Fe,PMU,muNet,dmuNetdl,d2muNetdl2,d3mudl3,d4mudl4,SI,Lno3, theta, &
@@ -104,91 +105,93 @@ DO k = nlev, 1, -1
 !! ZOOplankton section:
    tf_z = TEMPBOL(Ez,tC)
     
-   ! Calculate the integration  
-   x(1)  = PMU-6D0*sqrt(VAR)  ! Minimal size
-   x(M)  = PMU+6D0*sqrt(VAR)  ! Maximal size
-   dx    = (x(M) - x(1))/float(M-1)
-   do i  = 2,M-1
-     x(i) = x(i-1) + dx  !Log size of each class
-   enddo
+   IF (mod(it, nsave) .EQ. 1) THEN  !Calculate the below only when necessary
+     ! Calculate the integration  
+     x(1)  = PMU-6D0*sqrt(VAR)  ! Minimal size
+     x(M)  = PMU+6D0*sqrt(VAR)  ! Maximal size
+     dx    = (x(M) - x(1))/float(M-1)
+     do i  = 2,M-1
+       x(i) = x(i-1) + dx  !Log size of each class
+     enddo
 
-   ! Calculate total phytoplankton palatable prey (Ptot,Eq. 13):
-   ! Ptot roughly equals to Phy
-   CHLt  = 0D0
-   pCHL(:)=0D0  ! Size fractionated Chl
+     ! Calculate total phytoplankton palatable prey (Ptot,Eq. 13):
+     ! Ptot roughly equals to Phy
+     CHLt  = 0D0
+     pCHL(:)=0D0  ! Size fractionated Chl
 
-   do i=1,M
-     !Calculate Chl in this size class
+     do i=1,M
+       !Calculate Chl in this size class
 
-     !Pertain only meaningful size class
-     if (x(i) .gt. -3. .and. x(i) .le. 15.) then 
-       mu0=params(imu0)  *exp(alphamu*x(i)+betamu*x(i)**2)
-       aI0=params(iaI0_C)*exp(alphaI*x(i))
-       KN =params(iKN)   *exp(alphaK*x(i))
-      KFe_=params(iKFe)  *exp(alphaFe*x(i))
+       !Pertain only meaningful size class
+       if (x(i) .gt. -3. .and. x(i) .le. 15.) then 
+         mu0=params(imu0)  *exp(alphamu*x(i)+betamu*x(i)**2)
+         aI0=params(iaI0_C)*exp(alphaI*x(i))
+         KN =params(iKN)   *exp(alphaK*x(i))
+        KFe_=params(iKFe)  *exp(alphaFe*x(i))
 
-      ! Minimal N:C ratio
-      Qnmin=0.06
-      ! Maximal N:C ratio
-      Qnmax=3.*Qnmin
+        ! Minimal N:C ratio
+        Qnmin=0.06
+        ! Maximal N:C ratio
+        Qnmax=3.*Qnmin
 
-      tf_p=TEMPBOL(Ep,tC)
-      ! The maximal growth rate (rmax_T) under temperature tC 
-      rmax_T = mu0*tf_p
+        tf_p=TEMPBOL(Ep,tC)
+        ! The maximal growth rate (rmax_T) under temperature tC 
+        rmax_T = mu0*tf_p
 
-      !The light limitation index (SI)
-      ! Unit of aI0_C: (W m-2)-1, different from other models (aI0_Chl)
-      ! Include photoinhibition (Platt et al. J Phycol 1980)
-      SI = 1. - exp(-aI0*par_/params(imu0)/tf_p)
+        !The light limitation index (SI)
+        ! Unit of aI0_C: (W m-2)-1, different from other models (aI0_Chl)
+        ! Include photoinhibition (Platt et al. J Phycol 1980)
+        SI = 1. - exp(-aI0*par_/params(imu0)/tf_p)
 
-      ! Growth rate (d-1) is the product function of temperature, light, and nutrient   
-      Lno3  = NO3/(NO3 + KN)
+        ! Growth rate (d-1) is the product function of temperature, light, and nutrient   
+        Lno3  = NO3/(NO3 + KN)
 
-      if (DO_IRON) then
-         Lno3  = min(Lno3, Fe/(Fe + KFe_))
-      endif
-      muNet = rmax_T*Lno3*SI
+        if (DO_IRON) then
+           Lno3  = min(Lno3, Fe/(Fe + KFe_))
+        endif
+        muNet = rmax_T*Lno3*SI
 
-      QN = Qnmin/(1d0-(1d0-Qnmin/Qnmax)*Lno3)
+        QN = Qnmin/(1d0-(1d0-Qnmin/Qnmax)*Lno3)
 
-      theta  = thetamin+muNet/PAR_/aI0*(thetamax-thetamin)   !Unit: gChl/molC
-      !Probability function
-      Pl   = PHY*normal(PMU,VAR,x(i))
+        theta  = thetamin+muNet/PAR_/aI0*(thetamax-thetamin)   !Unit: gChl/molC
+        !Probability function
+        Pl   = PHY*normal(PMU,VAR,x(i))
 
-      ! Chl in this size class:
-      dCHL = Pl*dx*theta/QN
+        ! Chl in this size class:
+        dCHL = Pl*dx*theta/QN
 
-       ! Calculate total Chl:
-      CHLt = CHLt + dCHL
+         ! Calculate total Chl:
+        CHLt = CHLt + dCHL
 
-   !   Calculate size-fractionated Chl:
-   !   Here the PMU_1 is already the normal PMU + log(10) (to avoid negative values)
-       if (x(i) .le. (PMU_1-PMU0)) then
-          pCHL(4)=pCHL(4)+dCHL
-       elseif (x(i) .le. (PMU_3-PMU0)) then
-          pCHL(3)=pCHL(3)+dCHL
-       elseif (x(i) .le. (PMU_10-PMU0)) then
-          pCHL(2)=pCHL(2)+dCHL
-       else
-          pCHL(1)=pCHL(1)+dCHL
+     !   Calculate size-fractionated Chl:
+     !   Here the PMU_1 is already the normal PMU + log(10) (to avoid negative values)
+         if (x(i) .le. (PMU_1-PMU0)) then
+            pCHL(4)=pCHL(4)+dCHL
+         elseif (x(i) .le. (PMU_3-PMU0)) then
+            pCHL(3)=pCHL(3)+dCHL
+         elseif (x(i) .le. (PMU_10-PMU0)) then
+            pCHL(2)=pCHL(2)+dCHL
+         else
+            pCHL(1)=pCHL(1)+dCHL
+         endif
        endif
-     endif
-   enddo
+     enddo
 
-   do j = 1, 4
-      Varout(oCHLs(j),k)=pCHL(j)/max(CHLt,eps) !Get the percentage of size-fractionated CHL
-   enddo
+     do j = 1, 4
+        Varout(oCHLs(j),k)=pCHL(j)/max(CHLt,eps) !Get the percentage of size-fractionated CHL
+     enddo
 
-   ! Total NPP (use light as the in situ incubation):
-   call PHY_NPZDCONT(NO3,PAR(k),tC,Fe,PMU,muNet1,dmuNetdl1,d2muNetdl21,&
-       d3mudl31,d4mudl41,SI1,Lno31, theta1, &
-    QN1,dQNdL1,d2QNdL21,dthetadL1,d2thetadl21)
+     ! Total NPP (use light as the in situ incubation):
+     call PHY_NPZDCONT(NO3,PAR(k),tC,Fe,PMU,muNet1,dmuNetdl1,d2muNetdl21,&
+         d3mudl31,d4mudl41,SI1,Lno31, theta1, &
+      QN1,dQNdL1,d2QNdL21,dthetadL1,d2thetadl21)
 
-   d2muNet_QNdl2 = d2Y_Xdl2(muNet1,QN1,dmuNetdl1, dQNdL1, d2muNetdl21, d2QNdl21) 
-   NPPt          = PHY*(muNet1/QN1+0.5*VAR*d2muNet_QNdl2) 
+     d2muNet_QNdl2 = d2Y_Xdl2(muNet1,QN1,dmuNetdl1, dQNdL1, d2muNetdl21, d2QNdl21) 
+     NPPt          = PHY*(muNet1/QN1+0.5*VAR*d2muNet_QNdl2) 
 
-   Varout(oCHLt,k) = CHLt
-   Varout(oPPt, k) = NPPt*12d0 ! Correct the unit to ug C/L
+     Varout(oCHLt,k) = CHLt
+     Varout(oPPt, k) = NPPt*12d0 ! Correct the unit to ug C/L
+   Endif
 
 ! Microzoo.
 ! Feeding selectivity at the mean size:
@@ -290,9 +293,7 @@ DO k = nlev, 1, -1
    Varout(oFescav,k) = Fescav
 
    PMUPHY = PMUPHY + PHY*(PMU1-PMU) + PMU*(PHY1-PHY)
-
-   ! Use VAR*PHY**2 as the tracer
-   VARPHY = VARPHY + PHY**2*(VAR1-VAR) + 2d0*PHY*VAR*(PHY1-PHY)
+   VARPHY = VARPHY + PHY*(VAR1-VAR) + VAR*(PHY1-PHY)
 
    Varout(odVAR,k)     = (VAR1-VAR)/dtdays
    Varout(oNO3,k)      = NO3

@@ -19,8 +19,9 @@ integer, private, parameter :: y_per_s = INT(d_per_s*360), &
                       N_par   = 1 ,               &
                       N_Dust  = 1,                &
                       N_wstr  = 1,                &
-                      N_fer   = 33,               &
-                      nsave   = INT(d_per_s)/INT(dtsec) ! Timesteps to save
+                      N_fer   = 33
+
+integer               :: nsave   = INT(d_per_s)/INT(dtsec) ! Timesteps to save
 
 integer, private      :: N_Aks(Nstn)              ! Station dependent
 
@@ -93,7 +94,7 @@ integer  :: itDFe = 5
 
 ! The number of days for model run, needs to change at different stages during MCMC
 integer              :: NDays = 1080
-
+integer              :: it  !The current step
 ! The data arrays are read from csv files. 
 ! Dimensions of the input data
 integer, allocatable :: ncol(:,:)
@@ -692,7 +693,7 @@ real,    parameter  :: cnpar      = 0.6
 real,    parameter  :: Taur(nlev) = 1D12  !Relaxation time
 real,    parameter  :: Vec0(nlev) = 0d0   !Vectors of zero
 ! Local scratch variables
-integer  :: it,i,k,nm, j,jj, Nstep, current_day, current_DOY,DOY
+integer  :: i,k,nm, j,jj, Nstep, current_day, current_DOY,DOY
 integer  :: j_
 
 ! Counting of the index of each data type
@@ -970,6 +971,43 @@ DO jj = 1, Nstn
         PARavg = PARavg/abs(Z_w(N_MLD-1))
      endif
   
+    ! Biological rhs:
+    selectcase(Model_ID)
+      case(NPZD2sp)
+        call NPZD_2sp
+      case(NPPZDD)
+        call NPPZDD_MOD
+      case(EFTPPDD)
+        call EFT_PPZDD_MOD
+      case(NPZDN2)
+        call NPZD_N2
+      case(Geiderdisc)
+        call Geider_DISC
+      case(EFTdisc)
+        call FLEXEFT_DISC
+      case(EFTcont)
+        call FLEXEFT_CONT
+      case(NPZDFix) 
+        call NPZD_Fix
+      case(NPZDFixIRON)
+        call NPZD_Fix
+      case(NPZDcont) 
+        call NPZD_CONT
+      case(EFTsimple)
+        call FlexEFT_simple
+      case(EFT2sp)
+        call FLEXEFT_2SP
+      case(EFTsimIRON)
+        call FlexEFT_simple
+      case(Geidersimple)
+        call Geider_simple
+      case(GeidsimIRON)
+        call Geider_simple
+      case default
+        write(6,*) 'Error in choosing biological models! Quit.'
+        stop
+    endselect
+
     ! Interpolate w data throughout the water column:
     ! call time_interp(int(current_sec), size(obs_time_w,1), nlev+1,&
     !      obs_time_w, Vw, w)
@@ -1270,43 +1308,6 @@ DO jj = 1, Nstn
   !---------------------------------------------------------------------
  ENDIF  !==> END of daily work
 4 format(I10,1x,I7, <nlev+1>(2x,1pe12.3))
-
-  ! Biological rhs:
-  selectcase(Model_ID)
-    case(NPZD2sp)
-      call NPZD_2sp
-    case(NPPZDD)
-      call NPPZDD_MOD
-    case(EFTPPDD)
-      call EFT_PPZDD_MOD
-    case(NPZDN2)
-      call NPZD_N2
-    case(Geiderdisc)
-      call Geider_DISC
-    case(EFTdisc)
-      call FLEXEFT_DISC
-    case(EFTcont)
-      call FLEXEFT_CONT
-    case(NPZDFix) 
-      call NPZD_Fix
-    case(NPZDFixIRON)
-      call NPZD_Fix
-    case(NPZDcont) 
-      call NPZD_CONT
-    case(EFTsimple)
-      call FlexEFT_simple
-    case(EFT2sp)
-      call FLEXEFT_2SP
-    case(EFTsimIRON)
-      call FlexEFT_simple
-    case(Geidersimple)
-      call Geider_simple
-    case(GeidsimIRON)
-      call Geider_simple
-    case default
-      write(6,*) 'Error in choosing biological models! Quit.'
-      stop
-  endselect
   ! Pass the new state variables to Vars
   do j = 1,NVAR
      Vars(j,:)=Varout(j,:)
