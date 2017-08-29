@@ -37,11 +37,11 @@ real               :: x(M)  = 0d0
 real,     external :: normal
 real,    parameter :: PMU0  = log(1d1)
 real,    parameter :: PMU10 = log(pi/6*1d1**3)
-real,    parameter :: Kp2   = 0.25 !Chai et al. (2002)
+real,    parameter :: Kp2   = .5 
 real,    parameter :: gmax1 = 1.35 !Chai et al. (2002)
 real,    parameter :: gmax2 =  .53 !Chai et al. (2002)
 real,    parameter :: gb1   = -0.05 ! Feeding selectivity of microzoo.
-real,    parameter :: gb2   =  0.2  ! Feeding selectivity of mesozoo.
+real,    parameter :: gb2   =  0.02 ! Feeding selectivity of mesozoo.
 real,    parameter :: unass1=  0.24 ! Fraction of unassimilated material of microzoo.
 real,    parameter :: unass2=  0.31 ! Fraction of unassimilated material of mesozoo.
 
