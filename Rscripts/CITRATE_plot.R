@@ -100,8 +100,9 @@ TEMPBOL = function(Ea = 0.65, kb= 8.62E-5, tC, Tr=15) exp(-(Ea/kb)*(1./(273.15 +
       days    <- data$days
      depth    <- data$depth
      VAR =  getData(filedir,Stn,'R_VAR')$data
+     PMU =  getData(filedir,Stn,'R_PMU')$data
   #Find the depth corresponding to maximal VAR
-     w   = which.max(as.numeric(VAR[length(days),]))
+     w   = which.max(as.numeric(VAR[460,]))
 
 
      d2mu=  data$data
@@ -109,6 +110,7 @@ TEMPBOL = function(Ea = 0.65, kb= 8.62E-5, tC, Tr=15) exp(-(Ea/kb)*(1./(273.15 +
      d2g1=  getData(filedir,Stn,'d2gd1')$data
      d2g2=  getData(filedir,Stn,'d2gd2')$data
      PVAR=  getData(filedir,Stn,'VAR')$data
+     PPMU=  getData(filedir,Stn,'PMU')$data
      mu  =  getData(filedir,Stn,'muN1')$data
      PHY =  getData(filedir,Stn,'PHY1')$data
    
@@ -119,6 +121,19 @@ TEMPBOL = function(Ea = 0.65, kb= 8.62E-5, tC, Tr=15) exp(-(Ea/kb)*(1./(273.15 +
      points(days,d4mu[,w]*.1, type = 'l', col=4)
 
      #Plot VAR: at Day 460, downward diffusion too large!!
+     ND=430
+     #Plot vertical distribution at day 460
+     par(mfrow=c(3,2))
+     plot(as.numeric(VAR[ND,]), depth, type = 'b')
+     points(as.numeric(VAR[ND+1,]), depth, type = 'b',col=2)
+     plot(as.numeric(PHY[ND,]), depth, type = 'b')
+     plot(as.numeric(PMU[ND,]), depth, type = 'b')
+     points(as.numeric(PMU[ND+1,]), depth, type = 'b',col=2)
+     plot(as.numeric(D_VAR[ND,]), depth, type = 'b',xlim=c(-0.01,0.05))
+     points(as.numeric(PVAR[ND,]), depth, type = 'b',col=2)
+     plot(as.numeric(D_PMU[ND,]), depth, type = 'b',xlim=c(-0.01,0.05))
+     points(as.numeric(PPMU[ND,]), depth, type = 'b',col=2)
+
      plot(days, VAR[,w], type = 'l')
      plot(days, PVAR[,w], type = 'l')
      dVAR=  getData(filedir,Stn,'dVAR')$data
@@ -129,9 +144,15 @@ TEMPBOL = function(Ea = 0.65, kb= 8.62E-5, tC, Tr=15) exp(-(Ea/kb)*(1./(273.15 +
      points(days, PVAR[,w]/(PHY[,w]**2), type = 'l',col=3)
 
      D_VAR=  getData(filedir,Stn,'D_VAR')$data
+     D_PMU=  getData(filedir,Stn,'D_PMU')$data
      plot(days, D_VAR[,w], type = 'l',ylim=c(0,8E-5))
      points(days, PVAR[,w], type = 'l',col=2)
      points(days, D_VAR[,w+1], type = 'l',col=2)
+
+     plot(days, D_PMU[,w], type = 'l',ylim=c(0,8E-5))
+     points(days, PPMU[,w], type = 'l',col=2)
+     points(days, D_PMU[,w+1], type = 'l',col=2)
+
     #Dissolved Fe:
       Fer     <- data$data
       #Calculate the net changes of Fer:
