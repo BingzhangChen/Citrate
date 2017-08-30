@@ -41,7 +41,7 @@ getData <- function(fileDIR,Stn,VAR){
         data <- data/PHY
         data <- (exp(data-log(10)) * 6/pi)**0.3333333333333
      }else if (VAR == 'R_VAR'){
-        data <- data/PHY**2
+        data <- data/PHY
      }
    } else if (VAR == 'TD_VAR'){
      #TD_VAR is the contribution of "trait diffusion" to changes of size variance
