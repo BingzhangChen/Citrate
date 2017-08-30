@@ -84,3 +84,22 @@ eval(d2mudL2, list(mu0hat=1, alphamu=0.1,betamu=-0.01,L=2, aI0=0.05,alphaI=-.1,P
 eval(d3mudL3, list(mu0hat=1, alphamu=0.1,betamu=-0.01,L=2, aI0=0.05,alphaI=-.1,PAR=100, NO3=.2, K0N=.2, alphaK=.27 ))
 eval(d4mudL4, list(mu0hat=1, alphamu=0.1,betamu=-0.01,L=2, aI0=0.05,alphaI=-.1,PAR=100, NO3=.2, K0N=.2, alphaK=.27))
 
+#Write out analytic equation:
+mu = expression( 1/(I/(a0*exp(k*x)*exp(2*x)) + 1/(mu0*exp(b*x)) -2/(a0*exp(k*x)*exp(x)) + 1/(I*a0*exp(k*x))) * exp(alphamu*L + betamu*L**2) * NO3/(NO3 + K0N* exp(alphaK*L)) * exp(0.0633*(t - 15)) *(1-((t-Topt)/w)**2) )
+
+#Here x = log(Iopt)
+#Parameterize light values:
+#Read Edward data:
+setwd('~/Working/FlexEFT1D/Rscripts')
+dat = read.csv('Edwards2015.csv')
+dat = dat[dat$I_opt < 1000,]
+dat$x = log(dat$I_opt)
+dat$lnmu=log(dat$mu_max)
+dat$lna =log(dat$alpha)
+lm1=lm(lnmu~x,dat)  #mu0 = 0.21  d-1 at Iopt of 1 umol photons m-2 s-1, b = 0.21
+lm2=lm(lna ~x,dat)  #a0  = 0.149 umol photons-1 m2 s d-1 at Iopt of 1 umol photons m-2 s-1,k = -0.47
+cor.test(dat$I_opt,dat$mu_max)
+plot(dat$x, log(dat$mu_max))
+plot(dat$x, dat$lna)
+
+eval(mu, list(I=200, a0=0.149, k = -0.47, mu0=.21, b = 0.21, x = log(1), alphamu=0.2, betamu = 0, L=0, NO3=10, K0N=.2, alphaK=.27, t=15, Topt=15, w=5))
