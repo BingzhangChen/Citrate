@@ -87,19 +87,35 @@ eval(d4mudL4, list(mu0hat=1, alphamu=0.1,betamu=-0.01,L=2, aI0=0.05,alphaI=-.1,P
 #Write out analytic equation:
 mu = expression( 1/(I/(a0*exp(k*x)*exp(2*x)) + 1/(mu0*exp(b*x)) -2/(a0*exp(k*x)*exp(x)) + 1/(I*a0*exp(k*x))) * exp(alphamu*L + betamu*L**2) * NO3/(NO3 + K0N* exp(alphaK*L)) * exp(0.0633*(t - 15)) *(1-((t-Topt)/w)**2) )
 
+dmudx   = D(mu, 'x')
+d2mudx2 = D(dmudx, 'x')
+
+dmudL = D(mu, 'L')
+d2mudL2 = D(dmudL, 'L')
+
+dmudZ   = D(mu, 'Topt')
+d2mudZ2 = D(dmudZ,'Topt')
 #Here x = log(Iopt)
 #Parameterize light values:
 #Read Edward data:
 setwd('~/Working/FlexEFT1D/Rscripts')
 dat = read.csv('Edwards2015.csv')
 dat = dat[dat$I_opt < 1000,]
-dat$x = log(dat$I_opt)
+#Convert the data of I to W m-2
+# 1 W m-2 = 4.6 uE m-2 s-1 = 1.84 E m-2 d-1
+dat$x = log(dat$I_opt/4.6)
 dat$lnmu=log(dat$mu_max)
-dat$lna =log(dat$alpha)
-lm1=lm(lnmu~x,dat)  #mu0 = 0.21  d-1 at Iopt of 1 umol photons m-2 s-1, b = 0.21
-lm2=lm(lna ~x,dat)  #a0  = 0.149 umol photons-1 m2 s d-1 at Iopt of 1 umol photons m-2 s-1,k = -0.47
+dat$lna =log(dat$alpha*4.6)
+lm1=lm(lnmu~x,dat)  #mu0 = 0.3  d-1 at Iopt of 1 W m-2, b = 0.21
+lm2=lm(lna ~x,dat)  #a0  = 0.34 W-1 m2 d-1 at Iopt of 1 W m-2,k = -0.47
 cor.test(dat$I_opt,dat$mu_max)
 plot(dat$x, log(dat$mu_max))
 plot(dat$x, dat$lna)
 
-eval(mu, list(I=200, a0=0.149, k = -0.47, mu0=.21, b = 0.21, x = log(1), alphamu=0.2, betamu = 0, L=0, NO3=10, K0N=.2, alphaK=.27, t=15, Topt=15, w=5))
+eval(mu, list(I=210, a0=0.149, k = -0.47, mu0=.21, b = 0.21, x = log(200), alphamu=0.2, betamu = 0, L=0, NO3=1, K0N=.2, alphaK=.27, t=15, Topt=15, w=10))
+eval(dmudx, list(I=210, a0=0.149, k = -0.47, mu0=.21, b = 0.21, x = log(200), alphamu=0.2, betamu = 0, L=0, NO3=1, K0N=.2, alphaK=.27, t=15, Topt=15, w=10))
+eval(d2mudx2, list(I=210, a0=0.149, k = -0.47, mu0=.21, b = 0.21, x = log(200), alphamu=0.2, betamu = 0, L=0, NO3=1, K0N=.2, alphaK=.27, t=15, Topt=15, w=10))
+eval(dmudL, list(I=210, a0=0.149, k = -0.47, mu0=.21, b = 0.21, x = log(200), alphamu=0.2, betamu = 0, L=1, NO3=1, K0N=.2, alphaK=.27, t=15, Topt=15, w=10))
+eval(d2mudL2, list(I=210, a0=0.149, k = -0.47, mu0=.21, b = 0.21, x = log(200), alphamu=0.2, betamu = 0, L=1, NO3=1, K0N=.2, alphaK=.27, t=15, Topt=15, w=10))
+eval(dmudZ, list(I=210, a0=0.149, k = -0.47, mu0=.21, b = 0.21, x = log(200), alphamu=0.2, betamu = 0, L=1, NO3=1, K0N=.2, alphaK=.27, t=20, Topt=15, w=10))
+eval(d2mudZ2, list(I=210, a0=0.149, k = -0.47, mu0=.21, b = 0.21, x = log(200), alphamu=0.2, betamu = 0, L=1, NO3=1, K0N=.2, alphaK=.27, t=20, Topt=15, w=10))

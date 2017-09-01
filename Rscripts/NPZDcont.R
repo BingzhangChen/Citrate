@@ -176,9 +176,55 @@ Mu = function(Topt = 300, Temp = 293, mu0 = 5.7, k = -0.11,
 }
 
 #Three trait function:
-mu3 = function(L, x, Z, I=200, NO3=1, t=15, w=5){
-    H  = 1./(I/(a0*exp(k*x)*exp(2*x)) + 1/(mu0*exp(b*x)) -2/(a0*exp(k*x)*exp(x)) + 1/(I*a0*exp(k*x)))
-    mu = H * exp(alphamu*L + betamu*L**2) * NO3/(NO3 + K0N* exp(alphaK*L)) * exp(0.0633*(t - 15)) *(1-((t-Topt)/w)**2)
+mu3 = function(x, Z, I=200, NO3=1, t=15, w=10, K0N=0.2, alphaK=.27, L=0, k=-.47, a0=.149, b=.21,mu0=.21, alphamu=.2, betamu=0, Ep=.0633, T0=15){
+    #x: ln optimal light (umol photons m-2 s-1)
+    #Z: optimal temperature (ºC)
+    #Light term
+    umax = mu0*exp(b*x)
+    alpha= a0*exp(k*x)
+    Iopt = exp(x)
+    H  = 1./(I/(alpha*Iopt**2) + 1./umax -2./(alpha*Iopt) + 1./(I*alpha))
+    #Note here suboptimal is optimal (even if I < Iopt, because umax is higher, mu is also higher)
+
+    #Size (nutrient) term (L: lnvolume)
+    hat    = exp(alphamu*L + betamu*L**2)
+    dhatdl = hat*(alphamu + 2.*betamu * L)
+    d2hatdl2 = 2.*hat*betamu+hat*(alphamu+2.*betamu*L)**2
+    cff    = MM(NO3,K0N,alphaK,L)
+    Kn     = ScaleTrait(L, K0N, alphaK)
+    fN     = cff$fN
+    dfNdl  = cff$dfNdl
+    d2fNdl2= cff$d2fNdl2
+
+    G      = hat * fN
+    #Calculate the derivatives of G
+    dGdL   = hat*dfNdl + dhatdl*fN
+    d2GdL2 = hat*d2fNdl2 + 2.*dfNdl*dhatdl + fN*d2hatdl2
+
+    #Calculate the derivatives of H
+    Y      = 1./H
+    dYdx   = -(k+2.)*I/(alpha*Iopt**2) - b/umax +2.*(k+1.)/(alpha*Iopt) - k/(I*alpha)
+    d2Ydx2 = (k+2.)**2*I/(alpha*Iopt**2) + b**2/umax -2.*(k+1.)**2/(alpha*Iopt) + k**2/(I*alpha)
+    dHdx   = -(1./Y**2) * dYdx
+    d2Hdx2 = (2/Y**3)*(dYdx)**2 - d2Ydx2/Y**2
+
+ #Temperature term
+    h       = exp(Ep*(t - T0))
+    P       = 1.-((t-Z)/w)**2
+    f       = h * P
+    dPdZ    = 2.*(t-Z)/w**2
+    d2PdZ2  = -2./w**2
+    dfdZ    = h*dPdZ 
+    d2fdZ2  = h*d2PdZ2 
+
+    Mu      = H * G * f
+    dMudx   = G*f*dHdx
+    d2Mudx2 = G*f*d2Hdx2
+    dMudL   = f*H*dGdL
+    d2MudL2 = f*H*d2GdL2
+    dMudZ   = H*G*dfdZ
+    d2MudZ2 = H*G*d2fdZ2
+    return(list(mu=Mu, dmudx=dMudx, d2mudx=d2Mudx2, dmudL=dMudL, d2mudL2=d2MudL2, dmudZ=dMudZ, d2mudZ2=d2MudZ2))
 }
 
 #Check the shape of mu ~ size
