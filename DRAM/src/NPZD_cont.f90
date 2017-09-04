@@ -77,8 +77,8 @@ DO k = nlev, 1, -1
    VARPHY = Vars(iVAR,    k)
 
    PMU    = PMUPHY/PHY
-   PMU    = PMU - PMU0     !Correct PMU to the real one
-   VAR    = VARPHY/PHY     !Correct VAR to the real one
+   VAR    = VARPHY/PHY-PMU**2  !Correct VAR to the real one
+   PMU    = PMU - PMU0         !Correct PMU to the real one
    Fe     = Vars(ifer,k)
 
    call PHY_NPZDCONT(NO3,par_,tC,Fe,PMU,muNet,dmuNetdl,d2muNetdl2,d3mudl3,d4mudl4,SI,Lno3, theta, &
@@ -267,10 +267,6 @@ DO k = nlev, 1, -1
    PMU = PMU + PMU0  ! Restore to positive values
    PMU1= PMU + dtdays*(VAR*(dmuNetdl-dgdlbar1-dgdlbar2+VTR*d3mudl3) - 3d0*VTR*dmuNetdl)
 
-!   Constrain the PMU and VAR: 
-   PMU1 = min(max(PMU1,eps),PMUmax)
-   VAR1 = min(max(VAR1,eps),VARmax)
-          
 !All rates have been multiplied by dtdays to get the real rate correponding to the actual time step
    PP_ND= dtdays*RDN*DET*tf_z   
    PP_NZ= (MIC*RES1+MES*RES2)*dtdays     !Sum of MIC and MES to DIN   
@@ -278,8 +274,7 @@ DO k = nlev, 1, -1
    PP_MIC_P = MIC*INGES1*dtdays      
    PP_MES_P = MES*INGES2*dtdays*Ptot/(Ptot+MIC)
    PP_MES_MIC=MES*INGES2*dtdays* MIC/(Ptot+MIC)
-   PPpn = PHY*dtdays*(muNet+0.5*VAR*(d2muNetdl2+VTR*d4mudl4)-1.5*VTR*d2muNetdl2)
-   PP_PN= max(PPpn,0D0)
+   PP_PN= PHY*dtdays*(muNet+0.5*VAR*(d2muNetdl2+VTR*d4mudl4)-1.5*VTR*d2muNetdl2)
 
 !Update tracers:
    DET1 = DET + PP_DZ - PP_ND 
