@@ -244,7 +244,7 @@ DO k = nlev, 1, -1
    cff1= cff*Ptot/(Ptot+MIC)+1d0
 
    dgdlbar2  = Cf*gbar*cff1
-   d2gdl2bar2= Cf*gbar*( cff1**2 &
+   d2gdl2bar2= Cf*gbar*( cff1**2                             &
        + Cf*Ptot*(-4d0*Kp2**2*Ptot/((Ptot+MIC)**2+Kp2**2)**2 &
        + cff*MIC/((Ptot+MIC)**2)) )
 
@@ -288,7 +288,8 @@ DO k = nlev, 1, -1
    Varout(oFescav,k) = Fescav
 
    PMUPHY = PMUPHY + PHY*(PMU1-PMU) + PMU*(PHY1-PHY)
-   VARPHY = VARPHY + PHY*(VAR1-VAR) + VAR*(PHY1-PHY)
+   VARPHY = VARPHY + PHY*(VAR1-VAR+2.*PMU*(PMU1-PMU)) &
+          + (VAR+PMU**2)*(PHY1-PHY)
 
    Varout(odVAR,k)     = (VAR1-VAR)/dtdays
    Varout(oNO3,k)      = NO3
@@ -492,7 +493,7 @@ real                :: Kn
    Kn = ScaleTrait(L, K0, alphaK)
    fN = N/(N + Kn) ! Nutrient limitation index at avg. size
    dfNdl = -alphaK*Kn*N/(N+Kn)**2
- d2fNdl2 = -alphaK**2*N*Kn*(1/(N+Kn)**2 - 2*Kn/(N+Kn)**3)
+ d2fNdl2 = -alphaK**2*N*Kn*(1./(N+Kn)**2 - 2.*Kn/(N+Kn)**3)
  d3fNdl3 = alphaK**3*N*Kn*(2.*N*Kn-(Kn-N)**2)/(Kn+N)**4
  d4fNdl4 = alphaK**4*N*Kn*(11.*Kn*N*(N-Kn)+Kn**3-N**3)/(N+Kn)**5  !Correct
 end subroutine

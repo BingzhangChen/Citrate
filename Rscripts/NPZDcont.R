@@ -205,8 +205,8 @@ mu3 = function(x, Z, I=200, NO3=1, t=15, w=10, K0N=0.2, alphaK=.27, L=0, k=-.47,
     Y      = 1./H
     dYdx   = -(k+2.)*I/(alpha*Iopt**2) - b/umax +2.*(k+1.)/(alpha*Iopt) - k/(I*alpha)
     d2Ydx2 = (k+2.)**2*I/(alpha*Iopt**2) + b**2/umax -2.*(k+1.)**2/(alpha*Iopt) + k**2/(I*alpha)
-    dHdx   = -(1./Y**2) * dYdx
-    d2Hdx2 = (2/Y**3)*(dYdx)**2 - d2Ydx2/Y**2
+    dHdx   = - H*H*dYdx
+    d2Hdx2 = (2*H**3)*(dYdx)**2 - d2Ydx2*H**2
 
  #Temperature term
     h       = exp(Ep*(t - T0))

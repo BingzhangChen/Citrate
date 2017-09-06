@@ -63,7 +63,7 @@ for (Stn in c('K2','S1')){
                oma    = c(4,4,1,0)) 
    for (i in 1:NVar){
        VAR = VARs[i]
-       plot_1D(VAR,Model,Stn,finalyr = T, Dmax = -150)
+       plot_1D(VAR,Model,Stn,finalyr = F, Dmax = -500)
        mtext(paste0(letters[i],')'),adj=0, outer=F)
    }
    mtext('Depth (m)', side = 2, outer=TRUE, line=2)
