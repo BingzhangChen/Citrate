@@ -168,7 +168,7 @@ readnc <- function(variable, sourcefile = ROMSFile, ROMS=T, nameit='npacS'){
     nvar       <- 12 
   } else if(variable == 'w_ROMS'){
     nvar       <- 41 
-  } else if(variable %in% c('taux3','tauy3','hel','mask_rho','radsw','hbl','ZOO','PHYTO','LNV','VAR','temp_roms','DFE','NO3_roms','oPPt','omuNet','odmuNetdl','od2mudl2','od3mudl3','od4mudl4')){
+  } else if(variable %in% c('taux3','tauy3','hel','mask_rho','radsw','hbl','ZOO','PHYTO','LNV','VAR','temp_roms','DFE','NO3_roms','oPPt','omuNet','odmuNetdl','od2mudl2','od3mudl3','od4mudl4','DFEFe','MTo','VTo','MIo','VIo','odmudZ','odmudx','od2mudZ2','od2mudx2')){
     if (variable == 'NO3_roms'){
       Vname      <- 'NO3'
     } else if (variable == 'temp_roms'){
