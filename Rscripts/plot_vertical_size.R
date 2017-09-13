@@ -18,7 +18,7 @@ plot_v_size <- function(Stn,Models,BOTH=T){
    
    j <- 0
    #Read observational data
-   DAT = paste('~/Working/FlexEFT1D/Forcing/',Stn,'_size_Perc.dat',sep='')
+   DAT = paste0(Stn,'_size_Perc.dat')
    DAT = read.table(DAT,header=T)
    
    for (K in 1:4){
@@ -45,7 +45,7 @@ plot_v_size <- function(Stn,Models,BOTH=T){
        j    <- j+1
        dat_ <- dat[dat$DOY > DOYs[i] & dat$DOY <= DOYs[i+1],]
        xmax <- max(dat_[,3])
-       plot(dat_[,3],-dat_$Depth,xlim=c(0,1),
+       plot(dat_[,3],-dat_$Depth,xlim=c(0,1),ylim=c(-150,0),
             xlab=Varname,ylab='',pch=16,cex=.5,cex.lab=1.2)
        mtext(paste(letters[j],')',seasons[i]),adj=0)
    

@@ -1,5 +1,5 @@
 plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
-                     VARS=c('TIN','CHL','NPP','PON','DIP','POP'), BOTH=T){
+                     VARS=c('DIN','CHL','NPP','PON','DIP','POP'), BOTH=T){
    if (Stn == 'K2'){
       FigNo = 5
    }else if (Stn == 'S1'){
@@ -10,7 +10,7 @@ plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
 
    fname <- paste0(Models,collapse='_')
    fname <- paste0('Fig_',FigNo, Stn, fname,'Vertical_NChlPP.pdf')
-   Dmax  <- 250
+   Dmax  <- 150
    pdf(fname, width=2*length(VARS),height=8,paper='a4')
    
    op <- par(font.lab = 1,
@@ -23,7 +23,7 @@ plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
    j <- 0
    for (Var in VARS){
      if (Var == 'CHL'){
-       Varname  <-  bquote(.(Var)~' (mg '*m^-3*')')
+       Varname  <- bquote(.(Var)~' (mg '*m^-3*')')
      }else if (Var == 'NPP'){
        Varname  <- bquote(.(Var)~' (mg C '*m^-3*' '*d^-1*')')
      }else if (Var == 'muN1'){
@@ -37,7 +37,7 @@ plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
      }
    
        #Read observational data
-       dat <- paste('~/Working/FlexEFT1D/Forcing/',Stn,'_',Var,'.dat',sep='')
+       dat <- paste0(Stn,'_',Var,'.dat')
        dat <- read.table(dat,header=T)
        #Average into 4 seasons
        DOYs    <- seq(0,360,length.out=5)
@@ -90,7 +90,7 @@ plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
             #Get modeled data
             if (Var == 'CHL'){
              Chl  <- getData(DIR,Stn, 'CHL_T')
-            }else if (Var == 'TIN'){
+            }else if (Var == 'DIN'){
              Chl  <- getData(DIR,Stn, 'NO3')
             }else if(Var == 'NPP'){
              Chl  <- getData(DIR, Stn, 'NPP_T')
@@ -116,13 +116,13 @@ plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
              matlines(t(cff), depth, lty=c(2,1,2), lwd=c(.3,1.5,.3), col=COLS[ii])
          }
          
-         if (Var == 'TIN' && i == 1 && length(Modnames) > 1){
+         if (Var == 'DIN' && i == 1 && length(Modnames) > 1){
             legend('topright',Modnames,col=COLS,lty=1)
          }
        }
      }   
      mtext('Depth (m)',side = 2, outer=TRUE, line=1)
-     mtext(paste('Fig.', FigNo,'. Model fittings to vertical profiles of TIN, CHL, NPP, and PON at',Stn),side=1,outer=T, line=2,adj=0)
+     mtext(paste('Fig.', FigNo,'. Model fittings to vertical profiles of DIN, CHL, NPP, and PON at',Stn),side=1,outer=T, line=2,adj=0)
      #mtext(Sys.time(), side = 3, outer=TRUE, line=2)
    dev.off()
  } 
