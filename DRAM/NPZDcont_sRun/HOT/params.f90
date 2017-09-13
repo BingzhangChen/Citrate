@@ -22,5 +22,5 @@ character(LEN=5), parameter :: LabelForc(TNFo) &
 
 integer,          parameter :: NFobs(TNFo)     & 
      = (/    12,   12, 36,     12,  12,      12,   12,    12, 12 /)
-
+integer,          parameter :: N_fer   = 26
 end module
