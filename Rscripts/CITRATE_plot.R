@@ -80,6 +80,15 @@ source('~/Working/FlexEFT1D/Rscripts/plot_vertical_NChlNPP.R')
 for (Stn in Stns){
     plot_v_n(Stn, Models, VARS=c('DIN','CHL','NPP','PON'))
 }
+
+#Plot for HOT:
+Model <- 'NPZDcont_sRun'
+Stn   <- 'HOT'
+DIR   <- paste0('~/Working/FlexEFT1D/DRAM/',Model,'/',Stn,'/')
+setwd(DIR)
+
+plot_v_n(Stn, Model, VARS=c('DIN','CHL','NPP','PON'), BOTH=F)
+
 source('~/Working/FlexEFT1D/Rscripts/plot_vertical_size.R')
 #Plot vertical distributions of size
 for (Stn in Stns){
