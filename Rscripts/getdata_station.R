@@ -6,6 +6,8 @@ getdata_station <- function(varname,lon,lat){
       data_s <- Temp_data
     } else if (varname == 'solfe'){
       data_s=readnc(varname,sourcefile=Dustfile,ROMS=F)
+    } else if (varname == 'fer'){
+      data_s=readnc(varname,sourcefile=DFeFile,ROMS=F)
     } else if (varname == 'par'){
       data_s <- Par_data
     } else if (varname %in% c('taux3','tauy3')){

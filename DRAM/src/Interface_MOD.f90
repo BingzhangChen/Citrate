@@ -401,7 +401,7 @@ case(1)
 ! Fennel et al. (2006): 0.007~1.5
 ! Chai et al. (2002): 0.05~1
 ! Franks (2009): 0.005~3
-  MaxValue(iKN) =  2D0
+  MaxValue(iKN) =  .5
   MinValue(iKN) =  0.05
   if (Model_ID .eq. NPZDN2) then  ! The unit based on P
      MaxValue(iKPnif)=2D-3

@@ -18,8 +18,7 @@ integer, private, parameter :: y_per_s = INT(d_per_s*360), &
                       N_w     = 40,               &
                       N_par   = 1 ,               &
                       N_Dust  = 1,                &
-                      N_wstr  = 1,                &
-                      N_fer   = 33
+                      N_wstr  = 1
 
 integer               :: nsave   = INT(d_per_s)/INT(dtsec) ! Timesteps to save
 
@@ -298,6 +297,7 @@ Do j = 1, Nstn
       NDPTS(itCHL,j) = 8181
       NDPTS(itNPP,j) = 1712
       NDPTS(itPON,j) = 2806
+      if (DO_IRON) NDPTS(itDFe,j) = 168
   else
       write(6,*) 'Station number incorrect! Stop!'
       stop
@@ -348,7 +348,7 @@ IF (AllocateStatus /= 0) STOP "*** Problem in allocating PONData ***"
 
 if (do_IRON) then
    allocate( DFeData(Tnrow(itDFe),ncol(itDFe,1)), STAT = AllocateStatus)
-   IF (AllocateStatus /= 0) STOP "*** Problem in allocating PONData ***"
+   IF (AllocateStatus /= 0) STOP "*** Problem in allocating DFeData ***"
 endif
 
 if (N2fix) then

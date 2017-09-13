@@ -198,9 +198,9 @@ readnc <- function(variable, sourcefile = ROMSFile, ROMS=T, nameit='npacS'){
   } else if(variable == 'POC'){
     sourcefile <- POCFile
     nvar       <- 1
-  } else if(variable == 'DFe'){
+  } else if(variable %in% c('DFe','fer')){
     sourcefile <- DFeFile
-    nvar       <- 3
+    nvar       <- 1
     Vname      <- 'fer'
   } else{
     stop('Variable name does not match, 
@@ -297,9 +297,10 @@ readnc <- function(variable, sourcefile = ROMSFile, ROMS=T, nameit='npacS'){
     }
     #Convert time:
     time <- days
-   }
+    depth = z_r
+   } 
     nc_close(nc) 
-    return(list(lon=lon,lat=lat,time=time,depth=z_r,Hz=Hz,data=var0))
+    return(list(lon=lon,lat=lat,time=time,depth=depth,Hz=Hz,data=var0))
   } else {
     nc_close(nc) 
     stop('Data dimension incorrect!')
