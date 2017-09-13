@@ -45,7 +45,7 @@ dev.off()
 VARs <- c('NO3','Fer','CHL_T','PHY1','MIC','MES','DET',
           'R_PMU','R_VAR','muAvg','dmudl','d2mu')
 NVar <- length(VARs)
-#TD_VAR is the contribution of "trait diffusion" to changes of size variance
+Stns = c('K2','S1')
 
 for (Stn in c('K2','S1')){
   if (Stn == 'K2'){
@@ -67,7 +67,7 @@ for (Stn in c('K2','S1')){
        mtext(paste0(letters[i],')'),adj=0, outer=F)
    }
    mtext('Depth (m)', side = 2, outer=TRUE, line=2)
-   mtext(paste('Fig.', FigNo,'. Modelled seasonal patterns at',Stn),side=1,outer=T, line=2,adj=0)
+   mtext(paste('Fig.', FigNo,'. Modelled seasonal patterns at',Stn,side=1,outer=T, line=2,adj=0)
    dev.off()
 }
 

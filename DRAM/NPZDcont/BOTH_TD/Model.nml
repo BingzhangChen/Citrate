@@ -28,9 +28,9 @@
 !NPZD2sp     = 16
 
 &MCMCrun
-   nruns   = 2,
-   EnsLen  = 1, 
-   NDays   = 1440,
+   nruns   = 10000,
+   EnsLen  = 100, 
+   NDays   = 1800,
    Readfile= 0,
    NR_enspar=2002,
    MPIRUN  = 1,
