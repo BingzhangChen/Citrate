@@ -1,12 +1,13 @@
 plot_v_size <- function(Stn,Models,BOTH=T){
    if (Stn == 'K2'){
-      FigNo = 7
-   }else if (Stn == 'S1'){
       FigNo = 8
+   }else if (Stn == 'S1'){
+      FigNo = 9
    }
 
    fname <- paste0(Models,collapse='_')
    fname <- paste0('Fig_',FigNo,Stn,fname,'Vertical_mod_obs_size.pdf')
+   Dmax  <- 150
    pdf(fname, width=2*3,height=8,paper='a4')
    
    op <- par(font.lab = 1,
@@ -44,6 +45,7 @@ plot_v_size <- function(Stn,Models,BOTH=T){
        }
        j    <- j+1
        dat_ <- dat[dat$DOY > DOYs[i] & dat$DOY <= DOYs[i+1],]
+       dat_ <- dat_[dat_$Depth <= Dmax,]
        xmax <- max(dat_[,3])
        plot(dat_[,3],-dat_$Depth,xlim=c(0,1),ylim=c(-150,0),
             xlab=Varname,ylab='',pch=16,cex=.5,cex.lab=1.2)
@@ -85,6 +87,7 @@ plot_v_size <- function(Stn,Models,BOTH=T){
      }   
      mtext('Depth (m)',side = 2, outer=TRUE, line=1)
     # mtext(Sys.time(), side = 3, outer=TRUE, line=2)
-     mtext(paste('Fig.', FigNo,'. Model fittings to vertical profiles of four size fractions at',Stn),side=1,outer=T, line=2,adj=0)
+     mtext(paste('Fig.', FigNo,'. Model fittings to vertical profiles of four size fractions at',Stn),
+           side=1,outer=T, line=2,adj=0)
    dev.off()
 }

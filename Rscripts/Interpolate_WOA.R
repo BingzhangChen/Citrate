@@ -235,7 +235,9 @@ readnc <- function(variable, sourcefile = ROMSFile, ROMS=T, nameit='npacS'){
         var0  <- (var0*6/pi)**0.33333
      }else if (Vname == 'VAR'){
         PHYTO <- ncvar_get(nc,'PHYTO')
-        var0  <- var0/PHYTO**2
+        LNV   <- ncvar_get(nc,'LNV')
+        LNV   <- LNV/PHYTO
+        var0  <- var0/PHYTO - LNV^2
      }
 #  }else{
 #      v4  <- ncvar_get(nc,Vname)

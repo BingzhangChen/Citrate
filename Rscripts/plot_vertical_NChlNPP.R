@@ -1,11 +1,11 @@
 plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
                      VARS=c('DIN','CHL','NPP','PON','DIP','POP'), BOTH=T){
    if (Stn == 'K2'){
-      FigNo = 5
-   }else if (Stn == 'S1'){
       FigNo = 6
-   }else{
-      FigNo = 1
+   }else if (Stn == 'S1'){
+      FigNo = 7
+   }else if (Stn == 'HOT'){
+      FigNo = 12
    }
 
    fname <- paste0(Models,collapse='_')
@@ -50,6 +50,7 @@ plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
          }
          j    <- j+1
          dat_ <- dat[dat$DOY > DOYs[i] & dat$DOY <= DOYs[i+1],]
+         dat_ <- dat_[dat_$Depth <= Dmax,]
          xmax <- max(dat_[,3])
          if (Stn == 'HOT'){
             if(Var == 'CHL'){
@@ -122,6 +123,7 @@ plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
        }
      }   
      mtext('Depth (m)',side = 2, outer=TRUE, line=1)
+     if (Stn == 'HOT') Stn = 'ALOHA'
      mtext(paste('Fig.', FigNo,'. Model fittings to vertical profiles of DIN, CHL, NPP, and PON at',Stn),side=1,outer=T, line=2,adj=0)
      #mtext(Sys.time(), side = 3, outer=TRUE, line=2)
    dev.off()

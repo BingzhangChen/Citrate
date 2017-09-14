@@ -8,7 +8,7 @@ lon = Chl$lon
 lat = Chl$lat
 CHL = Chl$data
 fLon= lon >= 120 & lon <= 360-90
-fLat= lat >= 25  & lat <= 60
+fLat= lat >= 20  & lat <= 60
 lon = lon[fLon]
 lat = lat[fLat]
 
@@ -19,17 +19,15 @@ CHL <- CHL[fLon,fLat,]
 CHL <- apply(CHL,c(1,2),mean,na.rm=T)
 CHL <- CHL[cff,]
 
-#LON= c(145, -158 + 360, 160) #S1, ALOHA, and K2
-#LAT= c(30,  22.75,      47)
+LON= c(145, -158 + 360, 160) #S1, ALOHA, and K2
+LAT= c(30,  22.75,      47)
 
-LON= c(145,  160) #S1 and K2
-LAT= c(30,   47)
 #Calculate annual mean Chl:
 jet.colors = colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",
                      "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))  #A good color
 
-Stn_name = c('S1', 'K2')
-var      = 'Aks'
+Stn_names = c('S1', 'ALOHA','K2')
+var       = 'Aks'
 
 plot_forcing = function(Stn_name, var, Label){
    
@@ -69,7 +67,7 @@ plot_forcing = function(Stn_name, var, Label){
           ZLIM   <- c(14,28) #Temperature
        }
     }
-    x      = which(depth>=-250)
+    x      = which(depth>=-200)
     depth  = depth[x]
     if (var == 'Aks'){
       data1 = log10(data1[,x])
@@ -106,11 +104,11 @@ plot_forcing = function(Stn_name, var, Label){
           axis(1, at = seq(1,11,by=2))
        }
     }
-    mtext(title1,adj=0)
+    mtext(title1,adj=0,cex=.8)
 }
 
-pdf('~/Working/FlexEFT1D/DRAM/Stn_map_S1_K2v1.pdf',
-                          width=9, height=6,paper='a4')
+pdf('~/Working/FlexEFT1D/DRAM/Stn_map_S1_K2_HOT.pdf',
+                          width=9, height=9,paper='a4')
 op <- par( font.lab  = 1,
              family  ="serif",
              mar     = c(3.5,4,2,2),
@@ -120,7 +118,7 @@ op <- par( font.lab  = 1,
              pch     = 16,
              cex.axis=1) 
 
-nf <- layout(matrix(c(1,1,1,1:9), 3, 4, byrow = TRUE), respect = TRUE)
+nf <- layout(matrix(c(1,1,1,1:13), 4, 4, byrow = TRUE), respect = TRUE)
 
 image2D(x=Nlon, y=lat, z=CHL,zlim=c(0,2), col = jet.colors(18),xaxt='n',
          xlab = "Longitude (ºE)", ylab = "Latitude (ºN)")
@@ -130,7 +128,7 @@ lon2[lon2>180]=lon2[lon2>180]-360
 axis(1, at = lon1, labels=lon2)
 
 title = expression(paste('a) Annual mean Chl (mg '*m^-3*')'))
-text(x=LON+2.5,y=LAT+2.5,labels=c('S1','K2'),cex=1.5,col=2)
+text(x=LON+2.5,y=LAT+2.5,labels=Stn_names,cex=1,col=2)
 mtext(title,line=.3)
 points(LON,LAT,pch=17,col=2)
 
@@ -138,13 +136,12 @@ plot_forcing('S1', 'Aks', 'b) S1')
 plot_forcing('S1', 'temp','c)')
 plot_forcing('S1', 'par', 'd)')
 plot_forcing('S1', 'solfe','e)')
-#plot_forcing('HOT','Aks','c) ALOHA')
 plot_forcing('K2', 'Aks', 'f) K2')
 plot_forcing('K2', 'temp','g)')
 plot_forcing('K2', 'par', 'h)')
 plot_forcing('K2', 'solfe','i)')
-
-#plot_forcing('HOT','temp','f)')
-
-#plot_forcing('HOT','par','i)')
+plot_forcing('HOT','Aks','j) ALOHA')
+plot_forcing('HOT','temp','k)')
+plot_forcing('HOT','par','l)')
+plot_forcing('HOT','solfe','m)')
 dev.off()

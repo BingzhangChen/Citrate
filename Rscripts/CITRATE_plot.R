@@ -1,8 +1,11 @@
+#Plot station map:
+source('~/Working/FlexEFT1D/Rscripts/Stnmap_Kv_S1K2.R')
+
 Model <- 'NPZDcont'
 DIR   <- paste0('~/Working/FlexEFT1D/DRAM/',Model,'/BOTH_TD/')
 setwd(DIR)
 source('~/Working/FlexEFT1D/Rscripts/plot_1D.R')
-source('~/Working/FlexEFT1D/Rscripts/loglike_params.R')  #Plot time-evolution of Log-Likelihoods and parameters of size model (Fig. 3 and 4)
+source('~/Working/FlexEFT1D/Rscripts/loglike_params.R')  #Plot time-evolution of Log-Likelihoods and parameters of size model (Fig. 4 and 5)
 
 setwd('/Users/apple/Working/FlexEFT1D/DRAM/NPZDcont_sRun/BOTH')
 Model   <- 'NPZDcont_sRun'
@@ -44,32 +47,11 @@ dev.off()
 #One plot for one station (only final year):
 VARs <- c('NO3','Fer','CHL_T','PHY1','MIC','MES','DET',
           'R_PMU','R_VAR','muAvg','dmudl','d2mu')
-NVar <- length(VARs)
 Stns = c('K2','S1')
 
-for (Stn in c('K2','S1')){
-  if (Stn == 'K2'){
-      FigNo = 9
-   }else if (Stn == 'S1'){
-      FigNo = 10
-   }
-   pdffile <- paste0('Fig_',FigNo,Stn,'_1D.pdf')
-   pdf(pdffile, width = 8, height = 8, paper = 'a4')
-   op <- par(font.lab = 1,
-               family ="serif", cex.axis=1.2, cex.lab=1.2,
-               mar    = c(2,2,1.5,3.5),
-               mgp    = c(2.3,1,0),
-               mfrow  = c(3,3),
-               oma    = c(4,4,1,0)) 
-   for (i in 1:NVar){
-       VAR = VARs[i]
-       plot_1D(VAR,Model,Stn,finalyr = F, Dmax = -500)
-       mtext(paste0(letters[i],')'),adj=0, outer=F)
-   }
-   mtext('Depth (m)', side = 2, outer=TRUE, line=2)
-   mtext(paste('Fig.', FigNo,'. Modelled seasonal patterns at',Stn,side=1,outer=T, line=2,adj=0)
-   dev.off()
-}
+source('~/Working/FlexEFT1D/Rscripts/plot_stn_contour.R')
+plot_stn(Stns, VARS, Model='NPZDcont', finalyr = T, Dmax = -150)
+plot_stn('HOT',VARS, Model='NPZDcont_sRun', finalyr = T, Dmax = -150)
 
 COLS     <- 2:3
 Models   <- c('NPZDcont')
@@ -82,7 +64,8 @@ for (Stn in Stns){
 }
 
 #Plot for HOT:
-Model <- 'NPZDcont_sRun'
+Model    <- 'NPZDcont_sRun'
+Modnames <- 'NPZDcont'
 Stn   <- 'HOT'
 DIR   <- paste0('~/Working/FlexEFT1D/DRAM/',Model,'/',Stn,'/')
 setwd(DIR)
