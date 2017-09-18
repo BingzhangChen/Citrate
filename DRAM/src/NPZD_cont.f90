@@ -48,7 +48,7 @@ real,    parameter :: unass2=  0.31 ! Fraction of unassimilated material of meso
 !-----------------------------------------------------------------------
 VTR    = params(iVTR)
 alphamu= 0.2
-betamu = -0.017
+betamu = -0.01
 alphaI = params(ialphaI)
 alphaK = 0.27
 RDN    = 0.1
