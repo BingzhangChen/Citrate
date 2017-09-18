@@ -450,7 +450,7 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
   !Based on the lab dataset from Chen and Laws (2017)
   !Growth rate normalized to 15 ºC based on linear regression
   !0.025% and 0.975% quantiles
-  MaxValue(imu0) =  2.7
+  MaxValue(imu0) =  1.2
   MinValue(imu0) =  0.3
 
   if (Model_ID .eq. NPZDcont .or. Model_ID .eq. NPZDFix .or. Model_ID .eq. NPPZDD .or. Model_ID.eq.NPZD2sp .or. Model_ID.eq.NPZDdisc .or. Model_ID .eq. NPZDFixIRON .or. Model_ID .eq. NPZDN2) then

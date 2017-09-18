@@ -569,7 +569,7 @@ else
    params(imz)   = 0.15
 endif
 params(iKPHY)    = 0.25
-params(imu0)     = 2.5d0
+params(imu0)     = 1d0
 
 if(Model_ID==EFT2sp .or. Model_ID==EFTPPDD .or.  Model_ID==NPZD2sp .or. Model_ID==NPPZDD) then
    ParamLabel(imu0B)='mu0B'
