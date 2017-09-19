@@ -33,15 +33,19 @@ getData <- function(fileDIR,Stn,VAR){
      PHY    <- PHY[,  4:ncol(PHY)]
      #Read PMU or VAR data:
      NEWVAR <- substr(VAR,3,5)
-     data   <- data[data[,1] == NEWVAR, ] 
-     days   <- as.numeric(as.character(data[, 3]))
-     data   <- data[, 4:ncol(data)]
+     dat    <- data[data[,1] == NEWVAR, ] 
+     days   <- as.numeric(as.character(dat[, 3]))
+     dat    <- dat[, 4:ncol(dat)]
      if (VAR == 'R_PMU'){
      #Get real PMU
-        data <- data/PHY
+        data <- dat/PHY
         data <- (exp(data-log(10)) * 6/pi)**0.3333333333333
      }else if (VAR == 'R_VAR'){
-        data <- data/PHY
+        #Get PMU
+        PMU  <- data[data[,1] == 'PMU', ]
+        PMU  <- PMU[, 4:ncol(PMU)]
+        PMU  <- PMU/PHY
+        data <- dat/PHY - PMU^2
      }
    } else if (VAR == 'TD_VAR'){
      #TD_VAR is the contribution of "trait diffusion" to changes of size variance
