@@ -47,8 +47,6 @@ real,    parameter :: unass2=  0.31 ! Fraction of unassimilated material of meso
 
 !-----------------------------------------------------------------------
 VTR    = params(iVTR)
-alphamu= 0.2
-betamu = -0.01
 alphaI = params(ialphaI)
 alphaK = 0.27
 RDN    = 0.1
@@ -330,7 +328,7 @@ implicit none
 real, intent(in)  :: PMU, NO3, PAR_,Temp_, Fe 
 real, intent(out) :: muNet, dmudl, d2mudl2, theta, QN, SI, fN
 real, intent(out) :: d3mudl3, d4mudl4, dQNdL,d2QNdL2,dthetadL,d2thetadl2
-real :: alphaK, alphaI, mu0hat
+real :: alphaK = 0.27, alphaI, mu0hat
 real :: dmu0hatdl, d2mu0hatdl2, aI, cff,cff1,daI_mu0hatdl
 real :: daI_mu0hat2dl
 real :: d3mu0hatdl3, d4mu0hatdl4
@@ -345,9 +343,6 @@ real :: Kn,K0N,dfNdl,d2fNdl2,d3fNdl3, d4fNdl4, Qmin,Qmax,tf
 real :: fFe
 real, parameter :: thetamin = 0.02, thetamax = 0.47
 
-alphaK     =0.27
-alphamu    =0.2
-betamu     =-0.017
 alphaI     =params(ialphaI)
 tf         =TEMPBOL(Ep,Temp_)
 cff1       =alphamu + 2.* betamu * PMU

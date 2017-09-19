@@ -45,12 +45,12 @@ dev.off()
 
 
 #One plot for one station (only final year):
-VARs <- c('NO3','Fer','CHL_T','PHY1','MIC','MES','DET',
-          'R_PMU','R_VAR','muAvg','dmudl','d2mu')
+VARs <- c('NO3','Fer','CHL_T',
+          'R_PMU','R_VAR','muAvg','dmudl','d2mu','The1','QN_1')
 Stns = c('K2','S1')
 
 source('~/Working/FlexEFT1D/Rscripts/plot_stn_contour.R')
-plot_stn(Stns, VARS, Model='NPZDcont', finalyr = T, Dmax = -150)
+plot_stn(Stns, VARS, Model='NPZDcont',      finalyr = T, Dmax = -150)
 plot_stn('HOT',VARS, Model='NPZDcont_sRun', finalyr = T, Dmax = -150)
 
 COLS     <- 2:3

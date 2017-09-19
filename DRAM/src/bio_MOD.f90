@@ -81,7 +81,7 @@ real, parameter :: Fe_N   =0.0265 ! Fe:Nitrogen molar ratio (nmol : umol)
 real, parameter :: thetm  =0.65
 real, parameter :: RMchl0 =0.1
 real, parameter :: Ep     =0.41, Ez   =0.65 
-real            :: alphamu,     betamu=0d0
+real            :: alphamu=0.2,  betamu=-0.01
 
 !Temperature senstivity tuned by the algorithm
 real :: KFe    =0.08     !Unit: nM. Gregg (2003) used ~0.1 nM for phyto
