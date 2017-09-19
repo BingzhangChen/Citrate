@@ -1,4 +1,4 @@
-Tutorial: The code for CITRATE 1.0 is written in Fortran90 with the Intel Fortran compiler used. We have tested the codes on macOS Sierra 10.12.5 (i386 processor) and also a GNU/Linux cluster with x86-64 architechture. The user is supposed to be familiar with the Fortran language and has some basic knowledge of BASH. Some post-processing scripts are also written in the free software R (version 3.3.2). Below we give some instructions and explanations of the codes and how to run the model.
+Tutorial: The code for CITRATE 1.0 (DOI: 10.5281/zenodo.895996) is written in Fortran90 with the Intel Fortran compiler used. We have tested the codes on macOS Sierra 10.12.5 (i386 processor) and also a GNU/Linux cluster with x86-64 architechture. The user is supposed to be familiar with the Fortran language and has some basic knowledge of BASH. Some post-processing scripts are also written in the free software R (version 3.3.2). Below we give some instructions and explanations of the codes and how to run the model.
 
 1. How to run the model:
 1) Go to the directory you want to run the model (we assume that the root directory is under home directory: ~/).
