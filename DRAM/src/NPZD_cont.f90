@@ -147,11 +147,11 @@ DO k = nlev, 1, -1
         if (DO_IRON) then
            Lno3  = min(Lno3, Fe/(Fe + KFe_))
         endif
-        muNet = rmax_T*Lno3*SI
+        muNet1 = rmax_T*Lno3*SI
 
         QN = Qnmin/(1d0-(1d0-Qnmin/Qnmax)*Lno3)
 
-        theta  = thetamin+muNet/PAR_/aI0*(thetamax-thetamin)   !Unit: gChl/molC
+        theta  = thetamin+muNet1/PAR_/aI0*(thetamax-thetamin)   !Unit: gChl/molC
         !Probability function
         Pl   = PHY*normal(PMU,VAR,x(i))
 
