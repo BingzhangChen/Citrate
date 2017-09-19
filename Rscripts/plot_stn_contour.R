@@ -20,7 +20,7 @@ plot_stn = function(Stns, VARS, Model='NPZDcont', finalyr = T, Dmax = -150){
                  family ="serif", cex.axis=1.2, cex.lab=1.2,
                  mar    = c(2,2,1.5,3.5),
                  mgp    = c(2.3,1,0),
-                 mfrow  = c(4,3),
+                 mfrow  = c(5,2),
                  oma    = c(4,4,1,0)) 
      for (i in 1:NVar){
          VAR = VARs[i]
@@ -29,7 +29,7 @@ plot_stn = function(Stns, VARS, Model='NPZDcont', finalyr = T, Dmax = -150){
      }
      mtext('Depth (m)', side = 2, outer=TRUE, line=2)
      if (Stn == 'HOT') Stn = 'ALOHA'
-     mtext(paste('Fig.', FigNo,'. Modelled seasonal patterns at',Stn,side=1,outer=T, line=2,adj=0))
+     mtext(paste('Fig.', FigNo,'. Modelled seasonal patterns at',Stn),side=1,outer=T, line=2,adj=0)
      dev.off()
    }
 }
