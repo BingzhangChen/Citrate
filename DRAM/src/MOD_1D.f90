@@ -439,6 +439,14 @@ Do j = 1, Nstn
     if (i .eq. itNO3) then   ! Nitrate
       DOY   = TINData((kk(1)+1):(kk(1)+nrow(1,j)),1)
       Depth = TINData((kk(1)+1):(kk(1)+nrow(1,j)),2)
+      !if (j > 1) then
+      !  do k = 1, NDPTS(i,j)
+      !    if (DOY(k) .eq. 15) then
+      !        write(6,*) 'k = ',k
+      !        stop
+      !    endif
+      !  enddo
+      !endif
     else if (i .eq. itCHL) then   ! CHL
       DOY   = CHLData((kk(2)+1):(kk(2)+nrow(2,j)),1)
       Depth = CHLData((kk(2)+1):(kk(2)+nrow(2,j)),2)
@@ -495,6 +503,14 @@ Do j = 1, Nstn
 
     do oi = 1, NDPTS(i,j)
          OBS_DOY(NL+k+oi) =   DOY(oi)
+         !if (j > 1 .and. i .eq. itNO3) then
+         !   if (DOY(oi) .eq. 15) then
+         !      write(6,*) 'k = ',k
+         !      write(6,*) 'oi = ',oi
+         !      write(6,*) 'NL = ',NL
+         !      stop
+         !   endif
+         !endif
        OBS_Depth(NL+k+oi) = Depth(oi)
        OBS_Label(NL+k+oi) = DataLabel(i)
     enddo
@@ -1072,18 +1088,20 @@ DO jj = 1, Nstn
         else
            nm = 0
            do j = 1, (jj-1)
-              nm = nm + sum(nrow(:,j))
+              nm = nm + sum(NDPTS(:,j))
            enddo
+           !write(6,*) 'Total number of obs. at K2:', nm
+           !stop
            nm = nm + i
         endif
         DOY      = INT(min(OBS_DOY(nm),360.0))
         depth(1) = -abs(OBS_Depth(nm))  !Consistent with ROMS convention
-  
+
         IF (DOY .eq. current_DOY) then
 
           allocate(a(nlev,1))
-          a(:,:)=zero
-
+          a(:,:) = zero
+           
           if (i .le. nrow(1,jj)) then
              if (jj .eq. 1) then
                 nm = i
@@ -1091,14 +1109,15 @@ DO jj = 1, Nstn
                 nm = 0
                 do j = 1, (jj-1)
                    nm = nm + nrow(1, j)
-                enddo
+                enddo  !Obtain the total number of obs. for all previous stations
                 nm = nm + i
              endif
 
            ! Calculate TIN output:
            a(:,1) = Vars(iNO3,:)
            call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
-                             TINout(nm,1))       
+                  TINout(nm,1))       
+
           elseif (i .le. (nrow(1,jj)+nrow(2,jj)) ) then
              if (jj .eq. 1) then
                 nm = i- nrow(1,jj)

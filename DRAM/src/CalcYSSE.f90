@@ -25,6 +25,7 @@ modval(:) = 0d0
 params(:) = pars(:)
 
 call Timestep
+
 ! Match the final year result of the model output to the observational data 
 ! The same type of data at different stations should be different data types
 
@@ -40,7 +41,7 @@ DO j = 1, Nstn
    
      if (i .eq. itNO3) then   ! Nitrate
        OBS_data = TINData((kk(i)+1):(kk(i)+nrow(1,j)),3)
-       MOD_data = TINout((kk(i)+1):(kk(i)+nrow(1,j)),1)
+       MOD_data = TINout( (kk(i)+1):(kk(i)+nrow(1,j)),1)
      elseif (i .eq. itCHL) then  ! CHL
        OBS_data = CHLData((kk(i)+1):(kk(i)+nrow(2,j)),3)
        MOD_data = CHLout((kk(i)+1):(kk(i)+nrow(2,j)),1)
