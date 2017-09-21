@@ -1,0 +1,12 @@
+&parameters
+mu0hat =1.2,
+KN     =0.49,
+wDET   = 0.83,
+aI0    = 0.045,
+alphaI = -0.27,
+VTR    = 0.1,
+KPHY   = 0.23,
+mz     = 0.18,
+KFe    = 0.05,
+bot_bound = 0,
+/

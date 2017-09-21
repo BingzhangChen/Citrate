@@ -7,7 +7,7 @@ real :: start, finish
 real, allocatable    :: Ymod(:)
 integer              :: i
 real                 :: mu0hat, KN, wDET,aI0, KPHY
-real                 :: VTR, mz, alphaI,gb
+real                 :: VTR, mz, alphaI
 
 NAMELIST /parameters/ mu0hat,KN,  wDET, aI0,  &
     VTR, KPHY, mz, alphaI, KFe, bot_bound

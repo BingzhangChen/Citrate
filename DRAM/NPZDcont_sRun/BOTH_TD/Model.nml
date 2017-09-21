@@ -1,0 +1,16 @@
+&Model
+  Stn                 ='K2','S1',
+  Model_ID            = 4,
+  nutrient_uptake     = 1,
+  grazing_formulation = 3,
+/
+
+
+&MCMCrun
+   nruns   = 2,
+   BurnInt = 1000, ! number of runs for initial 'Burn-in'
+   EnsLen  = 1, 
+   NDays   = 1080,
+   Readfile= 0,
+   NR_enspar=93370,
+/
