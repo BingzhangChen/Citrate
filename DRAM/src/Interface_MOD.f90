@@ -557,7 +557,7 @@ do k = 1, NPar
    write(6,102) 'Params(',k,') =',Params(k)
    write(6,102) 'Max(',k,') =',   MaxValue(k)
    write(6,102) 'Min(',k,') =',   MinValue(k)
-   if (Params(k) .lt. MinValue(k) .OR. Params(k) .gt. MaxValue(k)) &
+   if (Params(k) .lt. MinValue(k) .OR. Params(k) .gt. MaxValue(k) .and. taskid .eq. 0) &
    stop "Parameter out of bounds!"
 
 enddo
