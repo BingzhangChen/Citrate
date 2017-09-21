@@ -50,18 +50,44 @@ VARs <- c('NO3','Fer','CHL_T',
 Stns = c('K2','S1')
 
 source('~/Working/FlexEFT1D/Rscripts/plot_stn_contour.R')
-plot_stn(Stns, VARS, Model='NPZDcont',      finalyr = T, Dmax = -150)
+plot_stn(Stns, VARS, Model='NPZDcont_sRun',      finalyr = T, Dmax = -150)
 plot_stn('HOT',VARS, Model='NPZDcont_sRun', finalyr = T, Dmax = -150)
 
 COLS     <- 2:3
-Models   <- c('NPZDcont')
+Models   <- c('NPZDcont_sRun')
 Modnames <- c('NPZDcont')
 Stns     <- c('K2','S1')
 Nstn     <- length(Stns)
+DIR   <- paste0('~/Working/FlexEFT1D/DRAM/',Models,'/BOTH_TD/')
+setwd(DIR)
+
 source('~/Working/FlexEFT1D/Rscripts/plot_vertical_NChlNPP.R')
 for (Stn in Stns){
     plot_v_n(Stn, Models, VARS=c('DIN','CHL','NPP','PON'))
 }
+
+#Check SSqE:
+Model = 'NPZDcont'
+Stn   = 'S1'
+ensout= read.table('ensout',header=T)
+ensout= ensout[ensout$RunNo==max(ensout$RunNo),]
+
+#Pick out S1:
+for (i in 1:nrow(ensout)){
+    if (ensout$Name[i] == 'P_1' && ensout$Name[i+1] == 'TIN'){
+        break
+    }
+}
+ensout = ensout[(i+1):nrow(ensout),] 
+e1     = ensout[ensout$Name == 'TIN',]
+
+#Calculate SSqE:
+
+
+
+
+
+
 
 #Plot for HOT:
 Model    <- 'NPZDcont_sRun'
