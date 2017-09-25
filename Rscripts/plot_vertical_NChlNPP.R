@@ -5,7 +5,7 @@ plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
    }else if (Stn == 'S1'){
       FigNo = 7
    }else if (Stn == 'HOT'){
-      FigNo = 12
+      FigNo = 13
    }
 
    fname <- paste0(Models,collapse='_')
@@ -128,3 +128,6 @@ plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
      #mtext(Sys.time(), side = 3, outer=TRUE, line=2)
    dev.off()
  } 
+
+
+

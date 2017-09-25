@@ -8,9 +8,9 @@ plot_stn = function(Stns, VARS, Model='NPZDcont', finalyr = T, Dmax = -150){
    }
    for (Stn in Stns){
      if (Stn == 'K2'){
-         FigNo = 9
+         FigNo = 10
      }else if (Stn == 'S1'){
-        FigNo = 10
+        FigNo = 11
      }else if (Stn == 'HOT'){
         FigNo = 13
      }

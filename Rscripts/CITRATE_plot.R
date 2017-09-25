@@ -11,7 +11,7 @@ setwd('/Users/apple/Working/FlexEFT1D/DRAM/NPZDcont_sRun/BOTH')
 Model   <- 'NPZDcont_sRun'
 
 #Calculate total nitrogen and iron:
-source('~/Working/FlexEFT1D/Rscripts/plot_TN.R')
+#source('~/Working/FlexEFT1D/Rscripts/plot_TN.R')
 
 #Plot an example of four years to show seasonal cycle:
 VARs    <- c('NO3','CHL_T','Fer','ZOO','R_PMU','R_VAR')
@@ -50,11 +50,11 @@ VARs <- c('NO3','Fer','CHL_T',
 Stns = c('K2','S1')
 
 source('~/Working/FlexEFT1D/Rscripts/plot_stn_contour.R')
-plot_stn(Stns, VARS, Model='NPZDcont',      finalyr = T, Dmax = -150)
+plot_stn(Stns, VARS, Model='NPZDcont', finalyr = T, Dmax = -150)
 plot_stn('HOT',VARS, Model='NPZDcont_sRun', finalyr = T, Dmax = -150)
 
 COLS     <- 2:3
-Models   <- c('NPZDcont_sRun')
+Models   <- c('NPZDcont')
 Modnames <- c('NPZDcont')
 Stns     <- c('K2','S1')
 Nstn     <- length(Stns)
@@ -65,21 +65,6 @@ source('~/Working/FlexEFT1D/Rscripts/plot_vertical_NChlNPP.R')
 for (Stn in Stns){
     plot_v_n(Stn, Models, VARS=c('DIN','CHL','NPP','PON'))
 }
-
-#Check SSqE:
-Model = 'NPZDcont'
-Stn   = 'S1'
-ensout= read.table('ensout',header=T)
-ensout= ensout[ensout$RunNo==max(ensout$RunNo),]
-
-#Pick out S1:
-for (i in 1:nrow(ensout)){
-    if (ensout$Name[i] == 'P_1' && ensout$Name[i+1] == 'TIN'){
-        break
-    }
-}
-ensout = ensout[(i+1):nrow(ensout),] 
-e1     = ensout[ensout$Name == 'TIN',]
 
 #Plot for HOT:
 Model    <- 'NPZDcont_sRun'
@@ -95,8 +80,6 @@ source('~/Working/FlexEFT1D/Rscripts/plot_vertical_size.R')
 for (Stn in Stns){
     plot_v_size(Stn, Models)
 }
-
-#Plot comparisons 
 
 #Iron diagnostics:
 TEMPBOL = function(Ea = 0.65, kb= 8.62E-5, tC, Tr=15) exp(-(Ea/kb)*(1./(273.15 + tC)-1./(273.15 + Tr)))
