@@ -50,7 +50,7 @@ VARs <- c('NO3','Fer','CHL_T',
 Stns = c('K2','S1')
 
 source('~/Working/FlexEFT1D/Rscripts/plot_stn_contour.R')
-plot_stn(Stns, VARS, Model='NPZDcont_sRun',      finalyr = T, Dmax = -150)
+plot_stn(Stns, VARS, Model='NPZDcont',      finalyr = T, Dmax = -150)
 plot_stn('HOT',VARS, Model='NPZDcont_sRun', finalyr = T, Dmax = -150)
 
 COLS     <- 2:3
@@ -81,14 +81,6 @@ for (i in 1:nrow(ensout)){
 ensout = ensout[(i+1):nrow(ensout),] 
 e1     = ensout[ensout$Name == 'TIN',]
 
-#Calculate SSqE:
-
-
-
-
-
-
-
 #Plot for HOT:
 Model    <- 'NPZDcont_sRun'
 Modnames <- 'NPZDcont'
@@ -103,6 +95,8 @@ source('~/Working/FlexEFT1D/Rscripts/plot_vertical_size.R')
 for (Stn in Stns){
     plot_v_size(Stn, Models)
 }
+
+#Plot comparisons 
 
 #Iron diagnostics:
 TEMPBOL = function(Ea = 0.65, kb= 8.62E-5, tC, Tr=15) exp(-(Ea/kb)*(1./(273.15 + tC)-1./(273.15 + Tr)))
