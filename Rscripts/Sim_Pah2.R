@@ -8,7 +8,7 @@ param_DRAM=TRUE
 
 if (param_DRAM) {
    #Read best parameters from DRAM output:
-   system('scp -r bzchen@chula.yes.jamstec.go.jp:/data16/bzchen/FlexEFT1D/DRAM_0.8/EFTsimple/S1  ~/Working/FlexEFT1D/DRAM_0.8/EFTsimple/')
+   system('scp -r bzchen@chula.yes.jamstec.go.jp:/data16/bzchen/FlexEFT1D/DRAM_0.8/EFTsimple/S1  ~/Working/FlexEFT1D/DRAM/EFTsimple/')
    
    params = read.table('~/Working/FlexEFT1D/DRAM_0.8/EFTsimple/S1/enspar',header=T)
    params = params[which.max(params$LogL),]

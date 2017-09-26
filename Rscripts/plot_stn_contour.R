@@ -12,7 +12,7 @@ plot_stn = function(Stns, VARS, Model='NPZDcont', finalyr = T, Dmax = -150){
      }else if (Stn == 'S1'){
         FigNo = 11
      }else if (Stn == 'HOT'){
-        FigNo = 13
+        FigNo = 14
      }
      pdffile <- paste0('Fig_',FigNo,Stn,'_1D.pdf')
      pdf(pdffile, width = 8, height = 8, paper = 'a4')

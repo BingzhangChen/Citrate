@@ -36,17 +36,17 @@ plot_1D <- function(Var,model,Stn,title='',ZLIM=NULL, finalyr = F, BOTH = T, Dma
     }
     #Add Variable name and units:
     if (Var == 'NO3'){
-      Varname  <- bquote('TIN (mmol '*m^-3*')')
+      Varname  <- bquote('DIN (mmol '*m^-3*')')
     }else if (Var == 'Fer' || Var == 'DETFe'){
       Varname  <- bquote(.(Var) ~ ' (µmol '*m^-3*')')
     }else if (Var == 'CHL_T'){
       Varname  <- expression(paste("Chl "*'(mg '*m^-3*')'))
     }else if (Var == 'NPP'){
       Varname  <- bquote(.(Var)~' (mg C '*m^-3*' '*d^-1*')')
-    }else if (substr(Var,1,2) == 'mu'){
-      K        <- substr(Var,4,4)
-#      Varname  <- bquote('µ'~ .(K) ~' ( '*d^-1*')')
-      Varname  <- bquote('µ ( '*d^-1*')')
+    }else if (Var == 'muAvg'){
+      Varname  <- bquote(µ[com]* ' ( '*d^-1*')')
+    }else if (Var == 'muN1'){
+      Varname  <- bquote('µ  ( '*d^-1*')')
     }else if (Var == 'The1'){
       Varname  <- expression(paste("Chl:C "*' (gChl '*molC^-1*')'))
     }else if (Var == 'QN_1'){
@@ -56,7 +56,7 @@ plot_1D <- function(Var,model,Stn,title='',ZLIM=NULL, finalyr = F, BOTH = T, Dma
     }else if (Var == 'R_PMU'){
       Varname  <- expression(paste("Mean size "*'( '*µm*')'))
     }else if (Var == 'R_VAR'){
-      Varname  <- expression(paste("Ln size variance "*'('*µm^3*')'^2*')'))
+      Varname  <- expression(paste("Size variance "*'(ln '*µm^3*')'^2))
     }else if (Var == 'dmudl'){
       Varname  <- expression(paste("dµ/dL ("*d^-1*' (ln '*µm^3*')'^-1*' )'))
     }else if (Var == 'd2mu'){

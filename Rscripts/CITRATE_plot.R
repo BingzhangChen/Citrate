@@ -14,9 +14,9 @@ Model   <- 'NPZDcont_sRun'
 #source('~/Working/FlexEFT1D/Rscripts/plot_TN.R')
 
 #Plot an example of four years to show seasonal cycle:
-VARs    <- c('NO3','CHL_T','Fer','ZOO','R_PMU','R_VAR')
+VARs    <- c('NO3','CHL_T','R_PMU','R_VAR')
 NVar    <- length(VARs)
-pdffile <- paste0('fullyear_example_1D.pdf')
+pdffile <- paste0('Fig3.fullyear_example_1D.pdf')
 
 pdf(pdffile, width = 9, height = 6, paper = 'a4')
 op <- par(font.lab = 1,
@@ -51,7 +51,6 @@ Stns = c('K2','S1')
 
 source('~/Working/FlexEFT1D/Rscripts/plot_stn_contour.R')
 plot_stn(Stns, VARS, Model='NPZDcont', finalyr = T, Dmax = -150)
-plot_stn('HOT',VARS, Model='NPZDcont_sRun', finalyr = T, Dmax = -150)
 
 COLS     <- 2:3
 Models   <- c('NPZDcont')
@@ -66,20 +65,54 @@ for (Stn in Stns){
     plot_v_n(Stn, Models, VARS=c('DIN','CHL','NPP','PON'))
 }
 
+source('~/Working/FlexEFT1D/Rscripts/plot_vertical_size.R')
+#Plot vertical distributions of size
+for (Stn in Stns){
+    plot_v_size(Stn, Models)
+}
+
+
 #Plot for HOT:
 Model    <- 'NPZDcont_sRun'
 Modnames <- 'NPZDcont'
 Stn   <- 'HOT'
 DIR   <- paste0('~/Working/FlexEFT1D/DRAM/',Model,'/',Stn,'/')
 setwd(DIR)
+fname='param.nml'
+if(file.exists(fname)) file.remove(fname)
+file.create(fname)
+fw=file(fname,open='wt')
+writeLines('&parameters',con=fw) #write header to file
+txt=paste0('mu0hat=',bestpar$mu0hat,',')
+writeLines(txt,con=fw) #write to file
+txt=paste0('KN=',    bestpar$KN,',')
+writeLines(txt,con=fw) #write to file
+txt=paste0('KPHY=',  bestpar$KPHY,',')
+writeLines(txt,con=fw) #write to file
+txt=paste0('wDET=',  bestpar$wDET,',')
+writeLines(txt,con=fw) #write to file
+txt=paste0('aI0=',   bestpar$aI0_C,',')
+writeLines(txt,con=fw) #write to file
+txt=paste0('alphaI=',bestpar$alphaI,',')
+writeLines(txt,con=fw) #write to file
+txt=paste0('mz=',    bestpar$mz,',')
+writeLines(txt,con=fw) #write to file
+txt=paste0('KFe=',   bestpar$KFe,',')
+writeLines(txt,con=fw) #write to file
+txt=paste0('VTR=',   bestpar$VTR,',')
+writeLines(txt,con=fw) #write to file
+txt='bot_bound=0,'
+writeLines(txt,con=fw) #write to file
+writeLines('/',con=fw)
+close(fw)
+system('./run')
+system('./citrate > Out')
 
 plot_v_n(Stn, Model, VARS=c('DIN','CHL','NPP','PON'), BOTH=F)
+plot_stn('HOT',VARS, Model='NPZDcont_sRun', finalyr = T, Dmax = -150)
 
-source('~/Working/FlexEFT1D/Rscripts/plot_vertical_size.R')
-#Plot vertical distributions of size
-for (Stn in Stns){
-    plot_v_size(Stn, Models)
-}
+#plot var ~ mu and decomposition of different factors to var:
+source('~/Working/FlexEFT1D/Rscripts/mu_and_var.R')
 
 #Iron diagnostics:
 TEMPBOL = function(Ea = 0.65, kb= 8.62E-5, tC, Tr=15) exp(-(Ea/kb)*(1./(273.15 + tC)-1./(273.15 + Tr)))
