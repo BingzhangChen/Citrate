@@ -1,5 +1,5 @@
 Program Single_Run
-use sub_mod
+USE Interface_MOD
 implicit none
 real :: start, finish
 
@@ -8,12 +8,16 @@ real, allocatable    :: Ymod(:)
 integer              :: i
 real                 :: mu0hat, A0N, wDET, Q0N,aI0,mz,gmax
 
-namelist /parameters/    mu0hat, A0N, wDET, Q0N,aI0,mz,gmax
+namelist /parameters/    mu0hat, A0N, wDET, Q0N,aI0,mz,gmax,bot_bound
 
 !  open the namelist file and read station name.
 open(namlst,file='param.nml',status='old',action='read')
 read(namlst,nml=parameters)
 close(namlst)
+
+MPIRUN   = 0
+taskid   = 0
+numtasks = 1
 
 call cpu_time(start) 
 singlerun = .TRUE.

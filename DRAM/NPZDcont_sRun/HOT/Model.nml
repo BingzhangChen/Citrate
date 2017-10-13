@@ -10,7 +10,7 @@
    nruns   = 2,
    BurnInt = 1000, ! number of runs for initial 'Burn-in'
    EnsLen  = 1, 
-   NDays   = 1080,
+   NDays   = 1440,
    Readfile= 0,
    NR_enspar=93370,
 /

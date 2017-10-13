@@ -58,7 +58,7 @@ getdata_station <- function(varname,lon,lat){
     names(obs_time) <- c( paste('M',1:length(time),sep=''))
 
     if (ROMS){
-      obs_time[1,]    <- time/86400/30 
+      obs_time[1,]    <- time/30 
     } else{
       obs_time[1,]    <- time 
     }

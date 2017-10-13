@@ -49,7 +49,7 @@ K2     = StnData('K2')
 muAvg2 = K2$muAvg
   VAR2 = K2$VAR
 
-pdf('Fig13_mu_Var.pdf', width = 7, height = 9, paper = 'a4')
+pdf('Fig12_mu_Var.pdf', width = 5, height = 7)
 op <- par(font.lab = 1,
             family ="serif", cex.axis=1.2, cex.lab=1.2,
             mar    = c(3.5,4,1.5,.5),
@@ -80,7 +80,7 @@ VMU  <- 2*VTR*S1$mu
 
 N_var <- D2mu+D2G1+D2G2+D4mu+VMU+S1$dVdt  #Net effect
 plot(S1$Days, D2mu, type = 'l', xaxt = 'n',
-     ylim = c(-0.2,0.35),
+     ylim = c(-0.2,0.5),
      xlab = '', 
      ylab = 'Effects on size diversity')
 lines(S1$Days, D2G1, col='gray', lty = 2, lwd = .8)
@@ -92,12 +92,16 @@ lines(S1$Days, N_var,col=6, lty = 4)
 DVDt <- c(diff(VAR1),NA)  #Net changes in VAR based on modeled Variance
 lines(S1$Days, DVDt, col=2, lty = 1)
 abline(h=0)
+legend('topleft', 
+       legend=c('Competition','MIC grazing','MES grazing','d4µ/dL4'),
+       col=c(1,'gray','gray0','tan'),
+       lty=c(1,    2,    2,     2  ),
+       lwd=c(1,.8,.8,.8))
 legend('topright', 
-       legend=c('Competition','MIC grazing','MES grazing','d4µ/dL4',
-                'Trait diffusion','Diffusion','Net effect','Net changes'),
-       col=c(1,'gray','gray0','tan','green','blue',6,2),
-       lty=c(1,    2,    2,     2,        1,  4,   4,1),
-       lwd=c(1,.8,.8,.8,1,1,1,1))
+       legend=c('Trait diffusion','Diffusion','Net effect','Net changes'),
+       col=c('green','blue',6,2),
+       lty=c(      1,  4,   4,1),
+       lwd=c(1,1,1,1))
 
 axis(1, at=seq(15,360,by=90),
      labels=c('Jan','Apr','Jul','Oct'))

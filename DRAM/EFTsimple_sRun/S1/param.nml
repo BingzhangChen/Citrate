@@ -1,9 +1,10 @@
 &parameters
 mu0hat=5,
-A0N   =1,
-wDET=1,
-Q0N=0.05,
-aI0=0.6,
-mz =0.15,
-gmax=1.0,
+A0N=-0.3,
+wDET=2.673e-05,
+Q0N=0.04,
+aI0=0.5868,
+mz=0.05006,
+gmax=1.614,
+bot_bound=1,
 /
