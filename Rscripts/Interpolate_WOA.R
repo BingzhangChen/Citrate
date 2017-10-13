@@ -13,6 +13,8 @@ parFile <- '/Users/apple/ROMS/Data/Roms_tools/SeaWifs/par_month.nc'
 ChlFile <- '/Users/apple/ROMS/Data/Roms_tools/SeaWifs/chla_month.nc'
 # MLD data
 MLDFile <- '~/Working/Global_PP/MLD_month.nc'
+# Chl:C data
+theta_file = '/Users/apple/Working/Global_PP/Global_size_theta.nc';
 
 # KD490 data
 KD490File <- '~/Working/Global_PP/KD490_month.nc'
@@ -161,6 +163,10 @@ readnc <- function(variable, sourcefile = ROMSFile, ROMS=T, nameit='npacS'){
     Vname      <- 'AKs'
   } else if(variable == 'Chl_roms'){
     Vname      <- 'CHL'
+  } else if(variable == 'Chl_C'){
+    sourcefile <- theta_file
+    Vname      <- 'Chl_C'
+    nvar       <- 1
   } else if(variable == 'solfe'){  #soluble Fe
     Vname      <- 'scenarioIII'
   } else if(variable == 'w_SODA'){

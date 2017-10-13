@@ -16,10 +16,10 @@ Kp  =0.5
 RDN =0.1
 mz  =params(imz)
 gmax=params(igmax)
-mu0 =params(imu0)
+mu0 =5d0
 DO k = nlev,1,-1    ! k from surface to bottom, cannot be reversed
    DET  = Vars(iDET,k)
-   NO3  = Vars(iNO3,k)
+   NO3  = max(Vars(iNO3,k),eps)
    PHY  = Vars(iPHY(1),k)
    ZOO  = Vars(iZOO,k)  !Zooplankton biomass
 
@@ -30,17 +30,18 @@ DO k = nlev,1,-1    ! k from surface to bottom, cannot be reversed
       par_ = PARavg
    endif
    Varout(oPAR_,k) = par_
+
 ! Phytoplankton section:
 ! Calculate phytoplankton growth rate, theta, and QN based on environmental conditions
-   call EFT_phygrowth(mu0,KN,params(iA0N), params(iaI0), NO3,Temp(k),PAR(k),&
+   call EFT_phygrowth(mu0,KN,10**params(iA0N), params(iaI0), NO3,Temp(k),PAR(k),&
                    muNet, QN,                                         &
                    Varout(oTheta(1),k),                               &
                    Varout(oSI(1),k), Varout(oLno3(1),k))
 
-   Varout(oPPt,k) = PHY*muNet/dtdays/Varout(oQN(1),k)*12d0
+   Varout(oPPt,k) = PHY*muNet/dtdays/QN*12d0
 
    !Call again with par_
-   call EFT_phygrowth(mu0,KN,params(iA0N), params(iaI0), NO3,Temp(k),par_,&
+   call EFT_phygrowth(mu0,KN,10**params(iA0N), params(iaI0), NO3,Temp(k),par_,&
                    muNet, Varout(oQN(1),k),                               &
                    Varout(oTheta(1),k),                               &
                    Varout(oSI(1),k), Varout(oLno3(1),k))

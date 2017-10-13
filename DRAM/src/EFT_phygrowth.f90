@@ -21,18 +21,15 @@ real,    external  :: WAPR
 !-----------------------------------------------------------------------
 !Warning: All rates should be multiplied by dtdays to get the real rate
 tf_p    = TEMPBOL(Ep,tC)
-zetaChl = 0.8 !params(izetaChl)
-zetaN   = 0.6 !params(izetaN)
 Qs      = params(iQ0N)/2d0
 mu0hat  = dtdays*tf_p*mu0
-
-V0hat=mu0hat  
+V0hat   = mu0hat  
   
 ! Initial slope of P-I curve
-aI=dtdays*aI0
+aI      = dtdays*aI0
 
 ! Cost of photosynthesis
-RMchl=tf_p*RMchl0*dtdays
+RMchl   = tf_p*RMchl0*dtdays
 
 ! Threshold irradiance and RMchl is set temperature dependent
 I_zero=zetaChl*RMchl/aI  
@@ -75,17 +72,14 @@ if(par_ .gt. I_zero) then    !To avoid large C:Chl ratios
 ! (needs to take into account the cost of dark and light-dependent chl maintenance)
   mu0hatSI = mu0hat*SI  ! Gross specific carbon uptake (photosynthesis)
   muIhat   = mu0hatSI-(mu0hatSI+RMchl)*zetaChl*ThetaHat ! Net specific carbon uptake
-  muIhat   = max(muIhat,1D-9*mu0hat)
+  muIhat   = max(muIhat,1D-10*mu0hat)
   LSI      = 1D0-SI
   ZINT     = Qs*(muIhat/VNhat + zetaN)
-  fV       = (-1d0 + sqrt(1d0 + 1d0/ZINT))*Qs*muIhat/VNhat
-  fV       = max(fV,0.01)
     
 else
   ! Under the conditions of no light:
    ThetaHat      = 2d-2  !  a small positive value 
    ZINT          = Qs*zetaN
-   fV            = 1d-2
    muIhat        = 0d0
    LSI           = 1D0
 endif
@@ -102,6 +96,7 @@ else
   muNet = 0d0
 endif
 
+fV     = Qs/QN - zetaN*(QN - 2.*Qs)
 ! Chl:C ratio [ g chl / mol C ] of the whole cell
 Theta  = ThetaHat*(1D0-fV-Qs/QN)
 return  

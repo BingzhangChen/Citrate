@@ -1,5 +1,5 @@
 #Plot the model output of surface Chl:
-setwd('~/Working/FlexEFT1D/DRAM_0.9/')  
+setwd('~/Working/FlexEFT1D/DRAM/')  
 source('~/Working/FlexEFT1D/Rscripts/getData.R')
 source('../Rscripts/get_obs_MLD.R')
 source('../Rscripts/Hz.R')
@@ -9,7 +9,7 @@ Stns <- c('S1','HOT')
 Nstn <- length(Stns)
 Models <- c('NPZDFix_sRun','EFTsimple_sRun')
 
-pdf('Fig4_ML_mod_obs.pdf', width=2.5*Nstn,height=6,paper='a4')
+pdf('Fig5_ML_mod_obs.pdf', width=2.5*Nstn,height=6,paper='a4')
    op <- par(font.lab = 1,
                 family ="serif",
                 mar    = c(4,4,1,3),
@@ -18,7 +18,7 @@ pdf('Fig4_ML_mod_obs.pdf', width=2.5*Nstn,height=6,paper='a4')
                 lwd    = 1.5,
                 mfrow  = c(3,Nstn)) 
 j=0
-for (Var in c('TIN','CHL','NPP')){
+for (Var in c('DIN','CHL','NPP')){
   for (Stn in Stns){
 
     j       = j+1
@@ -29,9 +29,9 @@ for (Var in c('TIN','CHL','NPP')){
     YLab    = ''
     par(mar=c(2,2,2,.2))
     #Write out Ylab:
-    if (Var == 'TIN'){
+    if (Var == 'DIN'){
        if (Stn == Stns[1]) {
-           YLab = expression(paste('TIN (µmol '*L^-1*')'))
+           YLab = expression(paste('DIN (µmol '*L^-1*')'))
            par(mar=c(2,4,2,.2))
        }
        if (Stn == 'HOT') ymax=0.5
@@ -71,12 +71,12 @@ for (Var in c('TIN','CHL','NPP')){
     ii <- 0
     for (model in Models){
        ii      <- ii+1
-       DIR     <- paste('~/Working/FlexEFT1D/DRAM_0.9/',model,'/',Stn,'/',sep='')
+       DIR     <- paste('~/Working/FlexEFT1D/DRAM/',model,'/',Stn,'/',sep='')
 
        #Get modeled Chl data
        if (Var == 'CHL'){
         Chl  = getData(DIR,Stn,'CHL_T')
-       }else if (Var == 'TIN'){
+       }else if (Var == 'DIN'){
         Chl  = getData(DIR,Stn,'NO3')
        }else if(Var == 'NPP'){
         Chl  = getData(DIR,Stn,'NPP_T')
@@ -108,7 +108,7 @@ for (Var in c('TIN','CHL','NPP')){
      #   }
         lines(1:length(s_Chl),s_Chl, lty=LTYS[ii],col=COLS[ii])
 
-        if (Var == 'TIN' && Stn == Stns[1]){
+        if (Var == 'DIN' && Stn == Stns[1]){
            legend('topright',c('MONOD','PAHLOW'),
                   col=COLS,lty=LTYS  )
         }

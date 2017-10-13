@@ -30,6 +30,7 @@ else if (Model_ID== EFTdiscFe) then
 else if (Model_ID==NPZDFix) then
   if(taskid==0) write(6,*) 'Inflexible NPZD model selected!'
   NPHY = 1
+  do_IRON = .FALSE.
 else if (Model_ID==NPZDN2) then
   if(taskid==0) write(6,*) 'NPZD model with N2 fixation selected!'
   NPHY = 1
@@ -47,7 +48,16 @@ else if (Model_ID==GeidsimIRON) then
   NPHY = 1
 else if (Model_ID==EFTsimple) then
   if(taskid==0) write(6,*) 'Flexible simple model selected!'
-  NPHY = 1
+  NPHY    = 1
+  DO_IRON = .FALSE.
+  igmax   =  1  
+  imz     =  igmax  + 1
+  iA0N    =  imz    + 1
+  iwDET   =  iA0N   + 1
+  iaI0    =  iwDET  + 1
+  iQ0N    =  iaI0   + 1
+  NPar    =  iQ0N
+
 else if (Model_ID==EFTsimIRON) then
   if(taskid==0) write(6,*) 'Flexible simple model with Iron selected!'
   do_IRON = .TRUE.
@@ -439,7 +449,7 @@ endif
 ! For EFT models, the affinity approach not used for now
 ! Need to have tradeoffs for maximal growth rate (mu0) and Kn
 ! Common parameters:
-if (Model_ID .ne. NPZDcont) then
+if (Model_ID .ne. NPZDcont .and. Model_ID .ne. EFTsimple) then
   imu0    =  1
   igmax   =  imu0  + 1
   iKPHY   =  igmax + 1  
@@ -554,22 +564,26 @@ if (taskid==0) write(6,'(I2,1x,A20)') NPar,'parameters in total to be estimated.
 allocate(params(NPar))
 allocate(ParamLabel(NPar))
 
-ParamLabel(imu0) = 'mu0hat '
+if (imu0 > 0) then
+    ParamLabel(imu0) = 'mu0hat '
+    params(imu0)     = 1d0
+endif
 ParamLabel(imz)  = 'mz'
 if (igmax > 0) then
    ParamLabel(igmax)= 'gmax'
    params(igmax)    = 1.35
 endif
 
-ParamLabel(iKPHY)= 'KPHY'
+if (iKPHY > 0) then
+    ParamLabel(iKPHY)= 'KPHY'
+    params(iKPHY)    = 0.25
+endif
 
 if (Model_ID .eq. NPZDN2) then
    params(imz)   = 0.15*16d0
 else
    params(imz)   = 0.15
 endif
-params(iKPHY)    = 0.25
-params(imu0)     = 1d0
 
 if(Model_ID==EFT2sp .or. Model_ID==EFTPPDD .or.  Model_ID==NPZD2sp .or. Model_ID==NPPZDD) then
    ParamLabel(imu0B)='mu0B'
@@ -627,7 +641,7 @@ if (nutrient_uptake .eq. 1) then
   endif
 else if (nutrient_uptake .eq. 2) then
    ParamLabel(iA0N    ) = 'A0N    '
-   params(iA0N)         = 5d0
+   params(iA0N)         = 1d-1  ! A0N = 10**params(iA0N)
   if (Model_ID .eq. EFT2sp .or. Model_ID .eq. EFTPPDD) then
      ParamLabel(iA0N2)='A0N2'   
      params(iA0N) = 7d1

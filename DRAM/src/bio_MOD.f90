@@ -62,7 +62,7 @@ integer  :: imu0,iaI0,igmax,iKN,iKP,iKPHY,iKPnif,iLnifp,iKFe,iRDN_N,iRDN_P
 integer  :: ialphamu,ibetamu,ialphaKN
 integer  :: imu0B, iaI0B, iA0N2, iRL2,iKN2,ibI0B
 integer  :: iVTR, ifer,od3mu,od4mu
-integer  :: iEp,iEz,izetaN,izetaChl, iaI0_C 
+integer  :: izetaN,izetaChl, iaI0_C 
 integer  :: ialphaI,iA0N,ialphaA,ialphaG,ialphaK, ialphaFe
 integer  :: iQ0N,ialphaQ,iPenfac,iLref,iwDET,irdN,imz
 integer  :: ithetamin,iQNmin,itau,iwDET2,igb,oFescav,odstdep
@@ -80,14 +80,15 @@ real, parameter :: GGE    =0.3, unass =0.24
 real, parameter :: Fe_N   =0.0265 ! Fe:Nitrogen molar ratio (nmol : umol)
 real, parameter :: thetm  =0.65
 real, parameter :: RMchl0 =0.1
-real, parameter :: Ep     =0.41, Ez   =0.65 
+real, parameter :: Ep     =0.5,  Ez   =0.65 
 real            :: alphamu=0.2,  betamu=-0.01
+real, parameter :: zetaChl=0.6,  zetaN =0.8
+real            :: thetamax = 0.63
 
 !Temperature senstivity tuned by the algorithm
 real :: KFe    =0.08     !Unit: nM. Gregg (2003) used ~0.1 nM for phyto
 
 !These two parametes also to be tuned by the algorithm
-real :: zetaChl=0.8, zetaN =0.6
 
 ! Size and weights for discrete models
 real, allocatable          :: PMU_(:)

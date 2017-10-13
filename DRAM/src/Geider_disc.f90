@@ -65,7 +65,7 @@ DO k = nlev,1,-1
    enddo
 !---------------------------------------------------------------
 !! ZOOplankton section:
-   tf_z = TEMPBOL(params(iEz),Temp(k))
+   tf_z = TEMPBOL(Ez,Temp(k))
 
  ! The grazing dependence on total prey (dimensionless)
    gbar = grazing(grazing_formulation,params(ikp),PHYtot)

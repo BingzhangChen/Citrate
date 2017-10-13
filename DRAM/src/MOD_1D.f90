@@ -5,7 +5,7 @@ public
 ! Grid parameters
 real, private, parameter :: hmax   = 5D2   ! Total water depth
 real, private, parameter :: thetaS = 2d0   ! surface stretching parameter
-real, private, parameter :: dtsec  = 1800d0   ! time step in seconds
+real, private, parameter :: dtsec  = 300d0   ! time step in seconds
 real, private, parameter ::d_per_s = 864d2 ! how many seconds in one day
 real, private, parameter :: zero   = 0d0
                       !how many seconds of one year
@@ -23,6 +23,8 @@ integer, private, parameter :: y_per_s = INT(d_per_s*360), &
 integer               :: nsave   = INT(d_per_s)/INT(dtsec) ! Timesteps to save
 
 integer, private      :: N_Aks(Nstn)              ! Station dependent
+
+integer, parameter    :: NFobs(TNFo)=(/12,12,360, 12,12,12,12,12,12/)
 
 ! Forcing data time indices 
 real, private, target :: obs_time_temp(NFobs(etemp), Nstn)
@@ -287,7 +289,7 @@ Do j = 1, Nstn
          NDPTS(itP_1,j) = NDPTS(itP10,j)
       endif
   else if (trim(Stn(j)) .eq. 'HOT') then
-      N_Aks(j)       = 39
+      N_Aks(j)       = 40
       NDPTS(itNO3,j) = 6451
       if (Model_ID .eq. NPZDN2) then
          NDPTS(itPO4,j) = 8072
@@ -439,14 +441,6 @@ Do j = 1, Nstn
     if (i .eq. itNO3) then   ! Nitrate
       DOY   = TINData((kk(1)+1):(kk(1)+nrow(1,j)),1)
       Depth = TINData((kk(1)+1):(kk(1)+nrow(1,j)),2)
-      !if (j > 1) then
-      !  do k = 1, NDPTS(i,j)
-      !    if (DOY(k) .eq. 15) then
-      !        write(6,*) 'k = ',k
-      !        stop
-      !    endif
-      !  enddo
-      !endif
     else if (i .eq. itCHL) then   ! CHL
       DOY   = CHLData((kk(2)+1):(kk(2)+nrow(2,j)),1)
       Depth = CHLData((kk(2)+1):(kk(2)+nrow(2,j)),2)
@@ -503,14 +497,6 @@ Do j = 1, Nstn
 
     do oi = 1, NDPTS(i,j)
          OBS_DOY(NL+k+oi) =   DOY(oi)
-         !if (j > 1 .and. i .eq. itNO3) then
-         !   if (DOY(oi) .eq. 15) then
-         !      write(6,*) 'k = ',k
-         !      write(6,*) 'oi = ',oi
-         !      write(6,*) 'NL = ',NL
-         !      stop
-         !   endif
-         !endif
        OBS_Depth(NL+k+oi) = Depth(oi)
        OBS_Label(NL+k+oi) = DataLabel(i)
     enddo
@@ -1338,24 +1324,28 @@ DO jj = 1, Nstn
 
      ! At surface, assume zero flux  (Neumann boundary condition)
 
-     !selectcase (bot_bound) ! Select the type of boundary condition at bottom
-     !case (Dirichlet)
-     if (j .eq. iNO3 .or. j .eq. ifer .or. j .eq. iPO4) then
+     selectcase (bot_bound) ! Select the type of boundary condition at bottom
+     case (Dirichlet)
+       if (j .eq. iNO3 .or. j .eq. ifer .or. j .eq. iPO4) then
 
-     !! At bottom,  assume constant values obtained from observation (Dirichlet boundary condition)
-       call diff_center(nlev,dtsec,cnpar,1,Hz, Neumann, Dirichlet, &
-                       zero, VarsBom(1,j),Aks,Vec0,Vec0,Taur,Vars1,Vars1,Vars2)
-     else
-     !case (Neumann)
+       !! At bottom,  assume constant values obtained from observation (Dirichlet boundary condition)
+         call diff_center(nlev,dtsec,cnpar,1,Hz, Neumann, Dirichlet, &
+                         zero, VarsBom(1,j),Aks,Vec0,Vec0,Taur,Vars1,Vars1,Vars2)
+       else
 
+     ! Zero flux at bottom
+         call diff_center(nlev,dtsec,cnpar,1,Hz, Neumann, Neumann, &
+                       zero, zero, Aks,Vec0,Vec0,Taur,Vars1,Vars1,Vars2)
+       endif
+     case (Neumann)
      ! Zero flux at bottom
        call diff_center(nlev,dtsec,cnpar,1,Hz, Neumann, Neumann, &
                        zero, zero, Aks,Vec0,Vec0,Taur,Vars1,Vars1,Vars2)
-     !case default
-     !  write(6,*) 'The type of bottom boundary condition incorrect!'
-     !  stop
-     !end select
-     endif
+
+     case default
+       write(6,*) 'The type of bottom boundary condition incorrect!'
+       stop
+     end select
 
      ! Save diffusion fluxes (normalized to per day)
      Varout(oD_NO3+j-1,:) = (Vars2(:) - Vars1(:))/dtdays

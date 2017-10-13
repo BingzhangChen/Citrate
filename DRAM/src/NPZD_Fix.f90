@@ -13,7 +13,6 @@ Kp  = 0.5
 gmax= params(igmax)
 RDN = 0.1
 mz  = params(imz)
-!bI0 = 10**params(ibI0B)
 
 if (do_IRON) KFe = params(iKFe)
 
@@ -37,8 +36,7 @@ DO k = 1, nlev
               bI0, params(iKN),KPO4, DFe(k), KFe_,                        &
               muNet, QN, QP,Varout(oTheta(1),k),                          &
               Varout(oSI(1),k), Varout(oLno3(1),k))
-
-   Varout(oPPt,k)=Vars(iPHY(1),k)*muNet/Varout(oQN(1),k)*12d0
+   Varout(oPPt,k)=Vars(iPHY(1),k)*muNet/QN*12d0
 
    ! Calculate phytoplankton growth rate, theta, and QN based on environmental conditions
    CALL MONOD(Temp(k), PAR_, NO3, 1.,params(imu0),params(iQ0N), Qpmin,  &
@@ -67,7 +65,6 @@ DO k = 1, nlev
   pp_NZ = ZOO*RES        
   pp_DZ = ZOO*EGES+Zmort 
   pp_ZP = ZOO*INGES      
-  
   Varout(oDET,k)       = (DET + pp_DZ)-pp_ND
   Varout(oNO3,k)       = (NO3+pp_ND+pp_NZ)-PHY*muNet
   Varout(oPHY(1),k)    = PHY*(1d0 + muNet)-pp_ZP

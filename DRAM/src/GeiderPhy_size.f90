@@ -12,7 +12,7 @@ real, intent(out)   :: muNet, SI, Lno3
 real                :: Kn, mu0hat
 
 alphamu = params(ialphamu)
-tf_p    = TEMPBOL(params(iEp),tC)
+tf_p    = TEMPBOL(Ep,tC)
 
 mu0hat  = dtdays*tf_p * params(imu0) * exp(alphamu*PMU)
 

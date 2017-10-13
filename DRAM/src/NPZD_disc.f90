@@ -6,10 +6,11 @@ real    :: par_,PHYtot, PHYtot2, pp_PN
 real    :: DET, ZOO, NO3, DET1
 real    :: dx, alphaG
 real    :: CHLs(4)= 0d0  ! Size fractionated Chl
+real,    parameter :: RDN   =  0.1
+real,    parameter :: gmax  = 1.35 !Chai et al. (2002)
 
 
 if (kill_the_winner) then
-!   alphaG=params(ialphaG)
    alphaG=1.1
 else
    alphaG=1d0
@@ -31,32 +32,30 @@ DO k = nlev,1,-1
    PHYtot2 =0d0  ! total P**alphaG
    pp_PN   =0d0  ! N-based NPP
    CHLs(:) =0d0  ! Size fractionated CHL
+   Varout(oCHLt, k) = 0d0
   
 !! Phytoplankton section:
    do i = 1, NPHY
 
      call NPZDPhy_size(PMU_(i),Vars(iNO3,k), Temp(k), par_, Varout(omuNet(i),k), &
-             Varout(oSI(i),k), Varout(oLno3(i),k))
+             Varout(oSI(i),k), Varout(oLno3(i),k), Varout(oQN(i),k), Varout(oTheta(i),k))
 
      PHYtot  = PHYtot +Vars(iPHY(i),k)
      PHYtot2 = PHYtot2+Vars(iPHY(i),k)**alphaG
      pp_PN   = Vars(iPHY(i),k)*Varout(omuNet(i),k) + pp_PN
     
      ! Chl in this size class
-     dx      =Vars(iPHY(i),k)/ params(iQ0N) * params(itheta)
+     dx      =Vars(iPHY(i),k)/Varout(oQN(i),k) * Varout(oTheta(i),k)
      Varout(oCHL(i),k)=dx
-     Varout(otheta(i),k)=params(itheta)
-     Varout(oQN(i), k)=params(iQ0N)
      do j = 1, 4
         CHLs(j) = CHLs(j) + dx*wtCHL(j,i)
      enddo
-  
+     Varout(oCHLt,k) = Varout(oCHLt,k) + dx
    enddo
 
 
    ! save total phytoplankton biomass
    Varout(oPHYt,k) = PHYtot
-   Varout(oCHLt,k) = PHYtot / params(iQ0N) * params(itheta)
    
    ! save total NPP (carbon-based)
    Varout(oPPt,k)  = pp_PN/dtdays/params(iQ0N)
@@ -72,7 +71,7 @@ DO k = nlev,1,-1
  ! The grazing dependence on total prey (dimensionless)
    gbar = grazing(grazing_formulation,params(ikp),PHYtot)
  !Zooplankton total ingestion rate
-   INGES = tf_z*dtdays*params(igmax)*gbar
+   INGES = tf_z*dtdays*gmax*gbar
 
  !Zooplankton excretion rate (-> DOM)
    RES  = INGES*(1d0-GGE-unass)
@@ -89,8 +88,7 @@ DO k = nlev,1,-1
      Varout(oGraz(i),k) = (INGES*ZOO/PHYtot2)                       &
        *Vars(iPHY(i),k)**(alphaG - 1d0)
      
-     Varout(oPHY(i),k) = max( Vars(iPHY(i),k)*(1d0+Varout(omuNet(i),k)) &
-       /(1d0 + Varout(oGraz(i),k)), 1D-20)
+     Varout(oPHY(i),k) = Vars(iPHY(i),k)*(1.+Varout(omuNet(i),k)-Varout(oGraz(i),k))
 
    enddo
 
@@ -100,14 +98,14 @@ DO k = nlev,1,-1
   Zmort = ZOO*ZOO*dtdays* params(imz) *tf_z  !Mortality term for ZOO
  
   ! For production/destruction matrix:
-  pp_ND = dtdays* params(irDN) *DET*tf_z   
+  pp_ND = dtdays* RDN *DET*tf_z   
   pp_NZ = ZOO*RES        
   pp_DZ = ZOO*EGES+Zmort 
   pp_ZP = ZOO*INGES      
-  DET1  = (DET+pp_DZ)/(1d0 + dtdays * params(irDN)*tf_z)
+  DET1  = (DET+pp_DZ) - dtdays * RDN * tf_z
  
   Varout(oDET,k) = DET1
-  Varout(oNO3,k) = max( (NO3+pp_ND+pp_NZ)/(1d0+pp_PN/NO3), 1D-20)
+  Varout(oNO3,k) = (NO3+pp_ND+pp_NZ)-pp_PN
 
   Varout(oZOO,k) = (ZOO+pp_ZP)/(1d0   &
                  + EGES+ZOO*dtdays*params(imz)*tf_z+RES)

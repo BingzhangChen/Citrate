@@ -4,7 +4,7 @@ sourceCpp("~/Working/FlexEFT1D/Rscripts/lambert.cpp")
 
 #Parameters very important!
 mu_fix <-function(NO3=50,par_  = 100, Temp = 15, mu0=1.2, KN0 = 3.486, 
-                  Q0N  =.06,Ep = 0.6, aI0C= 0.066, thetamax = 0.42){
+                  Q0N  =.06,Ep = 0.5, aI0C= 0.066, thetamax = 0.63){
  #Try to be as consistent with flexible model as possible
     thetamin <- 0.02
     rmax  <- mu0 * TEMPBOL(Ep, Temp) 
@@ -24,8 +24,8 @@ mu_fix <-function(NO3=50,par_  = 100, Temp = 15, mu0=1.2, KN0 = 3.486,
 
 
 mu_EFT <- function(temp = 15,  par_=400, NO3=100, aI = 6.103E-01, Q0N = 0.07561,
-                   A0N  = 9.139E-02, Ep = 0.5, mu0= 2.541,   V0N= 2.541,
-                   RMchl0 = .1,zetaChl=.8,  zetaN=0.6,  KN0 = 1,
+                   A0N  = 9.139E-02, Ep = 0.5,    mu0= 5,
+                   RMchl0 = .1,      zetaChl=.6,  zetaN=0.8,  KN0 = 1,
                    nutrient_uptake=2,KFe=.2, DFe=0.4, do_IRON=F){
 
 # Phytoplankton section:

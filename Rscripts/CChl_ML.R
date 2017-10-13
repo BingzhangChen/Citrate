@@ -4,7 +4,7 @@ source('~/Working/FlexEFT1D/Rscripts/getData.R')
 source('~/Working/FlexEFT1D/Rscripts/get_obs_MLD.R')
 source('~/Working/FlexEFT1D/Rscripts/Interpolate_WOA.R')
 #Estimate C:Chl from remote sensing:
-Chl_C    <- readnc('Chl_C')  #A global Chl:C data on the surface
+Chl_C    <- readnc('Chl_C', ROMS=F)  #A global Chl:C data on the surface
 COLS     <- c('green','red')
 Models   <- c('NPZDFix_sRun','EFTsimple_sRun')
 #Modnames <- c('NPZDFix','Geider','Pahlow','NPZDFixFe','GeiderFe','PahlowFe')

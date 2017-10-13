@@ -389,8 +389,10 @@ if (igmax > 0) then
  MinValue(igmax) =  0.5
 endif
 
+if (iKPHY > 0) then
  MaxValue(iKPHY) = 2d0
  MinValue(iKPHY) = .05
+endif
 
 if (Model_ID .eq. NPZDDISC .or. Model_ID .eq. EFTdisc) then
    MaxValue(ialphaG)=.1
@@ -423,8 +425,8 @@ case(1)
 case(2)
   ! Pahlow et al. (2013) gave a range of 60 ~ 1000 (unit: m3 molC-1 d-1)
   ! Smith et al. (2015) estimated as 0.15 (unit: m3 mmolC-1 d-1)
-  MaxValue(iA0N   ) =  1d5
-  MinValue(iA0N   ) =  0.01
+  MaxValue(iA0N   ) =  5d0
+  MinValue(iA0N   ) =  -3d0
   if (Model_ID .eq. EFT2sp .OR. Model_ID .eq. EFTPPDD) then
      MinValue(iA0N) =  1d0
      MaxValue(iA0N2)=  -0.1
@@ -491,8 +493,10 @@ case(EFTsimple, EFTdisc, EFTcont,EFT2sp,EFTPPDD, EFTsimIRON)
 !  Following Pahlow et al. (2013), fix mu0 and V0N as 5 per day
 !  Net growth rate regulated by A0N and Q0N
 
-  MaxValue(imu0) =  6d0
-  MinValue(imu0) =  0.2
+  if (imu0 > 0) then
+     MaxValue(imu0) =  6d0
+     MinValue(imu0) =  0.2
+  endif
 
   if (Model_ID.eq.EFTsimIRON) then
     ! Galbraith et al. BG (2010) used KFe = 0.8 nM
@@ -503,28 +507,11 @@ case(EFTsimple, EFTdisc, EFTcont,EFT2sp,EFTPPDD, EFTsimIRON)
 
 !-------------------------------
   if(Model_ID.eq.EFTdisc .or. Model_ID.eq.EFTcont) then
-     !if (model_ID .eq. EFTcont) then
-     !   MaxValue(ithetamin) = 0.1
-     !   MinValue(ithetamin) = 0.01
-     !   MaxValue(iQNmin)    = 0.05
-     !   MinValue(iQNmin)    = 0.005
-     !   MaxValue(iPenfac)   = 2D0
-     !   MinValue(iPenfac)   = 1D-1
-     !   
-     !endif
      MaxValue(ialphaI  ) =  0.0
      MinValue(ialphaI  ) =  -0.3
 
-     !MaxValue(izetaN  )  = 1D0 
-     !MinValue(izetaN  )  = .6
-
-     !MaxValue(izetaChl)  = .6 
-     !MinValue(izetaChl)  = .3 
-
      MaxValue(ialphamu)  = .3
      MinValue(ialphamu)  = 1D-3
-     !  MaxValue(ibetamu)   = .02
-     !  MinValue(ibetamu)   = -.03
      select case(nutrient_uptake)
      case(1)
        MaxValue(ialphaKN)=  0.5
@@ -550,16 +537,16 @@ end select
 
 ! Set the prior parameters
 do k = 1, NPar
-!   Apv(k)   = (MaxValue(k)+MinValue(k))/2d0
-   Apv(k)   = Params(k)   ! Changed in DRAM_0.7
+   Apv(k)   = Params(k) 
    Ipv(k)   = Apv(k)
-   write(6,101) 'ParamLabel(',k,') =',trim(ParamLabel(k))
-   write(6,102) 'Params(',k,') =',Params(k)
-   write(6,102) 'Max(',k,') =',   MaxValue(k)
-   write(6,102) 'Min(',k,') =',   MinValue(k)
-   if (Params(k) .lt. MinValue(k) .OR. Params(k) .gt. MaxValue(k) .and. taskid .eq. 0) &
-   stop "Parameter out of bounds!"
-
+   if (taskid .eq. 0) then
+      write(6,101) 'ParamLabel(',k,') =',trim(ParamLabel(k))
+      write(6,102) 'Params(',k,') =',Params(k)
+      write(6,102) 'Max(',k,') =',   MaxValue(k)
+      write(6,102) 'Min(',k,') =',   MinValue(k)
+      if (Params(k) .lt. MinValue(k) .OR. Params(k) .gt. MaxValue(k)) &
+      stop "Parameter out of bounds!"
+   endif
 enddo
 101  format(A11,1x,I2,A3,1x,A6) 
 102  format(A10,1x,I2,A3,1x,F12.3) 
@@ -631,12 +618,14 @@ integer              :: m, q, nullty
      C(m*(m+1)/2) = etaPar(m)**2  !Variance = sd**2
   enddo
 
-! To output the parameter mean
-  write(6,*) ' The prior parameter mean values: '
-  write(6,1100) (nuPar(q), q = 1, Np2Vary)
-! To output the parameter SD
-  write(6,*) ' The prior SD of parameters: '
-  write(6,1100) (etaPar(q), q = 1, Np2Vary)
+  if (taskid .eq. 0) then
+!    To output the parameter mean
+     write(6,*) ' The prior parameter mean values: '
+     write(6,1100) (nuPar(q), q = 1, Np2Vary)
+!    To output the parameter SD
+     write(6,*) ' The prior SD of parameters: '
+     write(6,1100) (etaPar(q), q = 1, Np2Vary)
+  endif
 
 ! Invert the symmetric covariance matrix 
   call syminv(C, Np2Vary, U, work, nullty, error )
@@ -645,10 +634,12 @@ integer              :: m, q, nullty
   call unpack(Np2Vary,U,InvC)
 
 ! To output the inverse prior covariance matrix
-  write(6,*) ' The Inverse of the Prior Covariance Matrix: '
-  do m = 1, Np2Vary
-     write(6,1100) (InvC(m,q), q = 1, Np2Vary)
-  end do
+  if (taskid .eq. 0) then
+     write(6,*) ' The Inverse of the Prior Covariance Matrix: '
+     do m = 1, Np2Vary
+        write(6,1100) (InvC(m,q), q = 1, Np2Vary)
+     end do
+  endif
 
 1100 format(<Np2Vary>(1pe9.1,1x))
 
@@ -662,7 +653,7 @@ integer              :: m, q, nullty
      rtDetPcvm = rtDetPcvm * U(m*(m+1)/2)
   end do
 
-  write(6, *) ' The square root of the determinant of',      &
+  if (taskid .eq. 0) write(6, *) ' The square root of the determinant of',      &
   ' the Prior Covariance Matrix = ', rtDetPcvm
 
 END SUBROUTINE EstimatePriors

@@ -26,8 +26,6 @@ real,    external  :: WAPR
 alphamu = params(ialphamu)
 alphaI  = params(ialphaI)
 tf_p    = TEMPBOL(Ep,tC)
-zetaChl = 0.8 !params(izetaChl)
-zetaN   = 0.6 !params(izetaN)
 
 ! Fe related:
 

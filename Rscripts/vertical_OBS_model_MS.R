@@ -1,4 +1,4 @@
-setwd('~/Working/FlexEFT1D/DRAM_0.9')  
+setwd('~/Working/FlexEFT1D/DRAM')  
 source('~/Working/FlexEFT1D/Rscripts/getData.R')
 source('~/Working/FlexEFT1D/Rscripts/Varname.R')
 COLS     <- c(3,2)
@@ -19,7 +19,7 @@ for (Stn in Stns){
               mfcol  = c(4,3)   ) 
  
  j <- 0
- for (Var in c('TIN','CHL','NPP')){
+ for (Var in c('DIN','CHL','NPP')){
     VARNAME = Varname(Var)
     #Read observational data
     dat <- paste('~/Working/FlexEFT1D/Forcing/',Stn,'_',Var,'.dat',sep='')
@@ -41,11 +41,11 @@ for (Stn in Stns){
       ii = 0
       for (model in Models){
          ii    <- ii+1
-          DIR  <- paste0('~/Working/FlexEFT1D/DRAM_0.9/',model,'/',Stn,'/')
+          DIR  <- paste0('~/Working/FlexEFT1D/DRAM/',model,'/',Stn,'/')
          #Get modeled data
          if (Var == 'CHL'){
           Chl  <- getData(DIR,Stn, 'CHL_T')
-         }else if (Var == 'TIN'){
+         }else if (Var == 'DIN'){
           Chl  <- getData(DIR,Stn, 'NO3')
          }else if(Var == 'NPP'){
           Chl  <- getData(DIR, Stn, 'NPP_T')
@@ -78,7 +78,7 @@ for (Stn in Stns){
 
           matlines(t(cff), depth, lty=c(2,1,2), lwd=c(.5,1.5,.5), col=COLS[ii])
       }
-      if (Var == 'TIN' && i == 1){
+      if (Var == 'DIN' && i == 1){
          legend('topright',Modnames,col=COLS,lty=1)
       }
     }

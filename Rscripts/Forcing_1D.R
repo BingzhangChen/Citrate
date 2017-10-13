@@ -17,10 +17,6 @@ load(WOA13PFile)
 WOA13TFile <- '~/ROMS/Data/WOA13/WOA13_Temp.Rdata'
 load(WOA13TFile)
 
-#Compile external fortran file:
-#system('ifort -c FlexEFT.f90')
-#system('ifort -shared -o FlexEFT.so FlexEFT.o')
-
 Stn_name <- 'HOT'
 
 if (Stn_name == 'S1'){
@@ -47,12 +43,6 @@ if (Stn_name == 'S1'){
 wSODA_data <- readnc('w_SODA')    #unit: m/s
 wROMS_data <- readnc('w_ROMS')    #unit: m/s
 
-#Correct timing for Aks and wROMS
-m_per_s   <- 1/(3600*24*30)
-time      <- Aks_data$time*m_per_s
-time      <- time%%12
-  Aks_data$time  <- time
-wROMS_data$time  <- time
 
 
 #Write into data files:
@@ -67,6 +57,10 @@ for (var in c('temp','par','Aks','NO3','PO4','fer','wROMS','wSODA','wstr','solfe
        cff  = getdata_station(var,stn_lon,stn_lat)
        time = cff$time 
        data = cff$data 
+       if (var == 'Aks'){
+           time = time[,1:360]
+           data = data[,1:361]
+       }
     }
 
     if (!(var %in% c('Aks','wROMS', 'par', 'wstr')) ){

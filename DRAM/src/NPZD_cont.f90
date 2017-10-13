@@ -7,7 +7,7 @@ integer :: k,j,i
 !INPUT PARAMETERS:
 real :: tC,par_
 !LOCAL VARIABLES of phytoplankton:
-real, parameter :: thetamin = 0.02, thetamax = 0.47
+real, parameter :: thetamin = 0.02
 real :: PMUPHY,VARPHY,PHY1
 real :: NO3, Fe, PHY, MIC, MES, DET, DETFe, DET1
 real :: PMU,VAR,PMU1,VAR1
@@ -15,7 +15,7 @@ real :: mu0,aI0
 real :: QN,Qnmax,Qnmin  ! cell quota related variables
 real :: muNet,dmuNetdl,d2muNetdl2, d3mudl3, d4mudl4
 real :: dmuNetdl1,d2muNetdl21, d3mudl31, d4mudl41
-real :: alphaK,alphaI,SI,Lno3,KFe_,Fescav
+real :: alphaI,SI,Lno3,KFe_,Fescav
 real :: muNet1, SI1, Lno31, QN1
 real :: rmax_T ! a scratch variable to temporally store phyto. growth rate
 real :: theta,theta1,dthetadl,d2thetadl2,dQNdL,d2QNdL2
@@ -26,7 +26,7 @@ real :: VTR,d2muNet_QNdl2
 real :: dgdlbar1,d2gdl2bar1,dgdlbar2,d2gdl2bar2
 real :: INGES1,INGES2,RES1,RES2,EGES1,EGES2,Zmort2,mz2
 real :: dx  ! size interval
-real :: RDN,Kp1,Cf, cff, cff1  !Zooplankton variables
+real :: Kp1,Cf, cff, cff1  !Zooplankton variables
 real :: pp_PN, PPpn, PP_MIC_P, PP_MES_P,PP_MES_MIC
 real :: Ptot,  CHLt,KN, Pl, dCHL,NPPt,rl
 real :: pCHL(4) = 0D0
@@ -44,15 +44,15 @@ real,    parameter :: gb1   = -0.05 ! Feeding selectivity of microzoo.
 real,    parameter :: gb2   =  0.02 ! Feeding selectivity of mesozoo.
 real,    parameter :: unass1=  0.24 ! Fraction of unassimilated material of microzoo.
 real,    parameter :: unass2=  0.31 ! Fraction of unassimilated material of mesozoo.
+real,    parameter :: RDN   =  0.1
+real,    parameter :: alphaK=  0.27
 
 !-----------------------------------------------------------------------
 VTR    = params(iVTR)
 alphaI = params(ialphaI)
-alphaK = 0.27
-RDN    = 0.1
 Kp1    = params(iKPHY)              ! Grazing half-saturation constant for MIC
 mz2    = params(imz)
-
+thetamax=.47
 DO k = nlev, 1, -1   
 
    ! Retrieve current (local) state variable values.

@@ -1,10 +1,10 @@
 subroutine MONOD(Temp, PAR,NO3,PO4,mu0,Qnmin,Qpmin,aI0,bI0,KN,KP,DFe,KFe,muNet,QN,QP,theta,SI,Lno3)
 ! This subroutine calculate nondiatroph phytoplankton growth rates, QN and Theta based on the simplest MONOD equation
-use bio_MOD, only: TEMPBOL, Ep, do_IRON, N2fix
+use bio_MOD, only: TEMPBOL, Ep, do_IRON, N2fix,thetamax
 real, intent(in)  :: Temp, PAR, NO3,PO4,mu0,Qnmin,Qpmin,aI0,bI0,KN,KP,DFe,KFe
 real, intent(out) :: QN, QP, theta, SI, Lno3,muNet
 real              :: rmax_T,Qnmax,Qpmax,Lpo4
-real, parameter   :: thetamin = 0.02, thetamax = 0.47
+real, parameter   :: thetamin = 0.02
 
   ! Maximal N:C ratio
    Qnmax=3.*Qnmin
@@ -30,7 +30,6 @@ real, parameter   :: thetamin = 0.02, thetamax = 0.47
      Lno3  = min(Lno3, Lpo4)
   endif
   muNet = rmax_T*Lno3*SI
-
   QN = Qnmin/(1d0-(1d0-Qnmin/Qnmax)*Lno3)
 
   if (N2fix) QP=Qpmin/(1d0-(1d0-Qpmin/Qpmax)*(PO4/(PO4+KP)))
