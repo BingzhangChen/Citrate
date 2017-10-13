@@ -28,5 +28,5 @@ export MAKEFILE=Makefile1
 sed -f flags.tmp $MAKEFILE > Makefile
 make
 rm -rf flags.tmp
-mv RUN ../NPZDCONT
+mv RUN ../citrate
 cd ../
