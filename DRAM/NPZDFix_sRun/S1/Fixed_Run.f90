@@ -1,19 +1,23 @@
 Program Single_Run
-use sub_mod
+USE Interface_MOD
 implicit none
 real :: start, finish
 
 ! The model output to match with observational data: 
 real, allocatable    :: Ymod(:)
 integer              :: i
-real                 :: mu0hat, KN, wDET, Q0N,aI0_C,mz,gmax,themax
+real                 :: mu0hat, KN, wDET, Q0N,aI0_C,mz,gmax
 
-namelist /parameters/    mu0hat, KN, wDET, Q0N,aI0_C,mz,gmax, themax
+namelist /parameters/    mu0hat, KN, wDET, Q0N,aI0_C,mz,gmax,thetamax,bot_bound
 
 !  open the namelist file and read station name.
 open(namlst,file='param.nml',status='old',action='read')
 read(namlst,nml=parameters)
 close(namlst)
+
+MPIRUN   = 0
+taskid   = 0
+numtasks = 1
 
 call cpu_time(start) 
 singlerun = .TRUE.
@@ -34,7 +38,7 @@ params(iQ0N)   = Q0N
 params(iKN)    = KN
 params(imz)    = mz
 params(igmax)  = gmax
-params(ibI0B)  = -8d0
+
 do i = 1, NPar
    write(6, 101) trim(ParamLabel(i)), params(i)
 enddo

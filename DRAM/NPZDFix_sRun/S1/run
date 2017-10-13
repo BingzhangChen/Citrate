@@ -1,5 +1,4 @@
 #!/bin/bash
-export DATADIR=../../../Forcing
 export SCRATCHDIR=Compile
 export SRCDIR=../../src
 Test=0 
@@ -10,10 +9,9 @@ mkdir ${SCRATCHDIR}
 /bin/cp -f  ${SRCDIR}/*.f90    $SCRATCHDIR
 /bin/cp -f  ${SRCDIR}/*.f      $SCRATCHDIR
 /bin/cp -f  ${SRCDIR}/Makefile_singlerun ${SCRATCHDIR}/Makefile1
-/bin/cp -f ${DATADIR}/*.dat    ./
 
 #Replace global setting with local setting
-/bin/cp -f bio_MOD.f90 ${SCRATCHDIR}/
+/bin/cp -f params.f90 ${SCRATCHDIR}/
 /bin/cp -f Fixed_Run.f90 ${SCRATCHDIR}/
 
 if [[ $Test == 1 ]]; then
