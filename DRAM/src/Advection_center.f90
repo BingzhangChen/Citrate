@@ -1,4 +1,5 @@
 ! !ROUTINE: Advection schemes --- grid centers\label{sec:advectionMean}
+!  Original author(s): Karsten Bolding & Hans Burchard
 subroutine adv_center(N,dt,h,ho,ww,Bcup,Bcdw,Yup,Ydw,method,mode,Y)
    IMPLICIT NONE
 ! !INPUT PARAMETERS:
@@ -220,4 +221,6 @@ subroutine adv_center(N,dt,h,ho,ww,Bcup,Bcdw,Yup,Ydw,method,mode,Y)
    end do ! end of the iteration loop
   return
 end subroutine adv_center
+!--------------------------------------------------------------
+! Copyright by the GOTM-team under the GNU Public License - www.gnu.org
 

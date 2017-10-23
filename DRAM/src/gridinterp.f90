@@ -1,4 +1,5 @@
 ! !ROUTINE: Interpolate from observation space to model grid
+!  Original author(s): Karsten Bolding & Hans Burchard
 !
 ! !INTERFACE:
 subroutine gridinterpol(N,cols,obs_z,obs_prof,nlev_,model_z,model_prof)
@@ -71,4 +72,6 @@ subroutine gridinterpol(N,cols,obs_z,obs_prof,nlev_,model_z,model_prof)
       endif
    enddo
 end subroutine
+!--------------------------------------------------------------
+! Copyright by the GOTM-team under the GNU Public License - www.gnu.org
 
