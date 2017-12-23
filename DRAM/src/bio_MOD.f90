@@ -28,6 +28,7 @@ integer, parameter :: NPZD2sp     = 16
 integer, parameter :: NPPZDD      = 17
 integer, parameter :: EFTPPDD     = 18
 integer, parameter :: NPZDN2      = 19
+integer, parameter :: CITRATE3    = 20
 
 ! Parameters for phytoplankton size fractional Chl
 real, parameter :: pi=3.1415926535897932384633D0
@@ -37,9 +38,9 @@ real, parameter :: PMU_max = log(1d1*pi/6d0*4d1**3)
 real, parameter :: PMU_1   = log(1d1*pi/6d0)
 real, parameter :: PMU_3   = log(1d1*pi/6d0*3d0**3)
 real, parameter :: PMU_10  = log(1d1*pi/6d0*1d1**3)
-integer         :: AllocateStatus
-integer         :: N_MLD     ! vertical grid index at the bottom of MLD
-integer            :: bot_bound = 1 ! Option of bottom boundary condition
+integer  :: AllocateStatus
+integer  :: N_MLD     ! vertical grid index at the bottom of MLD
+integer  :: bot_bound = 1 ! Option of bottom boundary condition
 integer, parameter :: Dirichlet      = 0
 integer, parameter :: Neumann        = 1
 
@@ -48,11 +49,14 @@ real     :: DFe(nlev)                           ! Dissolved iron concentration
 real     :: Z_r(1:nlev), Z_w(0:nlev), Hz(nlev)  ! Grid variables
 real     :: I_zero
 integer  :: NVAR, Nout, iZOO, iZOO2, iDET,iDET2,iDETp,iDETFe, iPMU, iVAR, iPO4,iDIA
+integer  :: iMTo, iVTo, iMIo, iVIo
 integer  :: NVsinkterms,NPHY, NPar
 integer  :: oZOO, oZOO2,oDET, oPON, oFER, oZ2N, oD2N, oPHYt,oCHLt,oPPt,omuAvg
 integer  :: oPO4, oPOP, oDIA, oDIAu,oDETp, oDET2, oDETFe
-integer  :: oPMU, oVAR, odmudl,odgdl,od2mu,od2gdl  
-integer  :: oD_NO3,oD_ZOO,oD_ZOO2,oD_DET,oD_DET2,oD_fer,oD_PMU,oD_VAR
+integer  :: oPMU, oVAR, oMTo, oVTo, oMIo, oVIo
+integer  :: odmudl,odgdl,od2mu,od2gdl,odmudT,od2mudT2,odmudI,od2mudI2  
+integer  :: oD_NO3,oD_ZOO,oD_ZOO2,oD_DET,oD_DET2,oD_fer
+integer  :: oD_PMU,oD_VAR,oD_MTo,oD_MIo,oD_VTo,oD_VIo
 integer  :: oPAR_,oD_DETp,oD_DETFe,oD_PO4,oD_DIA
 integer  :: oMESg,oMESgMIC,odgdl1,odgdl2,od2gdl1,od2gdl2,odVAR
 integer  :: oCHLs(4)   ! Four size fractions of CHL
@@ -61,7 +65,7 @@ integer  :: oCHLs(4)   ! Four size fractions of CHL
 integer  :: imu0,iaI0,igmax,iKN,iKP,iKPHY,iKPnif,iLnifp,iKFe,iRDN_N,iRDN_P
 integer  :: ialphamu,ibetamu,ialphaKN
 integer  :: imu0B, iaI0B, iA0N2, iRL2,iKN2,ibI0B
-integer  :: iVTR, ifer,od3mu,od4mu
+integer  :: iVTR,iVTRL,iVTRT,iVTRI,ifer,od3mu,od4mu
 integer  :: izetaN,izetaChl, iaI0_C 
 integer  :: ialphaI,iA0N,ialphaA,ialphaG,ialphaK, ialphaFe
 integer  :: iQ0N,ialphaQ,iPenfac,iLref,iwDET,irdN,imz
@@ -83,7 +87,7 @@ real, parameter :: RMchl0 =0.1
 real, parameter :: Ep     =0.5,  Ez   =0.65 
 real            :: alphamu=0.2,  betamu=-0.01
 real, parameter :: zetaChl=0.6,  zetaN =0.8
-real            :: thetamax = 0.63
+real, parameter :: thetamax = 0.63, thetamin=0.02
 
 !Temperature senstivity tuned by the algorithm
 real :: KFe    =0.08     !Unit: nM. Gregg (2003) used ~0.1 nM for phyto

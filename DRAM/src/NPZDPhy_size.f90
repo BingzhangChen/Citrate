@@ -13,7 +13,6 @@ real                :: Kn, mu0hat, aI, cff, cff1
 real                :: Qmax, fN, QN, theta
 real, parameter     :: alphaK = 0.27
 real, parameter     :: Qmin   = 0.06
-real, parameter     :: thetamin = 0.02
 
 tf_p    = TEMPBOL(Ep,tC)
 mu0hat  = dtdays*tf_p * params(imu0) * exp(alphamu*PMU + betamu * PMU**2)

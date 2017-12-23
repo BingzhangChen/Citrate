@@ -170,7 +170,7 @@ Select case(Model_ID)
      INCLUDESIZE = .FALSE.
      N2fix       = .TRUE.
  
-  case(NPZDdisc, EFTdisc,EFTcont, Geiderdisc,NPZDCONT)
+  case(NPZDdisc, EFTdisc,EFTcont, Geiderdisc,NPZDCONT,CITRATE3)
      if (do_IRON) then
        NDTYPE = 9 !TIN, CHL, PP, PON, DFe, CHL>10, CHL3-10,CHL1-3,CHL<1
      else
@@ -763,11 +763,28 @@ DO jj = 1, Nstn
      enddo
      Vars(iZOO,k) = 0.1
      Vars(iDET,k) = 0.1
-     if (Model_ID .eq. NPZDcont) Vars(iZOO2,k)=.05 
+     if (iZOO2 > 0) Vars(iZOO2,k)=.05 
      if (NVAR > iDET) then
         do i = (iDET+1), NVAR
            Vars(i,k) = 1D-2
         enddo
+     endif
+     if (Model_ID==CITRATE3) then
+       cff = log(pi/6.*2.**3) + log(1.0) !Initialize size of 2 µm 
+       Vars(iPMU,k)=Vars(iPHY(1),k)*cff
+       !Initialize VAR of 1
+       Vars(iVAR,k)=Vars(iPHY(1),k)*(cff**2 + 1.)
+
+       !Initialize mean temperature to 15 ºC
+       cff = 15.
+       Vars(iMTo,k)=Vars(iPHY(1),k)*cff
+
+       !Initial variance of 4 for Topt
+       Vars(iVTo,k)=Vars(iPHY(1),k)*(cff**2 + 2.**2) 
+
+       cff         =log(100.)
+       Vars(iMIo,k)=Vars(iPHY(1),k)*cff
+       Vars(iVIo,k)=Vars(iPHY(1),k)*(cff**2 + cff**2/4.)
      endif
   enddo
 
@@ -816,7 +833,7 @@ DO jj = 1, Nstn
         VarsBom(1, iDETp)   = 2D-3/3d0 ! Unit: uM P
      endif
 
-     if (Model_ID .eq. NPZDcont) then
+     if (iDETFe > 0) then
         VarsBom(1, iDETFe)  = VarsBom(1,iDET)*Fe_N  !Unit: nM
      endif
   endif
@@ -836,7 +853,8 @@ DO jj = 1, Nstn
     if (Model_ID==NPPZDD .OR. Model_ID==EFTPPDD) then
        ww(k,ncff-1)=-cff/dble(d_per_s) 
        ww(k,ncff)  =-10**(Params(iwDET2))/dble(d_per_s) 
-    elseif (Model_ID==NPZDN2 .or. Model_ID==NPZDcont) then
+    elseif (Model_ID==NPZDN2 .or. Model_ID==NPZDcont .or. &
+            Model_ID==CITRATE3) then
        ww(k,ncff-1)=-cff/dble(d_per_s) 
        ww(k,ncff)  =ww(k,ncff-1)
     else
@@ -919,7 +937,6 @@ DO jj = 1, Nstn
           pc => fer_bot(:,:,jj)
           call time_interp(int(current_sec),NFobs(eFer),1,pb,pc,VarsBom(:,ifer))
        endif
-
      endif
 
      if (N2fix) then
@@ -995,6 +1012,8 @@ DO jj = 1, Nstn
         call NPZD_Fix
       case(NPZDcont) 
         call NPZD_CONT
+      case(CITRATE3)
+        call Citrate3_MOD
       case(EFTsimple)
         call FlexEFT_simple
       case(EFT2sp)
@@ -1061,7 +1080,6 @@ DO jj = 1, Nstn
          enddo
       endif  !==> End of saving results
     
-200        format(A10,1x,I10,1x,I7,<nlev>(2x,1pe12.3))
   !-------------------------------------------------------------------------
     ! Calculate model outputs (final year) to match with obs. data
    If ((NDays-current_day) .le. 360) Then
@@ -1394,6 +1412,7 @@ DO jj = 1, Nstn
   if(allocated(ww))      deallocate(ww)
   if(allocated(VarsBom)) deallocate(VarsBom)
 ENDDO  ! ==> End of Stn
+200   format(A10,1x,I10,1x,I7,<nlev>(2x,1pe12.3))
 END subroutine Timestep
 !=====================================================
 subroutine End_model
@@ -1458,5 +1477,4 @@ subroutine Calculate_PAR(I_0, nlev_, Hz, Chl, PAR)
      par0   = PAR(i)*attn
   enddo
 end subroutine Calculate_PAR
-!-----------------------------------------------------------------------
 End MODULE MOD_1D

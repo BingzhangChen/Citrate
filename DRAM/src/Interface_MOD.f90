@@ -313,14 +313,13 @@ dumE=SSqE
 !===================================================
 
 ! Common parameters:
-
 ! Based on Edwards et al. (2015) who gave aI0 ranging from
 ! 0.001 to 1 (uE m-2 s-1)-1 d-1, corresponding to the values times *4.6/(50/12)
 ! to get the unit: (mol C gChl-1 (W m-2)-1 d-1)
 ! Fasham (DSR1 1995) gave 0.025~0.14 unit: (W m-2)-1 d-1
 ! Unit: (W m-2)-1 for NPZDFix and NPZDdisc
 ! Unit: mol C gChl-1 (W m-2)-1 d-1 (other models)
-if (Model_ID .ne. NPZDFix .and. Model_ID .ne. NPPZDD .and. Model_ID .ne. NPZD2sp .and. Model_ID .ne. NPZDcont .and. Model_ID .ne. NPZDdisc .and. Model_ID .ne. NPZDN2) then
+if (iaI0 > 0) then
    MaxValue(iaI0) =  1.1       ! 1*4.6/(50/12)
    MinValue(iaI0) =  0.01
 endif
@@ -403,8 +402,10 @@ case(1)
 ! Fennel et al. (2006): 0.007~1.5
 ! Chai et al. (2002): 0.05~1
 ! Franks (2009): 0.005~3
-  MaxValue(iKN) =  .5
-  MinValue(iKN) =  0.05
+  if (iKN > 0) then
+     MaxValue(iKN) =  .5
+     MinValue(iKN) =  0.05
+  endif
   if (Model_ID .eq. NPZDN2) then  ! The unit based on P
      MaxValue(iKPnif)=2D-3
      MinValue(iKPnif)=5D-5
@@ -441,7 +442,7 @@ end select
 ! different from Geidersimple model
 ! Litchman et al. (2007) gave a range from 0.01 to 0.07
 ! Pahlow et al. (2013) gave a range from 0.05 to 0.13
-if (Model_ID .ne. NPZDcont) then
+if (iQ0N > 0) then
    MaxValue(iQ0N) =  0.12
    MinValue(iQ0N) =  0.04
 endif
@@ -488,6 +489,19 @@ case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFix
      MaxValue(ialphaI )=0.1d0
      MinValue(ialphaI )=-0.3d0
   endif
+!-------------------------------
+case(CITRATE3)
+  MaxValue(iVTRL)=.1
+  MinValue(iVTRL)=0.
+  MaxValue(iVTRT)=.05
+  MinValue(iVTRT)=0.
+  MaxValue(iVTRI)=.1
+  MinValue(iVTRI)=0.
+  MaxValue(iKFe)=0.2
+  MinValue(iKFe)=0.02
+  MaxValue(imu0)=1.2
+  MinValue(imu0)=0.2
+
 !-------------------------------
 case(EFTsimple, EFTdisc, EFTcont,EFT2sp,EFTPPDD, EFTsimIRON)
 !  Following Pahlow et al. (2013), fix mu0 and V0N as 5 per day

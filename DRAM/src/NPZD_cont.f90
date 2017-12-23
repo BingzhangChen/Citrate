@@ -7,7 +7,6 @@ integer :: k,j,i
 !INPUT PARAMETERS:
 real :: tC,par_
 !LOCAL VARIABLES of phytoplankton:
-real, parameter :: thetamin = 0.02
 real :: PMUPHY,VARPHY,PHY1
 real :: NO3, Fe, PHY, MIC, MES, DET, DETFe, DET1
 real :: PMU,VAR,PMU1,VAR1
@@ -52,7 +51,7 @@ VTR    = params(iVTR)
 alphaI = params(ialphaI)
 Kp1    = params(iKPHY)              ! Grazing half-saturation constant for MIC
 mz2    = params(imz)
-thetamax=.47
+
 DO k = nlev, 1, -1   
 
    ! Retrieve current (local) state variable values.

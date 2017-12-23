@@ -32,9 +32,6 @@ real :: pp_PN, PP_NP, PPpn
 real :: pCHL(4) = 0d0
 real,  external  :: pnorm, WAPR
 real, parameter  :: PMU0    = log(10.)
-real, parameter  :: thetamin= 0.02
-real, parameter  :: w_p0    = 0D0
-real, parameter  :: alphaW  = 0D0
 real, parameter  :: alphaQ  = -0.05
 real, parameter  :: alphaI  = 0d0
 real, parameter  :: Wmax    = 50D0 

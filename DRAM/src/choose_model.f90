@@ -3,15 +3,16 @@ USE bio_MOD
 implicit none
 integer             :: i
 namelist /Model/    Stn, Model_ID, nutrient_uptake, grazing_formulation, bot_bound
-character(len=100)  :: format_string
+character(len=10), parameter :: format_string = "(A3,I0)"
 
-!  open the namelist file and read station name.
+! open the namelist file and read station name.
 open(namlst,file='Model.nml',status='old',action='read')
 read(namlst,nml=Model)
 close(namlst)
 
 if (Model_ID     == NPZDdisc) then
-  if(taskid==0) write(6,*) 'Inflexible NPZD discrete model selected!'
+  if(taskid==0) &
+     write(6,*) 'Inflexible NPZD discrete model selected!'
   NPHY    = 20
 else if (Model_ID== NPZDdiscFe) then
   if(taskid==0) write(6,*) 'Inflexible NPZD discrete model with Iron selected!'
@@ -80,6 +81,20 @@ else if (Model_ID==NPZDcont) then
   iKFe    =  iVTR    +1
   NPar    =  iKFe
 
+else if (Model_ID==CITRATE3) then
+  if(taskid==0) write(6,*) &
+    'Continuous size three trait model selected!'
+  NPHY    = 1
+  DO_IRON = .TRUE.
+  imu0    =  1
+  iKPHY   =  imu0   + 1  
+  imz     =  iKPHY  + 1
+  iwDET   =  imz    + 1
+  iVTRL   =  iwDET  + 1
+  iVTRT   =  iVTRL  + 1
+  iVTRI   =  iVTRT  + 1
+  iKFe    =  iVTRI  + 1
+  NPar    =  iKFe
 else if (Model_ID==EFT2sp .OR. Model_ID==NPZD2sp) then
   if(taskid==0) write(6,*) 'Two species phytoplankton model selected!'
   NPHY = 2
@@ -108,7 +123,7 @@ enddo
 
 iZOO = iPHY(NPHY)+1
 
-if (Model_ID==NPZDcont) then
+if (Model_ID==NPZDcont .or. Model_ID==CITRATE3) then
    iZOO2= iZOO +1
    iDET = iZOO2+1
 else
@@ -129,6 +144,16 @@ else if(Model_ID==EFTcont .or. Model_ID==NPZDcont) then
       ifer = iVAR + 1
       NVAR = ifer
    endif
+elseif (Model_ID==CITRATE3) then
+  iDETFe= iDET  + 1   ! Detritus in iron
+   iPMU = iDETFe+ 1
+   iVAR = iPMU  + 1
+   iMTo = iVAR  + 1
+   iVTo = iMTo  + 1
+   iMIo = iVTo  + 1
+   iVIo = iMIo  + 1
+   ifer = iVIo  + 1
+   NVAR = ifer
 else if(Model_ID==NPPZDD .or. Model_ID==EFTPPDD) then
    iDET2= iDET + 1
    NVAR = iDET2
@@ -168,7 +193,7 @@ elseif (Model_ID==NPZDN2) then
    Windex(NVsinkterms-1)=iDET
    Windex(NVsinkterms)  =iDETp
 
-elseif (Model_ID==NPZDcont) then
+elseif (Model_ID==NPZDcont .or. Model_ID==CITRATE3) then
    Windex(NVsinkterms-1)=iDET
    Windex(NVsinkterms)  =iDETFe
 else
@@ -180,18 +205,26 @@ do i=1,NPHY
    oPHY(i)=i+oNO3
 enddo
 oZOO =oPHY(NPHY)+1
-if (Model_ID==NPZDcont) then
+if (Model_ID==NPZDcont .or. Model_ID==CITRATE3) then
     oZOO2=oZOO +1
     oDET =oZOO2+1
 else
     oDET =oZOO+1
 endif
-if(Model_ID==EFTcont .or. Model_ID==NPZDcont) then
+if(Model_ID==EFTcont .or. Model_ID==NPZDcont .or. Model_ID==CITRATE3) then
    oDETFe=oDET+1
    oPMU=oDETFe+1
    oVAR=oPMU+1
    if (do_IRON) then
-      ofer = oVAR+1
+      if (Model_ID==CITRATE3) then
+       oMTo = oVAR+1
+       oVTo = oMTo+1
+       oMIo = oVTo+1
+       oVIo = oMIo+1
+       ofer = oVIo+1
+      else
+       ofer = oVAR+1
+      endif
       oFescav = ofer   + 1
       odstdep = oFescav+ 1
       do i=1,NPHY
@@ -226,16 +259,16 @@ endif
 oPHYt=oCHL(NPHY)+1
 oCHLt=oPHYt+1
 
-if (Model_ID==Geiderdisc .or. Model_ID==NPZDdisc .or. Model_ID==EFTdisc&
-.or.Model_ID==EFTcont .or. Model_ID==NPZDcont) then
+if (Model_ID==Geiderdisc   .or. Model_ID==NPZDdisc  &
+    .or. Model_ID==EFTdisc .or. Model_ID==CITRATE3  &
+    .or. Model_ID==EFTcont .or. Model_ID==NPZDcont) then
    do i=1,4
       oCHLs(i)=oCHLt+i
    enddo
 endif
 
-!allocate(ow_p(NPHY))
-
-if (Model_ID==Geiderdisc .or. Model_ID==NPZDdisc .or. Model_ID==EFTdisc&
+if (Model_ID==Geiderdisc .or. Model_ID==NPZDdisc &
+.or.Model_ID==CITRATE3   .or. Model_ID==EFTdisc  &
 .or.Model_ID==EFTcont    .or. Model_ID==NPZDcont) then
    do i=1,NPHY
       omuNet(i)= oCHLs(4) + i
@@ -287,11 +320,11 @@ do i=1,NPHY
 enddo
 
 oD_ZOO=oD_PHY(NPHY)+1
-if (Model_ID==NPZDcont) then
+if (Model_ID==NPZDcont .or. Model_ID==CITRATE3) then
     oD_ZOO2=oD_ZOO+1
-    oD_DET=oD_ZOO2+1
+    oD_DET =oD_ZOO2+1
 else
-    oD_DET=oD_ZOO+1
+    oD_DET =oD_ZOO+1
 endif
 if (Model_ID==Geiderdisc .or. Model_ID==Geidersimple .or. Model_ID==GeidsimIRON) then
    do i=1,NPHY
@@ -318,6 +351,28 @@ else if(Model_ID==EFTcont .or. Model_ID==NPZDcont) then
    od2gdl2=od2gdl1+1
    odVAR =od2gdl2 +1
    Nout  =odVAR
+else if(Model_ID==CITRATE3) then
+   oD_DETFe=oD_DET+1
+   oD_PMU=oD_DETFe+1
+   oD_VAR=oD_PMU+1
+   oD_MTo=oD_VAR+1
+   oD_VTo=oD_MTo+1
+   oD_MIo=oD_VTo+1
+   oD_VIo=oD_MIo+1
+   oD_fer=oD_VIo+1
+   od2mu =oD_fer+1
+   odmudl=od2mu +1
+   odmudT=odmudl+1
+   od2mudT2=odmudT+1
+   odmudI=od2mudT2+1
+   od2mudI2=odmudI+1
+   oMESg =od2mudI2 +1
+   oMESgMIC=oMESg+1
+   odgdl1=oMESgMIC+1
+   odgdl2=odgdl1  +1
+   od2gdl1=odgdl2 +1
+   od2gdl2=od2gdl1+1
+   Nout   =od2gdl2
 else if(Model_ID==NPZDN2) then
    oD_DETp=oD_DET +1
    oD_PO4 =oD_DETp+1
@@ -337,11 +392,6 @@ Labelout(oDust  )='Dust'
 Labelout(ow     )='w   '
 Labelout(oNO3+ow)='NO3 '
 do i=1,NPHY
-   if (i < 10) then
-       format_string = "(A3,I1)"
-   else
-       format_string = "(A3,I2)"
-   endif
    write(Labelout(oPHY(i)  +ow),  format_string) 'PHY',i
    write(Labelout(oSI(i)   +ow),  format_string) 'SI_',i
    write(Labelout(oQN(i)   +ow),  format_string) 'QN_',i
@@ -352,7 +402,7 @@ do i=1,NPHY
 enddo
 
 Labelout(oZOO +ow)='ZOO'
-if (Model_ID==NPZDcont) then
+if (Model_ID==NPZDcont .or. Model_ID==CITRATE3) then
     Labelout(oZOO  +ow)='MIC'
     Labelout(oZOO2 +ow)='MES'
 endif
@@ -369,35 +419,45 @@ if (Model_ID==NPZDN2) then
     Labelout(oD_PO4 +ow)='D_DIP'
     Labelout(oD_DIA +ow)='D_DIA'
 endif
-if (Model_ID==EFTcont .or. Model_ID==NPZDcont) then
+if (Model_ID==EFTcont .or. Model_ID==NPZDcont .or.&
+    Model_ID==CITRATE3) then
     Labelout(oDETFe+ow)='DETFe'
     Labelout(oPMU  +ow)='PMU'
     Labelout(oVAR  +ow)='VAR'
-    Labelout(odVAR +ow)='dVAR'
     Labelout(odmudl+ow)='dmudl'
     Labelout(od2mu +ow)='d2mu '
-    Labelout(od3mu +ow)='d3mu'
-    Labelout(od4mu +ow)='d4mu'
     Labelout(oD_DETFe+ow)='DDETF'
+    if (Model_ID .ne. CITRATE3) then
+       Labelout(odVAR +ow)='dVAR'
+       Labelout(od3mu +ow)='d3mu'
+       Labelout(od4mu +ow)='d4mu'
+    else
+       Labelout(oD_MIo+ow)='D_MIo'
+       Labelout(oMIo  +ow)='MIo'
+       Labelout(oMTo  +ow)='MTo'
+       Labelout(oVIo  +ow)='VIo'
+       Labelout(oVTo  +ow)='VTo'
+       Labelout(oD_VIo+ow)='D_VIo'
+       Labelout(oD_VTo+ow)='D_VTo'
+       Labelout(oD_MTo+ow)='D_MTo'
+       Labelout(odmudT+ow)='dmudT'
+       Labelout(odmudI+ow)='dmudI'
+       Labelout(od2mudT2+ow)='d2mudT2'
+       Labelout(od2mudI2+ow)='d2mudI2'
+    endif
     Labelout(oD_PMU+ow)='D_PMU'
     Labelout(oD_VAR+ow)='D_VAR'
     if (do_IRON) then
-       Labelout(ofer  +ow)='Fer'
+       Labelout(ofer   +ow)='Fer'
        Labelout(odstdep+ow)='DtDep'
        Labelout(oFescav+ow)='Fescv'
-       Labelout(oD_fer+ow) ='D_Fe'
+       Labelout(oD_fer +ow)='D_Fe'
     endif
 endif
 Labelout(oPHYt+ow)='PHY_T'
 Labelout(oCHLt+ow)='CHL_T'
 
 do i=1,NPHY
-   if (i < 10) then
-       format_string = "(A3,I1)"
-   else
-       format_string = "(A3,I2)"
-   endif
-
    write(Labelout(omuNet(i) + ow), format_string) 'muN',i
    write(Labelout(oGraz(i)  + ow), format_string) 'Gra',i
    write(Labelout(oD_PHY(i) + ow), format_string) 'D_P',i
@@ -414,7 +474,7 @@ Labelout(oPAR_ + ow)='PAR_'
 Labelout(omuAvg+ ow)='muAvg'
 Labelout(oD_NO3+ ow)='D_NO3'
 Labelout(oD_ZOO+ ow)='D_ZOO'
-if (Model_ID .eq. NPZDcont) then
+if (Model_ID .eq. NPZDcont .or. Model_ID .eq. CITRATE3) then
     Labelout(oD_ZOO + ow)='D_MIC'
     Labelout(oD_ZOO2+ ow)='D_MES'
     Labelout(oMESg  + ow)='MESg '
@@ -426,14 +486,11 @@ if (Model_ID .eq. NPZDcont) then
 endif
 Labelout(oD_DET+ ow)='D_DET'
 if(Model_ID==NPPZDD.or.Model_ID==EFTPPDD) Labelout(oD_DET2+ow)='DDET2'
-if(Model_ID==Geiderdisc.or.Model_ID==NPZDdisc .or.Model_ID==EFTdisc .or.&
-   Model_ID==EFTcont .or. Model_ID==NPZDCONT) then
+if(Model_ID==Geiderdisc.or.Model_ID==NPZDdisc &
+  .or.Model_ID==EFTdisc .or.&
+      Model_ID==EFTcont .or.&
+      Model_ID==NPZDCONT.or. Model_ID==CITRATE3) then
    do i=1,4
-      if (i < 10) then
-          format_string = "(A4,I1)"
-      else
-          format_string = "(A4,I2)"
-      endif
       write(Labelout(oCHLs(i) +ow), format_string) 'CHLs',i
    enddo
 endif
@@ -449,7 +506,8 @@ endif
 ! For EFT models, the affinity approach not used for now
 ! Need to have tradeoffs for maximal growth rate (mu0) and Kn
 ! Common parameters:
-if (Model_ID .ne. NPZDcont .and. Model_ID .ne. EFTsimple) then
+if (Model_ID .ne. NPZDcont .and. Model_ID .ne. EFTsimple &
+.and. Model_ID.ne.CITRATE3) then
   imu0    =  1
   igmax   =  imu0  + 1
   iKPHY   =  igmax + 1  
@@ -565,8 +623,8 @@ allocate(params(NPar))
 allocate(ParamLabel(NPar))
 
 if (imu0 > 0) then
-    ParamLabel(imu0) = 'mu0hat '
-    params(imu0)     = 1d0
+   ParamLabel(imu0) = 'mu0hat '
+   params(imu0)     = 0.8
 endif
 ParamLabel(imz)  = 'mz'
 if (igmax > 0) then
@@ -612,7 +670,6 @@ endif
 if (Model_ID.eq.NPZDcont) then
     ParamLabel(ialphaI)='alphaI'
     params(ialphaI)    =-.1
-
 endif
 if (Model_ID.eq.NPZD2sp .OR. Model_ID.eq.NPPZDD) then
    ParamLabel(ibI0B)='bI0B'
@@ -620,8 +677,10 @@ if (Model_ID.eq.NPZD2sp .OR. Model_ID.eq.NPPZDD) then
 endif
 
 if (nutrient_uptake .eq. 1) then
-   ParamLabel(iKN)  = 'KN'
-      params(iKN )  = 2d-1
+  if(iKN > 0) then
+  ParamLabel(iKN)  = 'KN'
+     params(iKN )  = 2d-1
+  endif
   if (Model_ID .eq. NPZDN2) then
    !ParamLabel(iKP)  = 'KP'
   ParamLabel(iKPnif)= 'KPnif'
@@ -674,30 +733,37 @@ if (Model_ID == NPPZDD .or. Model_ID == EFTPPDD) then
    params(itau)=5D-3
 endif
 !
-if(Model_ID==NPZDdisc.or.Model_ID==NPZD2sp.or.Model_ID==NPPZDD.or.Model_ID==NPZDFix &
- .or. Model_ID==NPZDFixIRON .or. Model_ID==NPZDcont.or. Model_ID==NPZDN2) then
+if(Model_ID==CITRATE3) then
+  ParamLabel(iVTRL)='VTRL'
+  params(iVTRL)    =0.08
+  ParamLabel(iVTRT)='VTRT'
+  params(iVTRT)    =0.01
+  ParamLabel(iVTRI)='VTRI'
+  params(iVTRI)    =0.08
+endif
+if(Model_ID==NPZDdisc.or.Model_ID==NPZD2sp &
+ .or.Model_ID==NPPZDD.or.Model_ID==NPZDFix &
+ .or. Model_ID==NPZDFixIRON .or. Model_ID==NPZDcont &
+ .or. Model_ID==NPZDN2) then
   ParamLabel(iaI0_C)='aI0_C'
   params(iaI0_C)    =0.055
   if (Model_ID == NPZDcont) then
      ParamLabel(iVTR)='VTR'
      params(iVTR)    =0.01
-     ParamLabel(iKFe)='KFe'
+   endif
+endif
+
+if (iKFe > 0) then
+    ParamLabel(iKFe)='KFe'
          params(iKFe)=0.08
-  endif
 endif
 
-if(Model_ID==GeidsimIRON .or. Model_ID==EFTsimIRON .or. Model_ID==NPZDFixIRON) then
-  ParamLabel(iKFe)  ='KFe'
-  params(iKFe)      =0.08
-endif
-
-if (Model_ID .ne. NPZDcont) then
+if (iQ0N > 0) then
 ParamLabel(iQ0N   ) = 'Q0N    '
    params(iQ0N)     = 0.06
 endif
 
-if (Model_ID .ne. NPZDFix .and. Model_ID .ne. NPZDcont .and. Model_ID .ne. NPZDdisc &
-  .and. Model_ID .ne. NPZD2sp .and. Model_ID .ne. NPPZDD .and. Model_ID .ne. NPZDN2) then
+if (iaI0 > 0) then
 ParamLabel(iaI0    ) = 'aI0'
    params(iaI0   )   = 0.2      ! aI0_Chl, Chl-specific P-I slope
 endif

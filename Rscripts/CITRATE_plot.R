@@ -40,6 +40,7 @@ for (Stn in c('K2','S1')){
    }
 }
 mtext('Depth (m)', side = 2, outer=TRUE, line=2)
+mtext('Days     ', side = 1, outer=TRUE, line=1)
 mtext('Fig. 3 An example of modelled 4 year patterns at K2 and S1',side=1,outer=T, line=2,adj=0)
 dev.off()
 

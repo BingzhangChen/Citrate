@@ -16,7 +16,7 @@ SRCS = dsymv.f lsame.f xerbla.f Readcsv.f90 tridiagonal.f90\
 	NPPZDD.f90 NPZD_2sp.f90 GeiderPhy_size.f90 Geider_disc.f90\
 	Geider_simple.f90 EFT_simple.f90 EFT_disc.f90 EFT_PPZDD.f90\
 	FlexEFT_cont.f90 MOD_1D.f90 NPZD_cont.f90 CalcYSSE.f90\
-	matmuls.f90\
+	matmuls.f90 Citrate3.f90\
 	syminv.f90 Interface_MOD.f90 transform.f90 UpdateCVM.f90\
 	SUB_MOD.f90 Main.f90
 

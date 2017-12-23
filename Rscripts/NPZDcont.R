@@ -117,18 +117,30 @@ if (DO_IRON){
    d3mudl3 = d3mudl3_
 }  #All correct
 
-Qmin=Q0N
-Qmax=3*Qmin
+#Make Qmin and Qmax size dependent
+Qmin=Q0min*exp(alphaQmin*PMU)
+Qmax=Q0max*exp(alphaQmax*PMU)
 
 #N:C ratio at avg. size
  cff1   = 1.-Qmin/Qmax
  QN     = Qmin/(1.-cff1*fN)
 
 
-cff     = 1.-cff1*fN
-dcffdl  = -cff1*dfNdl
-dQNdL   = cff1/cff**2 * dfNdl * Qmin
-d2QNdL2 = Qmin*cff1*(d2fNdl2/cff**2 - 2./cff**3*dfNdl*dcffdl)  #Correct
+#cff     = 1.-cff1*fN
+#dcffdl  = -cff1*dfNdl
+#dQNdL   = cff1/cff**2 * dfNdl * Qmin
+Z1      = alphaQmin - QN*(fN*(alphaQmin-alphaQmax)/Qmax + 
+                              (1/Qmax - 1/Qmin)*dfNdl)
+dQNdL   = QN*Z1
+
+#d2QNdL2 = Qmin*cff1*(d2fNdl2/cff**2 - 2./cff**3*dfNdl*dcffdl)  #Correct
+cff = (dfNdl-alphaQmax*fN)/Qmax*(alphaQmin-alphaQmax) + 
+    (1/Qmax - 1/Qmin)*d2fNdl2 + 
+    dfNdl*(alphaQmin/Qmin - alphaQmax/Qmax)
+
+Z2 = (alphaQmin-alphaQmax)*fN/Qmax + (1./Qmax-1./Qmin)*dfNdl
+Z2 = Z2*dQNdL
+d2QNdL2 = dQNdL*Z1 - QN*(Z2 + QN*cff)
 
 cff     = (thetamax - thetamin)/PAR_
 
@@ -176,7 +188,7 @@ Mu = function(Topt = 300, Temp = 293, mu0 = 5.7, k = -0.11,
 }
 
 #Three trait function:
-mu3 = function(x, Z, I=200, NO3=1, t=15, w=10, K0N=0.2, alphaK=.27, L=0, k=-.47, a0=.149, b=.21,mu0=.21, alphamu=.2, betamu=0, Ep=.0633, T0=15){
+mu3 = function(x, Z, I=200, NO3=1, t=10+273.15, alp=-.11,beta=.11, K0N=0.2, alphaK=.27, L=0, k=-.47, a0=.149, b=.21,mu0=.21, alphamu=.2, betamu=-0.01, Ep=.8,E0=exp(-31.48), T0=15+273.15){
     #x: ln optimal light (umol photons m-2 s-1)
     #Z: optimal temperature (ºC)
     #Light term
@@ -209,13 +221,28 @@ mu3 = function(x, Z, I=200, NO3=1, t=15, w=10, K0N=0.2, alphaK=.27, L=0, k=-.47,
     d2Hdx2 = (2*H**3)*(dYdx)**2 - d2Ydx2*H**2
 
  #Temperature term
-    h       = exp(Ep*(t - T0))
-    P       = 1.-((t-Z)/w)**2
-    f       = h * P
-    dPdZ    = 2.*(t-Z)/w**2
-    d2PdZ2  = -2./w**2
-    dfdZ    = h*dPdZ 
-    d2fdZ2  = h*d2PdZ2 
+    #h       = exp(Ep*(t - T0))
+    #P       = 1.-((t-Z)/w)**2
+    #f       = h * P
+    #dPdZ    = 2.*(t-Z)/w**2
+    #d2PdZ2  = -2./w**2
+    #dfdZ    = h*dPdZ 
+    #d2fdZ2  = h*d2PdZ2 
+    #Envelope function
+    kb      = 8.62e-5
+    h       = exp(alp*(Z - T0))*exp(Ep/kb*(1./T0 - 1./t)) 
+    dE      = E0*exp(beta*Z)
+    Eh      = dE+Ep
+    P       = 1. + Ep/dE*exp(Eh/kb*(1./Z - 1./t))
+    f       = h/P
+    B       = Eh/kb*(1./Z - 1./t) - beta*Z 
+    dBdZ    = ((beta*(1./Z - 1./t) - 1./Z**2)*dE - Ep/Z**2)/kb-beta
+    dPdZ    = Ep/E0 * exp(B) * dBdZ
+    dfdZ    = f*(alp - dPdZ/P)
+    pai     = (2./Z - beta)/Z**2
+    d2BdZ2  = (dE*pai + (beta*(1./Z - 1./t) - 1./Z**2)*beta*dE + 2.*Ep/Z**3)/kb
+    d2PdZ2  = Ep/E0 * exp(B) * (d2BdZ2 + dBdZ**2)
+    d2fdZ2  = -f*(d2PdZ2/P - (dPdZ/P)**2) + dfdZ**2/f
 
     Mu      = H * G * f
     dMudx   = G*f*dHdx

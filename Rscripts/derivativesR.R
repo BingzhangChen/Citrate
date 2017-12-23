@@ -119,3 +119,20 @@ eval(dmudL, list(I=210, a0=0.149, k = -0.47, mu0=.21, b = 0.21, x = log(200), al
 eval(d2mudL2, list(I=210, a0=0.149, k = -0.47, mu0=.21, b = 0.21, x = log(200), alphamu=0.2, betamu = 0, L=1, NO3=1, K0N=.2, alphaK=.27, t=15, Topt=15, w=10))
 eval(dmudZ, list(I=210, a0=0.149, k = -0.47, mu0=.21, b = 0.21, x = log(200), alphamu=0.2, betamu = 0, L=1, NO3=1, K0N=.2, alphaK=.27, t=20, Topt=15, w=10))
 eval(d2mudZ2, list(I=210, a0=0.149, k = -0.47, mu0=.21, b = 0.21, x = log(200), alphamu=0.2, betamu = 0, L=1, NO3=1, K0N=.2, alphaK=.27, t=20, Topt=15, w=10))
+
+#Evaluate derivatives of QN by allowing Qmin and Qmax to depend on size
+QN = expression(Q0min*exp(alphaQmin * L)/(1-N/(N+K0N*exp(alphaK*L))*(1-Q0min*exp(alphaQmin*L)/(Q0max*exp(alphaQmax*L)))))
+dQNdL = D(QN,'L')
+d2QNdL2 = D(dQNdL,'L')
+eval(QN, list(N=0.1, L=1,alphaQmin = -0.16, K0N=0.2,alphaK=0.27,Q0min=0.04,Q0max=0.1,alphaQmax=-0.07))
+eval(dQNdL, list(N=0.1, L=1,alphaQmin = -0.16, K0N=0.2,alphaK=0.27,Q0min=0.04,Q0max=0.1,alphaQmax=-0.07))
+eval(d2QNdL2, list(N=0.1, L=1,alphaQmin = -0.16, K0N=0.2,alphaK=0.27,Q0min=0.04,Q0max=0.1,alphaQmax=-0.07))
+
+#Evaluate the equation of temperature in Chen & Laws (2017)
+f = expression(u0*exp(alpha*Z)*exp(E/kb*(1/T0 - 1/T)) / (1+E/(E0 * exp(beta * Z))*exp((E+E0 * exp(beta*Z))/kb*(1/Z - 1/T))))
+dfdTopt   = D(f, 'Z')
+d2fdTopt2 = D(dfdTopt, 'Z')
+
+eval(f, list(E=0.8,kb = 8.62E-5,T0=273.15+15, E0 = exp(-31.48),beta=.11, u0=exp(0.11*288.15),alpha=-.11,T = 288, Z=278 ))
+eval(dfdTopt, list(E=0.8,kb = 8.62E-5,T0=273.15+15, E0 = exp(-31.48),beta=.11, u0=exp(0.11*288.15),alpha=-.11,T = 288, Z=278 ))
+eval(d2fdTopt2, list(E=0.8,kb = 8.62E-5,T0=273.15+15, E0 = exp(-31.48),beta=.11, u0=exp(0.11*288.15),alpha=-.11,T = 288, Z=278 ))

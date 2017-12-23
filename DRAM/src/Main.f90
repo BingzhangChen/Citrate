@@ -44,9 +44,9 @@ call SetUpArrays
 
 ! Initialize the 1D model:
 call Model_setup
-
 ! Initialize the random number generator with a seed
 ! call sgrnd(17001)
+
 call random_seed()
 
 ! An initial guess that is some factor times the inital parameter estimates 
@@ -61,7 +61,6 @@ startrun  = 0
       
 ! Estimate the priors based on initial parameter values
 call EstimatePriors(PriorCvm, InvPriorCvm, error)
-
 ! Set the labels for the standard deviations for each type of observation 
 call SetSigmaLabels
       
@@ -83,7 +82,6 @@ enddo
 ! Calculate the Cholesky factor for Pcvm, which is called Rchol here. 
 ! The Pcvm and Rchol will not vary until the burn-in finishes.
 call cholesky(Pcvm,Np2Vary,Np2Vary*(Np2Vary+1)/2,Rchol,nullty,error)
-
 if (taskid .eq. 0) then
    write(6, *) 'Initial Covariance matrix = '
    do row = 1, Np2Vary
@@ -142,7 +140,6 @@ IF(nruns .gt. 1) THEN
           call UpdateCVM(Cvm,subpcurrmean,dble(i-k+1),subpcurr,subpcurrmean,Cvm)
        enddo
 
-    
        Pcvm = Cvm*Spcvm/NPar
      ! add a small term to the diagonal entries,
      ! so that the matrix will not be singular. 
@@ -222,7 +219,6 @@ IF(nruns .gt. 1) THEN
      endif
   ENDIF
 ENDIF
-
 ! First, one simulation, to initialize all routines
 ! This avoids the problem that
 ! Parameter Values will be read from the data file on the initial run;
@@ -241,8 +237,9 @@ if (taskid .eq. 0) then
   open(bofint, file=bofn,action='write',status='replace')
 endif
 
-savefile = .FALSE.
+savefile = .TRUE.
 call model(bofint, subppro, SSqE )
+savefile = .FALSE.
 CurrLogLike = CalcLogLike(SSqE,sigma,subppro)
 
 if (taskid .eq. 0) then
