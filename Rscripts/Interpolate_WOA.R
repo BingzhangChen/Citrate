@@ -209,8 +209,7 @@ readnc <- function(variable, sourcefile = ROMSFile, ROMS=T, nameit='npacS'){
     nvar       <- 1
     Vname      <- 'fer'
   } else{
-    stop('Variable name does not match, 
-         must be one of "sst, no3, par, MLD, KD490"!')
+    Vname      <- variable
   }
   if(file.exists(sourcefile)){
     nc       <- nc_open(sourcefile)
@@ -304,8 +303,8 @@ readnc <- function(variable, sourcefile = ROMSFile, ROMS=T, nameit='npacS'){
        Hz[,,k]  =z_w[,,k+1]-z_w[,,k]
     }
     #Convert time:
-    time <- days
-    depth = z_r
+    time  <- days
+    depth <- z_r
    } 
     nc_close(nc) 
     return(list(lon=lon,lat=lat,time=time,depth=depth,Hz=Hz,data=var0))
@@ -314,6 +313,34 @@ readnc <- function(variable, sourcefile = ROMSFile, ROMS=T, nameit='npacS'){
     stop('Data dimension incorrect!')
   }
 }
+
+#Simple function to read .nc data:
+ncread  <- function(file, VAR){
+  if(file.exists(file)){
+    nc    <- nc_open(file)
+  }else{
+    stop(paste(file,'does not exist!'))
+  }
+  nvar    <- which(names(nc$var) == VAR)
+  if (length(nvar) < 1) stop(paste0(VAR, ' not found in ',file))
+    v4    <- nc$var[[nvar]] # The index of data to be extracted
+  data    <- ncvar_get(nc, v4)
+  nc_close(nc)
+  return(data)
+}
+
+#Get var names of nc file
+ncVarname  <- function(file){
+  if(file.exists(file)){
+    nc    <- nc_open(file)
+  }else{
+    stop(paste(file,'does not exist!'))
+  }
+  data    <- names(nc$var)
+  nc_close(nc)
+  return(data)
+}
+
 
 # Read lon and lat from ROMS grid file:
 read_grid <- function(nameit){
