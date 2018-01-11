@@ -63,6 +63,7 @@ op <- par( font.lab = 1,
 
  #Mixing between two communities with equal biomass but very different mean size
   ADD_mom(BX=.6,muX=5,varX=1,BY=.6,muY=3,varY=1,legend=T)
+  ADD_mom(BX=.6,muX=5,varX=.0001,BY=.6,muY=3,varY=1,legend=T)
   mtext('a)',adj=0, outer=F)
 
   ADD_mom(BX=.6,muX=5,varX=1,BY=.6,muY=2,varY=1)
