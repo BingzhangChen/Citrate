@@ -1,10 +1,9 @@
-subroutine MONOD(Temp,PAR,NO3,PO4,mu0,Qnmin,Qpmin,aI0,bI0,KN,KP,DFe,KFe,muNet,QN,QP,theta,SI,Lno3)
+subroutine MONOD_NH4(Temp,PAR,NH4,NO3,PO4,mu0,Qnmin,Qpmin,aI0,bI0,KN,KP,DFe,KFe,muNet,QN,QP,theta,SI,Lno3)
 ! This subroutine calculate nondiatroph phytoplankton growth rates, QN and Theta based on the simplest MONOD equation
-use bio_MOD, only: TEMPBOL, Ep, do_IRON, N2fix,thetamax
-real, intent(in)  :: Temp, PAR, NO3,PO4,mu0,Qnmin,Qpmin,aI0,bI0,KN,KP,DFe,KFe
+use bio_MOD, only: TEMPBOL, Ep, do_IRON, N2fix,thetamax,thetamin
+real, intent(in)  :: Temp, PAR,NH4,NO3,PO4,mu0,Qnmin,Qpmin,aI0,bI0,KN,KP,DFe,KFe
 real, intent(out) :: QN, QP, theta, SI, Lno3,muNet
 real              :: rmax_T,Qnmax,Qpmax,Lpo4
-real, parameter   :: thetamin = 0.02
 
   ! Maximal N:C ratio
    Qnmax=3.*Qnmin
@@ -19,7 +18,10 @@ real, parameter   :: thetamin = 0.02
   SI = (1d0 - exp(-aI0*PAR/rmax_T))*exp(-bI0*PAR/rmax_T)
 
   ! Growth rate (d-1) is the product function of temperature, light, and nutrient   
-  Lno3  = NO3/(NO3 + KN)
+
+  ! Nitrate dependence
+  Lno3  = NO3/(NO3 + KN)*(1. - Lnh4)
+
   if (N2fix) then
      Lpo4 = PO4/(PO4 + KP)
      Lno3 = min(Lno3, Lpo4)
