@@ -43,6 +43,17 @@ else if (Model_ID==NPZDFixIRON) then
 else if (Model_ID==Geidersimple) then
   if(taskid==0) write(6,*) 'Geider simple model selected!'
   NPHY = 1
+else if (Model_ID==GeiderDroop) then
+  if(taskid==0) write(6,*) 'Geider-Droop model (variable N:C and Chl:C ratio) selected!'
+  NPHY    = 1
+  DO_IRON = .FALSE.
+  igmax   =  1  
+  imz     =  igmax  + 1
+  irhom   =  imz    + 1
+  iwDET   =  irhom  + 1
+  iaI0    =  iwDET  + 1
+  NPar    =  iaI0
+
 else if (Model_ID==GeidsimIRON) then
   if(taskid==0) write(6,*) 'Geider simple model with Iron selected!'
   do_IRON = .TRUE.
@@ -106,6 +117,10 @@ endif
 allocate(iPHY(NPHY))
 allocate(iCHL(NPHY))
 allocate(oPHY(NPHY))
+if (Model_ID == GeiderDroop) then
+    allocate(oPHYC(NPHY))
+    allocate(oD_PHYC(NPHY))
+endif
 allocate(oCHL(NPHY))
 allocate(omuNet(NPHY))
 allocate(oLno3(NPHY))
@@ -130,11 +145,19 @@ else
    iDET = iZOO+1
 endif
 
-if (Model_ID==Geiderdisc .or. Model_ID==Geidersimple .or. Model_ID==GeidsimIRON) then
+if (Model_ID==Geiderdisc .or. Model_ID==Geidersimple .or. &
+    Model_ID==GeidsimIRON.or. Model_ID==GeiderDroop) then
    do i=1,NPHY
       iCHL(i) = i + iDET
    enddo 
-   NVAR = iCHL(NPHY)
+   if (Model_ID==GeiderDroop) then
+      do i=1,NPHY
+         iPHYC(i) = i + iCHL(NPHY)
+      enddo 
+      NVAR = iPHYC(NPHY)
+   else
+      NVAR = iCHL(NPHY)
+   endif
 else if(Model_ID==EFTcont .or. Model_ID==NPZDcont) then
    iDETFe=iDET  + 1   ! Detritus in iron
    iPMU = iDETFe+ 1
@@ -169,8 +192,11 @@ endif
 allocate(Vars(NVAR,nlev))
 Vars(:,:)=0d0
 
-if (Model_ID==Geiderdisc .or. Model_ID==Geidersimple .or. Model_ID==GeidsimIRON) then
+if (Model_ID==Geiderdisc .or. Model_ID==Geidersimple .or. &
+    Model_ID==GeidsimIRON) then
     NVsinkterms = 1 + NPHY * 2  ! Include phyto and Chl
+else if (Model_ID==GeiderDroop) then
+    NVsinkterms = 1 + NPHY * 3  ! Include phyto, PHYC, and Chl
 else if (Model_ID==NPPZDD .or. Model_ID==EFTPPDD .or. Model_ID==NPZDN2) then
     NVsinkterms = 2 + NPHY
 else
@@ -180,10 +206,13 @@ endif
 allocate(Windex(NVsinkterms))
 do i=1,NPHY
    Windex(i)=iPHY(i)
-   if (Model_ID==Geiderdisc .or. Model_ID==Geidersimple .or. Model_ID==GeidsimIRON) then
+   if (Model_ID==Geiderdisc .or. Model_ID==Geidersimple .or. &
+       Model_ID==GeidsimIRON.or. Model_ID==GeiderDroop) then
       Windex(i+NPHY)=iCHL(i)
    endif
+   if (Model_ID==GeiderDroop) Windex(i+NPHY*2)=iPHYC(i)
 enddo
+
 if (Model_ID==NPPZDD .or. Model_ID==EFTPPDD) then
 
    Windex(NVsinkterms-1)=iDET
@@ -255,13 +284,26 @@ else
   enddo 
 endif
 
+if (Model_ID == GeiderDroop) then
+  do i=1,NPHY
+     oPHYC(i) = i + oCHL(NPHY)
+  enddo 
+endif
+
 ! The above must match with i** indeces   
-oPHYt=oCHL(NPHY)+1
+
+
+if (Model_ID == GeiderDroop) then
+   oPHYt=oPHYC(NPHY)+1
+else
+   oPHYt=oCHL(NPHY)+1
+endif
+
 oCHLt=oPHYt+1
 
-if (Model_ID==Geiderdisc   .or. Model_ID==NPZDdisc  &
-    .or. Model_ID==EFTdisc .or. Model_ID==CITRATE3  &
-    .or. Model_ID==EFTcont .or. Model_ID==NPZDcont) then
+if (     Model_ID==Geiderdisc.or. Model_ID==NPZDdisc  &
+    .or. Model_ID==EFTdisc   .or. Model_ID==CITRATE3  &
+    .or. Model_ID==EFTcont   .or. Model_ID==NPZDcont) then
    do i=1,4
       oCHLs(i)=oCHLt+i
    enddo
@@ -326,11 +368,18 @@ if (Model_ID==NPZDcont .or. Model_ID==CITRATE3) then
 else
     oD_DET =oD_ZOO+1
 endif
-if (Model_ID==Geiderdisc .or. Model_ID==Geidersimple .or. Model_ID==GeidsimIRON) then
+if (Model_ID==Geiderdisc .or. Model_ID==Geidersimple .or. Model_ID==GeidsimIRON .or. Model_ID==GeiderDroop) then
    do i=1,NPHY
       oD_CHL(i)=oD_DET+1
    enddo
-   Nout=oD_CHL(NPHY)
+   if (Model_ID == GeiderDroop) then
+      do i=1,NPHY
+         oD_PHYC(i)=oD_CHL(NPHY)+1
+      enddo
+      Nout=oD_PHYC(NPHY)
+   else
+      Nout=oD_CHL(NPHY)
+   endif
 else if(Model_ID==NPPZDD .or. Model_ID==EFTPPDD) then
    oD_DET2=oD_DET+1
    Nout=oD_DET2
@@ -461,8 +510,12 @@ do i=1,NPHY
    write(Labelout(omuNet(i) + ow), format_string) 'muN',i
    write(Labelout(oGraz(i)  + ow), format_string) 'Gra',i
    write(Labelout(oD_PHY(i) + ow), format_string) 'D_P',i
-   if (Model_ID==GeidsimIRON.or.Model_ID==Geiderdisc .or. Model_ID==Geidersimple) then
+   if (Model_ID==GeidsimIRON .or.Model_ID==Geiderdisc .or. &
+       Model_ID==Geidersimple.or.Model_ID==GeiderDroop) then
       write(Labelout(oD_CHL(i) + ow), format_string) 'DCH',i
+   endif
+   if (Model_ID==GeiderDroop) then
+      write(Labelout(oD_PHYC(i) + ow), format_string) 'DPC',i
    endif
 enddo
 
@@ -507,7 +560,7 @@ endif
 ! Need to have tradeoffs for maximal growth rate (mu0) and Kn
 ! Common parameters:
 if (Model_ID .ne. NPZDcont .and. Model_ID .ne. EFTsimple &
-.and. Model_ID.ne.CITRATE3) then
+.and. Model_ID.ne.CITRATE3 .and. Model_ID .ne. GeiderDroop) then
   imu0    =  1
   igmax   =  imu0  + 1
   iKPHY   =  igmax + 1  
@@ -626,7 +679,14 @@ if (imu0 > 0) then
    ParamLabel(imu0) = 'mu0hat '
    params(imu0)     = 0.8
 endif
+
+if (irhom > 0) then
+   ParamLabel(irhom)= 'rhomax'
+   params(irhom)    = 1.  !Unit: mol N (mol C)-1 d-1
+endif
+
 ParamLabel(imz)  = 'mz'
+
 if (igmax > 0) then
    ParamLabel(igmax)= 'gmax'
    params(igmax)    = 1.35
