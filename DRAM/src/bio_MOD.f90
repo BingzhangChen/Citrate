@@ -29,10 +29,11 @@ integer, parameter :: NPPZDD      = 17
 integer, parameter :: EFTPPDD     = 18
 integer, parameter :: NPZDN2      = 19
 integer, parameter :: CITRATE3    = 20
+integer, parameter :: GeiderDroop = 21
 
 ! Parameters for phytoplankton size fractional Chl
 real, parameter :: pi=3.1415926535897932384633D0
-real, parameter :: eps     = 1d-20
+real, parameter :: eps     = 1d-30
 real, parameter :: PMU_min = log(1d1*pi/6d0*0.6**3)
 real, parameter :: PMU_max = log(1d1*pi/6d0*4d1**3)
 real, parameter :: PMU_1   = log(1d1*pi/6d0)
@@ -63,7 +64,7 @@ integer  :: oCHLs(4)   ! Four size fractions of CHL
 
 ! Indices for parameters used in DRAM
 integer  :: imu0,iaI0,igmax,iKN,iKP,iKPHY,iKPnif,iLnifp,iKFe,iRDN_N,iRDN_P
-integer  :: ialphamu,ibetamu,ialphaKN
+integer  :: ialphamu,ibetamu,ialphaKN,irhom
 integer  :: imu0B, iaI0B, iA0N2, iRL2,iKN2,ibI0B
 integer  :: iVTR,iVTRL,iVTRT,iVTRI,ifer,od3mu,od4mu
 integer  :: izetaN,izetaChl, iaI0_C 
@@ -72,6 +73,7 @@ integer  :: iQ0N,ialphaQ,iPenfac,iLref,iwDET,irdN,imz
 integer  :: ithetamin,iQNmin,itau,iwDET2,igb,oFescav,odstdep
 integer, allocatable :: iPHY(:), oPHY(:),oTheta(:),oQN(:),oQp(:)
 integer, allocatable :: iCHL(:), oCHL(:),omuNet(:),oD_PHY(:),oD_CHL(:)
+integer, allocatable :: iPHYC(:), oPHYC(:),oD_PHYC(:)
 integer, allocatable :: oGraz(:),oSI(:), oLno3(:)
 integer, allocatable :: Windex(:)
 real,    allocatable :: Vars(:,:),Varout(:,:), params(:)
