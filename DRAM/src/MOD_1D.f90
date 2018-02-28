@@ -159,7 +159,7 @@ integer              :: NL  ! for counting of OBS_DOY et al.
 integer, allocatable :: kk(:)
 
 Select case(Model_ID)
-  case(NPZDFix,NPPZDD,EFTPPDD,Geidersimple, EFTsimple, NPZDFixIRON, GeidsimIRON,EFT2sp,NPZD2sp, EFTsimIRON)
+  case(NPZDFix,NPPZDD,EFTPPDD,Geidersimple,GeiderDroop, EFTsimple, NPZDFixIRON, GeidsimIRON,EFT2sp,NPZD2sp, EFTsimIRON)
      ! Data types must be the same for different stations.
      ! But can be different for different models
      NDTYPE = 4  !TIN, CHL, PP, PON
@@ -760,6 +760,10 @@ DO jj = 1, Nstn
   do k = 1,nlev
      do i = 1,NPHY
         Vars(iPHY(i), k) = 0.1/float(NPHY)
+        if (Model_ID==GeiderDroop) then
+           Vars(iPHYC(i), k) = Vars(iPHY(i),k) * 106./16.
+           Vars(iCHL(i),  k) = Vars(iPHYC(i),k)*12./50.
+        endif
      enddo
      Vars(iZOO,k) = 0.1
      Vars(iDET,k) = 0.1
@@ -1002,6 +1006,8 @@ DO jj = 1, Nstn
         call NPZD_N2
       case(Geiderdisc)
         call Geider_DISC
+      case(GeiderDroop)
+        call Geider_Droop
       case(EFTdisc)
         call FLEXEFT_DISC
       case(EFTcont)
