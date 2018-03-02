@@ -12,14 +12,12 @@ real, parameter :: RDN= 0.1
 
 real    :: rhochl, theta,QN, CHL
 real    :: SI,Lno3, PC
-real    :: par_, 
+real    :: par_, rhoI !Nitrogen uptake rate 
 real    :: NO3, PHY, PHYC, ZOO, DET
 real    :: mz,gmax
 
 mz   = params(imz)
 gmax = params(igmax)
-
-if (do_IRON) KFe = params(iKFe)
 
 DO k = 1, nlev
    tf_p= TEMPBOL(Ep, Temp(k))  
@@ -94,11 +92,13 @@ DO k = 1, nlev
    call PHY_GeiderDroop(Temp(k), PAR(k), NO3, QN, theta, &
                         Lno3, SI, PC, rhoI, rhochl)
    Varout(oPPt,k)=PHYC*PC
+   Varout(oPON,k)=PHY+ZOO+DET
 enddo
 End subroutine Geider_Droop
 
 subroutine PHY_GeiderDroop(Temp, PAR, NO3, QN, theta, Lno3, SI, muC, rhoI, rhochl)
-use bio_MOD, only: params, irhom, TEMPBOL, Ep, iaI0, thetamax
+use bio_MOD, only: params, irhom, TEMPBOL, Ep, iaI0, thetamax, imu0
+use bio_MOD, only: tf_p
 
 implicit none
 
@@ -116,32 +116,29 @@ real, intent(out) :: muC
 ! Indices for light and nutrient limitation
 real, intent(out) :: Lno3, SI, rhochl
 
-real :: rho_m  !Maximal (reference) nitrogen uptake rate
-
+real :: PCmax
 !Half-saturation constant for N uptake
 real, parameter :: KN = 0.2    
 
-rho_m= params(irhom)
-
 !Temperature coefficient
-tf_p = TEMPBOL(Ep, Temp(k))  
+tf_p = TEMPBOL(Ep, Temp)  
 
 ! DIN uptake by phytoplankton (Ward 2017)
-rhoI = rho_m *NO3/(NO3 + KN)*(QNmax-QN)/dQN*tf_p
+rhoI = params(irhom)*NO3/(NO3 + KN)*(QNmax-QN)/dQN*tf_p
 
 ! N limitation
 Lno3 = (QN-QNmin)/dQN
 
 !Maximal photosynthesis rate (regulated by QN)
-PCmax = PCref * tf_P*Lno3
+PCmax= params(imu0)*tf_P*Lno3
 
 !The light limitation index (fpar)
-SI = 1d0 - exp(-params(iaI0)*par_*theta/PCmax)
+SI = 1d0 - exp(-params(iaI0)*PAR*theta/PCmax)
 
 ! Photosynthesis rate (d-1)
-muC = PCmax*SI
+muC= PCmax*SI
 
 ! define rhochl (gChl/molC;the fraction of phytoplankton carbon production that is devoted to Chl synthesis)
-rhochl = thetamax*muC/(params(iaI0)*par_*theta)
-
+rhochl = thetamax*muC/(params(iaI0)*PAR*theta)
+return
 end subroutine PHY_GeiderDroop

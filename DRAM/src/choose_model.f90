@@ -47,7 +47,8 @@ else if (Model_ID==GeiderDroop) then
   if(taskid==0) write(6,*) 'Geider-Droop model (variable N:C and Chl:C ratio) selected!'
   NPHY    = 1
   DO_IRON = .FALSE.
-  igmax   =  1  
+  imu0    =  1
+  igmax   =  imu0   + 1  
   imz     =  igmax  + 1
   irhom   =  imz    + 1
   iwDET   =  irhom  + 1
@@ -118,6 +119,7 @@ allocate(iPHY(NPHY))
 allocate(iCHL(NPHY))
 allocate(oPHY(NPHY))
 if (Model_ID == GeiderDroop) then
+    allocate(iPHYC(NPHY))
     allocate(oPHYC(NPHY))
     allocate(oD_PHYC(NPHY))
 endif
@@ -448,6 +450,9 @@ do i=1,NPHY
    write(Labelout(oLno3(i) +ow),  format_string) 'Lno',i
    write(Labelout(otheta(i)+ow),  format_string) 'The',i
    write(Labelout(oCHL(i)  +ow),  format_string) 'CHL',i
+   if (Model_ID .eq. GeiderDroop) then
+      write(Labelout(oPHYC(i) +ow),  format_string) 'PHYC',i
+   endif
 enddo
 
 Labelout(oZOO +ow)='ZOO'

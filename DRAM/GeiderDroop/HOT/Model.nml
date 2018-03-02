@@ -1,33 +1,20 @@
 &Model
-  Stn='HOT',
-  Model_ID = 5,
-  nutrient_uptake = 2,
+  Stn      ='HOT',
+  Model_ID = 21,
+  nutrient_uptake = 1,
   grazing_formulation = 3,
+  bot_bound = 0, 
 /
 
-! Model_ID:
-!EFTdisc     = 1
-!EFTcont     = 2
-!Geiderdisc  = 3
-!NPZDcont    = 4
-!EFTsimple   = 5
-!Geidersimple= 6
-!NPZDFix     = 7
-!NPZDdisc    = 8
-!EFTsimIRON  = 9
-!NPZDFixIRON = 10
-!GeidsimIRON = 11
-!NPZDdiscFe  = 12
-!EFTdiscFe   = 13
-!EFTDarwin   = 14
-!EFT2sp      = 15
-!NPZD2sp     = 16
+!bot_bound: type of boundary condition for bottom
+!Dirichlet      = 0,
+!Neumann        = 1
 
 &MCMCrun
-   nruns   = 5E+5,
-   BurnInt = 1000, ! number of runs for initial 'Burn-in'
+   nruns   = 100000,
    EnsLen  = 500, 
-   NDays   = 1080,
-   Readfile= 1,
+   NDays   = 1440,
+   Readfile= 0,
    NR_enspar=3,
+   MPIRUN  = 1,
 /

@@ -324,6 +324,11 @@ if (iaI0 > 0) then
    MinValue(iaI0) =  0.01
 endif
 
+if (irhom > 0) then
+   MaxValue(irhom) = 2.0
+   MinValue(irhom) = .01
+endif
+
 if (Model_ID.eq.EFT2sp .or. Model_ID.eq.EFTPPDD .or. Model_ID.eq.NPZD2sp .or. Model_ID.eq.NPPZDD) then
   if (Model_ID .eq. EFT2sp .or. Model_ID .eq. EFTPPDD)  & 
    MaxValue(iaI0) = 0.2
@@ -449,11 +454,15 @@ endif
 
 ! Model-specific parameters:
 select case(Model_ID)
-case(Geidersimple,Geiderdisc, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFixIRON, GeidsimIRON, NPZDN2)
+case(Geidersimple,Geiderdisc,GeiderDroop, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFixIRON, GeidsimIRON, NPZDN2)
   !Based on the lab dataset from Chen and Laws (2017)
   !Growth rate normalized to 15 ºC based on linear regression
   !0.025% and 0.975% quantiles
-  MaxValue(imu0) =  1.2
+  if (Model_ID .eq. GeiderDroop) then
+    MaxValue(imu0) =  2.5
+  else
+    MaxValue(imu0) =  1.2
+  endif
   MinValue(imu0) =  0.3
 
   if (Model_ID .eq. NPZDcont .or. Model_ID .eq. NPZDFix .or. Model_ID .eq. NPPZDD .or. Model_ID.eq.NPZD2sp .or. Model_ID.eq.NPZDdisc .or. Model_ID .eq. NPZDFixIRON .or. Model_ID .eq. NPZDN2) then

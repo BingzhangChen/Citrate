@@ -24,7 +24,7 @@ integer               :: nsave   = INT(d_per_s)/INT(dtsec) ! Timesteps to save
 
 integer, private      :: N_Aks(Nstn)              ! Station dependent
 
-integer, parameter    :: NFobs(TNFo)=(/12,12,360, 12,12,12,12,12,12/)
+!integer, parameter    :: NFobs(TNFo)=(/12,12,360, 12,12,12,12,12,12/)
 
 ! Forcing data time indices 
 real, private, target :: obs_time_temp(NFobs(etemp), Nstn)
