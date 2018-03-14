@@ -1,0 +1,17 @@
+At Run #                     201
+** % 1st Accept. =      5.47     ** % 2nd Accept. =    35.32
+          Best LogL =       1.442E+04
+    Best weighted SSqE =    3.004E+04
+                 yñNµ[VÝ@   3.004E+04
+                 yñNµ[VÝ@   3.004E+04
+                 yñNµ[VÝ@   3.004E+04
+*** LogL:    New   1.439E+04     Curr   1.443E+04     Best   1.442E+04
+                  sigmabest              sigmamean 
+     sigmaHOTTI            8.305E-02            8.498E-02
+     sigmaHOTCH            2.216E-01            2.288E-01
+     sigmaHOTNP            2.736E-01            2.736E-01
+     sigmaHOTPO            1.189E-01            1.332E-01
+     sigmaHOTPO            1.643E-01            1.629E-01
+     sigmaHOTPO            1.251E-01            1.286E-01
+     sigmaHOTDI            3.500E-01            4.088E-01
+
