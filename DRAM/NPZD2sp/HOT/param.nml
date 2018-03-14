@@ -1,0 +1,7 @@
+&parameters
+mu0hat=5,
+A0N=50,
+wDET=0.6,
+Q0N=0.08,
+aI0=0.1,
+/

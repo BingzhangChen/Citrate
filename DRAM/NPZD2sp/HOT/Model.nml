@@ -1,0 +1,33 @@
+&Model
+  Stn='HOT',
+  Model_ID = 16,
+  nutrient_uptake = 1,
+  grazing_formulation = 3,
+/
+
+! Model_ID:
+!EFTdisc     = 1
+!EFTcont     = 2
+!Geiderdisc  = 3
+!NPZDcont    = 4
+!EFTsimple   = 5
+!Geidersimple= 6
+!NPZDFix     = 7
+!NPZDdisc    = 8
+!EFTsimIRON  = 9
+!NPZDFixIRON = 10
+!GeidsimIRON = 11
+!NPZDdiscFe  = 12
+!EFTdiscFe   = 13
+!EFTDarwin   = 14
+!EFT2sp      = 15
+!NPZD2sp     = 16
+
+&MCMCrun
+   nruns   = 5E+5,
+   BurnInt = 1000, ! number of runs for initial 'Burn-in'
+   EnsLen  = 500, 
+   NDays   = 1080,
+   Readfile= 0,
+   NR_enspar=3,
+/
