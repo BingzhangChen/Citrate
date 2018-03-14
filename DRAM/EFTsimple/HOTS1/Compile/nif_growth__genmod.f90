@@ -1,0 +1,13 @@
+        !COMPILER-GENERATED INTERFACE MODULE: Tue Oct 10 17:23:00 2017
+        MODULE NIF_GROWTH__genmod
+          INTERFACE 
+            SUBROUTINE NIF_GROWTH(PO4,PAR,TEMP,TAU,MU,THETA)
+              REAL(KIND=8), INTENT(IN) :: PO4
+              REAL(KIND=8), INTENT(IN) :: PAR
+              REAL(KIND=8), INTENT(IN) :: TEMP
+              REAL(KIND=8), INTENT(IN) :: TAU
+              REAL(KIND=8), INTENT(OUT) :: MU
+              REAL(KIND=8), INTENT(OUT) :: THETA
+            END SUBROUTINE NIF_GROWTH
+          END INTERFACE 
+        END MODULE NIF_GROWTH__genmod

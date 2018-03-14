@@ -1,0 +1,8 @@
+        !COMPILER-GENERATED INTERFACE MODULE: Tue Oct 10 17:23:02 2017
+        MODULE NPZD_2SP__genmod
+          INTERFACE 
+            SUBROUTINE NPZD_2SP
+              USE BIO_MOD
+            END SUBROUTINE NPZD_2SP
+          END INTERFACE 
+        END MODULE NPZD_2SP__genmod

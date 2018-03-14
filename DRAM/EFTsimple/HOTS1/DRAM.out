@@ -1,0 +1,286 @@
+ Flexible simple model selected!
+ Labelout(           1 ) = Temp
+ Labelout(           2 ) = PAR
+ Labelout(           3 ) = Aks
+ Labelout(           4 ) = DFe
+ Labelout(           5 ) = w
+ Labelout(           6 ) = NO3
+ Labelout(           7 ) = PHY1
+ Labelout(           8 ) = ZOO
+ Labelout(           9 ) = DET
+ Labelout(          10 ) = CHL1
+ Labelout(          11 ) = PHY_T
+ Labelout(          12 ) = CHL_T
+ Labelout(          13 ) = muN1
+ Labelout(          14 ) = Gra1
+ Labelout(          15 ) = Lno1
+ Labelout(          16 ) = SI_1
+ Labelout(          17 ) = QN_1
+ Labelout(          18 ) = The1
+ Labelout(          19 ) = Z2N
+ Labelout(          20 ) = D2N
+ Labelout(          21 ) = NPP_T
+ Labelout(          22 ) = PAR_
+ Labelout(          23 ) = D_NO3
+ Labelout(          24 ) = D_P1
+ Labelout(          25 ) = D_ZOO
+ Labelout(          26 ) = D_DET
+ 5 parameters in total 
+ParamLabel(  1) = mu0hat
+Params  1) =        5.000
+ParamLabel(  2) =    aI0
+Params  2) =        0.200
+ParamLabel(  3) =    A0N
+Params  3) =        5.000
+ParamLabel(  4) =    Q0N
+Params  4) =        0.076
+ParamLabel(  5) =   wDET
+Params  5) =        2.000
+ Stn name: S1 
+Total number of observations o S1  =  3023
+ Stn name: K2 
+Total number of observations o K2  =  2339
+Observation data set up for S1 
+Observation data set up for K2 
+Timestepping:        0.003 of one day.
+ Model setup finished for S1 
+ Model setup finished for K2 
+  The prior parameter mean values: 
+  1.0E+00   1.0E+00   1.0E+00   1.0E+00   1.0E+00
+  The prior SD of parameters: 
+  3.0E-01   1.4E+00   5.0E-01   4.6E-01   1.9E+00
+  The Inverse of the Prior Covariance Matrix: 
+  1.1E+01   0.0E+00   0.0E+00   0.0E+00   0.0E+00
+  0.0E+00   5.3E-01   0.0E+00   0.0E+00   0.0E+00
+  0.0E+00   0.0E+00   4.0E+00   0.0E+00   0.0E+00
+  0.0E+00   0.0E+00   0.0E+00   4.7E+00   0.0E+00
+  0.0E+00   0.0E+00   0.0E+00   0.0E+00   2.8E-01
+  The square root of the determinant of the Prior Covariance Matrix = 
+  0.176920270795898     
+ Initial Covariance matrix = 
+      9.0E-02
+      0.0E+00  1.9E+00
+      0.0E+00  0.0E+00  2.5E-01
+      0.0E+00  0.0E+00  0.0E+00  2.1E-01
+      0.0E+00  0.0E+00  0.0E+00  0.0E+00  3.5E+00
+ Initial Proposal Covariance matrix = 
+      1.0E-01
+      0.0E+00  2.2E+00
+      0.0E+00  0.0E+00  2.9E-01
+      0.0E+00  0.0E+00  0.0E+00  2.4E-01
+      0.0E+00  0.0E+00  0.0E+00  0.0E+00  4.0E+00
+ Cholesky factor for Proposal Covariance matrix = 
+      3.2E-01
+      0.0E+00  1.5E+00
+      0.0E+00  0.0E+00  5.3E-01
+      0.0E+00  0.0E+00  0.0E+00  4.9E-01
+      0.0E+00  0.0E+00  0.0E+00  0.0E+00  2.0E+00
+  Testing whether cost remains the same on subsequent calls 
+
+  Call #    1, LogL =    -5.728E+04
+
+One model run takes    7.676 seconds.
+ The            1  run.
+ Proposal Covariance matrix for            2  ensemble run =
+      5.0E-02
+     -1.7E-02  2.5E-02
+      8.5E-02 -2.3E-02  1.7E-01
+      1.5E-02 -7.1E-04  3.1E-02  8.7E-03
+      1.1E-02 -1.1E-02  1.6E-02  4.5E-04  1.0E-02
+ The         1001  run.
+ Proposal Covariance matrix for            3  ensemble run =
+      3.5E-02
+     -1.3E-02  1.4E-02
+      5.2E-02 -1.6E-02  9.4E-02
+      7.6E-03 -3.2E-04  1.5E-02  4.3E-03
+      8.6E-03 -6.8E-03  1.1E-02  1.9E-04  6.3E-03
+ The         2001  run.
+ Proposal Covariance matrix for            4  ensemble run =
+      2.6E-02
+     -1.1E-02  1.1E-02
+      3.7E-02 -1.2E-02  6.4E-02
+      4.9E-03 -7.1E-05  1.0E-02  2.9E-03
+      7.4E-03 -5.7E-03  8.6E-03  2.4E-05  5.1E-03
+ The         3001  run.
+ Proposal Covariance matrix for            5  ensemble run =
+      2.1E-02
+     -9.1E-03  9.1E-03
+      2.9E-02 -9.9E-03  4.9E-02
+      3.5E-03  3.6E-05  7.5E-03  2.2E-03
+      6.3E-03 -4.9E-03  7.0E-03 -4.7E-05  4.2E-03
+ The         4001  run.
+ Proposal Covariance matrix for            6  ensemble run =
+      1.7E-02
+     -7.7E-03  7.7E-03
+      2.4E-02 -8.3E-03  4.0E-02
+      2.8E-03  7.4E-05  5.9E-03  1.8E-03
+      5.4E-03 -4.1E-03  5.8E-03 -7.0E-05  3.5E-03
+ The         5001  run.
+ Proposal Covariance matrix for            7  ensemble run =
+      1.5E-02
+     -6.7E-03  6.6E-03
+      2.0E-02 -7.1E-03  3.3E-02
+      2.3E-03  9.5E-05  4.9E-03  1.5E-03
+      4.7E-03 -3.6E-03  5.0E-03 -8.2E-05  3.1E-03
+ The         6001  run.
+ Proposal Covariance matrix for            8  ensemble run =
+      1.3E-02
+     -5.9E-03  5.7E-03
+      1.7E-02 -6.2E-03  2.9E-02
+      1.9E-03  1.0E-04  4.2E-03  1.3E-03
+      4.1E-03 -3.2E-03  4.4E-03 -8.5E-05  2.7E-03
+ The         7001  run.
+ Proposal Covariance matrix for            9  ensemble run =
+      1.1E-02
+     -5.2E-03  5.1E-03
+      1.5E-02 -5.5E-03  2.5E-02
+      1.7E-03  1.0E-04  3.6E-03  1.1E-03
+      3.7E-03 -2.8E-03  3.9E-03 -8.4E-05  2.4E-03
+ The         8001  run.
+ Proposal Covariance matrix for           10  ensemble run =
+      1.0E-02
+     -4.7E-03  4.6E-03
+      1.4E-02 -5.0E-03  2.2E-02
+      1.5E-03  9.9E-05  3.2E-03  9.9E-04
+      3.3E-03 -2.5E-03  3.5E-03 -8.1E-05  2.1E-03
+ The         9001  run.
+ Proposal Covariance matrix for           11  ensemble run =
+      9.2E-03
+     -4.3E-03  4.2E-03
+      1.2E-02 -4.5E-03  2.0E-02
+      1.3E-03  9.6E-05  2.9E-03  8.9E-04
+      3.0E-03 -2.3E-03  3.2E-03 -7.8E-05  2.0E-03
+ The        10001  run.
+ Proposal Covariance matrix for           12  ensemble run =
+      8.4E-03
+     -3.9E-03  3.8E-03
+      1.1E-02 -4.1E-03  1.8E-02
+      1.2E-03  9.2E-05  2.6E-03  8.1E-04
+      2.8E-03 -2.1E-03  2.9E-03 -7.4E-05  1.8E-03
+ The        11001  run.
+ Proposal Covariance matrix for           13  ensemble run =
+      7.8E-03
+     -3.6E-03  3.5E-03
+      1.0E-02 -3.8E-03  1.7E-02
+      1.1E-03  8.8E-05  2.4E-03  7.4E-04
+      2.5E-03 -2.0E-03  2.7E-03 -7.1E-05  1.7E-03
+ The        12001  run.
+ Proposal Covariance matrix for           14  ensemble run =
+      7.2E-03
+     -3.4E-03  3.3E-03
+      9.5E-03 -3.5E-03  1.6E-02
+      9.9E-04  8.4E-05  2.2E-03  6.8E-04
+      2.4E-03 -1.8E-03  2.5E-03 -6.7E-05  1.5E-03
+ The        13001  run.
+ Proposal Covariance matrix for           15  ensemble run =
+      6.7E-03
+     -3.2E-03  3.0E-03
+      8.9E-03 -3.3E-03  1.4E-02
+      9.2E-04  8.1E-05  2.1E-03  6.4E-04
+      2.2E-03 -1.7E-03  2.3E-03 -6.4E-05  1.4E-03
+ The        14001  run.
+ Proposal Covariance matrix for           16  ensemble run =
+      6.3E-03
+     -3.0E-03  2.9E-03
+      8.3E-03 -3.1E-03  1.3E-02
+      8.5E-04  7.7E-05  1.9E-03  5.9E-04
+      2.1E-03 -1.6E-03  2.2E-03 -6.1E-05  1.3E-03
+ The        15001  run.
+ Proposal Covariance matrix for           17  ensemble run =
+      5.9E-03
+     -2.8E-03  2.7E-03
+      7.8E-03 -2.9E-03  1.3E-02
+      8.0E-04  7.3E-05  1.8E-03  5.6E-04
+      2.0E-03 -1.5E-03  2.0E-03 -5.8E-05  1.3E-03
+ The        16001  run.
+ Proposal Covariance matrix for           18  ensemble run =
+      5.6E-03
+     -2.6E-03  2.5E-03
+      7.3E-03 -2.7E-03  1.2E-02
+      7.5E-04  6.8E-05  1.7E-03  5.2E-04
+      1.8E-03 -1.4E-03  1.9E-03 -5.4E-05  1.2E-03
+ The        17001  run.
+ Proposal Covariance matrix for           19  ensemble run =
+      5.3E-03
+     -2.5E-03  2.4E-03
+      6.9E-03 -2.6E-03  1.1E-02
+      7.1E-04  6.4E-05  1.6E-03  5.0E-04
+      1.7E-03 -1.3E-03  1.8E-03 -5.1E-05  1.1E-03
+ The        18001  run.
+ Proposal Covariance matrix for           20  ensemble run =
+      5.0E-03
+     -2.4E-03  2.3E-03
+      6.6E-03 -2.4E-03  1.1E-02
+      6.7E-04  6.1E-05  1.5E-03  4.7E-04
+      1.7E-03 -1.3E-03  1.7E-03 -4.8E-05  1.1E-03
+ The        19001  run.
+ Proposal Covariance matrix for           21  ensemble run =
+      4.7E-03
+     -2.2E-03  2.2E-03
+      6.2E-03 -2.3E-03  1.0E-02
+      6.4E-04  5.8E-05  1.4E-03  4.5E-04
+      1.6E-03 -1.2E-03  1.7E-03 -4.6E-05  1.0E-03
+ The        20001  run.
+ Proposal Covariance matrix for           22  ensemble run =
+      4.5E-03
+     -2.1E-03  2.1E-03
+      6.0E-03 -2.2E-03  9.7E-03
+      6.1E-04  5.5E-05  1.4E-03  4.2E-04
+      1.5E-03 -1.2E-03  1.6E-03 -4.4E-05  9.8E-04
+ The        21001  run.
+ Proposal Covariance matrix for           23  ensemble run =
+      4.3E-03
+     -2.0E-03  2.0E-03
+      5.7E-03 -2.1E-03  9.2E-03
+      5.8E-04  5.3E-05  1.3E-03  4.1E-04
+      1.4E-03 -1.1E-03  1.5E-03 -4.2E-05  9.4E-04
+ The        22001  run.
+ Proposal Covariance matrix for           24  ensemble run =
+      4.1E-03
+     -2.0E-03  1.9E-03
+      5.4E-03 -2.0E-03  8.8E-03
+      5.6E-04  5.1E-05  1.3E-03  3.9E-04
+      1.4E-03 -1.1E-03  1.4E-03 -4.0E-05  9.1E-04
+ The        23001  run.
+ Proposal Covariance matrix for           25  ensemble run =
+      4.0E-03
+     -1.9E-03  1.8E-03
+      5.2E-03 -2.0E-03  8.5E-03
+      5.3E-04  4.9E-05  1.2E-03  3.7E-04
+      1.3E-03 -1.0E-03  1.4E-03 -3.9E-05  8.7E-04
+ The        24001  run.
+ Proposal Covariance matrix for           26  ensemble run =
+      3.8E-03
+     -1.8E-03  1.7E-03
+      5.0E-03 -1.9E-03  8.1E-03
+      5.1E-04  4.7E-05  1.2E-03  3.6E-04
+      1.3E-03 -9.9E-04  1.3E-03 -3.8E-05  8.4E-04
+ The        25001  run.
+ Proposal Covariance matrix for           27  ensemble run =
+      3.7E-03
+     -1.8E-03  1.7E-03
+      4.8E-03 -1.8E-03  7.8E-03
+      4.9E-04  4.7E-05  1.1E-03  3.4E-04
+      1.3E-03 -9.7E-04  1.3E-03 -3.7E-05  8.2E-04
+ The        26001  run.
+ Proposal Covariance matrix for           28  ensemble run =
+      3.7E-03
+     -1.8E-03  1.8E-03
+      4.6E-03 -1.7E-03  7.5E-03
+      4.6E-04  5.5E-05  1.1E-03  3.3E-04
+      1.2E-03 -9.8E-04  1.2E-03 -3.9E-05  8.0E-04
+ The        27001  run.
+ Proposal Covariance matrix for           29  ensemble run =
+      3.6E-03
+     -1.9E-03  1.9E-03
+      4.4E-03 -1.6E-03  7.3E-03
+      4.4E-04  6.2E-05  1.0E-03  3.2E-04
+      1.2E-03 -1.0E-03  1.2E-03 -4.0E-05  7.9E-04
+ The        28001  run.
+ Proposal Covariance matrix for           30  ensemble run =
+      3.6E-03
+     -1.9E-03  1.9E-03
+      4.3E-03 -1.6E-03  7.0E-03
+      4.2E-04  6.8E-05  1.0E-03  3.1E-04
+      1.2E-03 -1.0E-03  1.1E-03 -4.2E-05  7.8E-04
+ The        29001  run.

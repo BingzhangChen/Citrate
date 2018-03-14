@@ -1,0 +1,27 @@
+        !COMPILER-GENERATED INTERFACE MODULE: Tue Oct 10 17:23:05 2017
+        MODULE PHY_NPZDCONT__genmod
+          INTERFACE 
+            SUBROUTINE PHY_NPZDCONT(NO3,PAR_,TEMP_,FE,PMU,MUNET,DMUDL,  &
+     &D2MUDL2,D3MUDL3,D4MUDL4,SI,FN,THETA,QN,DQNDL,D2QNDL2,DTHETADL,    &
+     &D2THETADL2)
+              REAL(KIND=8), INTENT(IN) :: NO3
+              REAL(KIND=8), INTENT(IN) :: PAR_
+              REAL(KIND=8), INTENT(IN) :: TEMP_
+              REAL(KIND=8), INTENT(IN) :: FE
+              REAL(KIND=8), INTENT(IN) :: PMU
+              REAL(KIND=8), INTENT(OUT) :: MUNET
+              REAL(KIND=8), INTENT(OUT) :: DMUDL
+              REAL(KIND=8), INTENT(OUT) :: D2MUDL2
+              REAL(KIND=8), INTENT(OUT) :: D3MUDL3
+              REAL(KIND=8), INTENT(OUT) :: D4MUDL4
+              REAL(KIND=8), INTENT(OUT) :: SI
+              REAL(KIND=8), INTENT(OUT) :: FN
+              REAL(KIND=8), INTENT(OUT) :: THETA
+              REAL(KIND=8), INTENT(OUT) :: QN
+              REAL(KIND=8), INTENT(OUT) :: DQNDL
+              REAL(KIND=8), INTENT(OUT) :: D2QNDL2
+              REAL(KIND=8), INTENT(OUT) :: DTHETADL
+              REAL(KIND=8), INTENT(OUT) :: D2THETADL2
+            END SUBROUTINE PHY_NPZDCONT
+          END INTERFACE 
+        END MODULE PHY_NPZDCONT__genmod
