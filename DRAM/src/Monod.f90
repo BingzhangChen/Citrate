@@ -30,8 +30,7 @@ real, parameter   :: thetamin = 0.02
      Lno3  = min(Lno3, Lpo4)
   endif
   muNet = rmax_T*Lno3*SI
-  QN = Qnmin/(1d0-(1d0-Qnmin/Qnmax)*Lno3)
-
+  QN    = Qnmin/(1d0-(1d0-Qnmin/Qnmax)*Lno3)
   if (N2fix) QP=Qpmin/(1d0-(1d0-Qpmin/Qpmax)*(PO4/(PO4+KP)))
   
   theta  = thetamin+muNet/PAR/aI0*(thetamax-thetamin)   !Unit: gChl/molC

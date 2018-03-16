@@ -956,7 +956,6 @@ DO jj = 1, Nstn
            pc => PO4_bot(:,:,jj)
            call time_interp(int(current_sec),NFobs(ePO4),1,pb,pc,VarsBom(:,iPO4))
         endif
-
      endif
 
     ! Interpolate Aks data throughout the water column:

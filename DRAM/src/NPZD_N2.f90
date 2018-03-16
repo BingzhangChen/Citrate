@@ -53,7 +53,7 @@ DO k = 1, nlev
    call nif_growth(PO4,PAR(k),Temp(k),wstr0(1),muDIA,theta_DIA)
 
    ! Unit of PHY: mM P
-   Varout(oPPt,k)=(PHY*muNet/Varout(oQP(1),k) + DIA*muDIA/P2C_dia)*12d0
+   Varout(oPPt,k)=(PHY*muNet/QP + DIA*muDIA/P2C_dia)*12d0
 
    ! Calculate nondiazo growth rate, theta, and QN based on environmental conditions
    CALL MONOD(Temp(k), par_, NO3, PO4, params(imu0),params(iQ0N),  &
@@ -96,7 +96,7 @@ DO k = 1, nlev
   Res_DIA = Lnifdin*tf_p*dtdays*DIA**2
 
   ! Mortality of diazotrophs (DIA -> POP):
-  Mort_DIA        = Lnifdet*tf_p*dtdays*DIA
+  Mort_DIA= Lnifdet*tf_p*dtdays*DIA
 
   ! N as the unit:
   Varout(oDET,k)  = (DETn + pp_DZ*N2P_phy) - pp_NDn + Mort_DIA*N2P_dia
