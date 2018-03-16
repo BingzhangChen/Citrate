@@ -1,4 +1,5 @@
 Module param_MOD
+use MPI
 implicit none
 
 ! Number of stations to run
