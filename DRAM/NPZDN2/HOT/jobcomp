@@ -79,5 +79,5 @@ sed -f flags.tmp Makefile3 > Makefile
 make
 rm -rf flags.tmp
 
-mv DRAM ../GeiderDroop
+mv DRAM ../NPZDN2
 cd ../
