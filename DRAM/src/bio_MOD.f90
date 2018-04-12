@@ -241,7 +241,7 @@ END SELECT
 return
 end function grazing
 !===================================================
-
+!Functions deriving the first and second derivatives of X/Y ~ L 
 pure real function dY_Xdl(Y, X, dYdl, dXdl) 
 implicit none
 real, intent(in)    :: Y, X, dYdl, dXdl
@@ -255,5 +255,13 @@ real, intent(in)    :: Y, X, dYdl, dXdl, d2Ydl2, d2Xdl2
                                           2.*Y/(X**3)*(dXdl**2)
 end function
 
+! Light ~ growth function from Edwards et al. L&O 2015
+pure real function mu_Edwards2015(I_, lnIopt, mumax, alpha) 
+implicit none
+! lnIopt is log(Iopt)
+real, intent(in)    :: I_, lnIopt, mumax, alpha
+mu_Edwards2015 =  1./( I_/(alpha*exp(2.*lnIopt)) + 1./mumax -2./(alpha*exp(lnIopt))  &
+            + 1./(I_*alpha)  ) 
+end function mu_Edwards2015
 
 END Module BIO_MOD

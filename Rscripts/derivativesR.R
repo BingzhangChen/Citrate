@@ -70,7 +70,6 @@ dgdL = D(g, 'P')
 f = expression((Kp^2-P^2)/(P*(Kp^2+P^2)))
 dfdL = D(f,'P')
 
-
 f = expression((P-x)/(x+P))
 dfdL = D(f,'x')
 
@@ -129,10 +128,25 @@ eval(dQNdL, list(N=0.1, L=1,alphaQmin = -0.16, K0N=0.2,alphaK=0.27,Q0min=0.04,Q0
 eval(d2QNdL2, list(N=0.1, L=1,alphaQmin = -0.16, K0N=0.2,alphaK=0.27,Q0min=0.04,Q0max=0.1,alphaQmax=-0.07))
 
 #Evaluate the equation of temperature in Chen & Laws (2017)
-f = expression(u0*exp(alpha*Z)*exp(E/kb*(1/T0 - 1/T)) / (1+E/(E0 * exp(beta * Z))*exp((E+E0 * exp(beta*Z))/kb*(1/Z - 1/T))))
-dfdTopt   = D(f, 'Z')
-d2fdTopt2 = D(dfdTopt, 'Z')
+G = expression((a2-a3)*(Z-T0) + (E0*exp(a2*(Z-T0))+dE0 * exp(a3*(Z-T0)))/kb*(1/Z - 1/T))
+dGdZ_ = D(G, 'Z')
+eval(G, list(E0=1.5,a2=-.03,kb = 8.62E-5,T0=273.15+15, dE0 = .4,a3=.11, u0=1.568,a1=-.165,T = 288, Z=278 ))
+eval(dGdZ_, list(E0=1.5,a2=-.03,kb = 8.62E-5,T0=273.15+15, dE0 = .4,a3=.11, u0=1.568,a1=-.165,T = 288, Z=278 ))
+B = expression(1+E0*exp(a2*(Z-T0))/(dE0 * exp(a3*(Z-T0)))*exp((E0*exp(a2*(Z-T0))+dE0 * exp(a3*(Z-T0)))/kb*(1/Z - 1/T)))
+dBdZ_ = D(B, 'Z')
+eval(B, list(E0=1.5,a2=-.03,kb = 8.62E-5,T0=273.15+15, dE0 = .4,a3=.11, u0=1.568,a1=-.165,T = 288, Z=278 ))
+eval(dBdZ_, list(E0=1.5,a2=-.03,kb = 8.62E-5,T0=273.15+15, dE0 = .4,a3=.11, u0=1.568,a1=-.165,T = 288, Z=278 ))
 
-eval(f, list(E=0.8,kb = 8.62E-5,T0=273.15+15, E0 = exp(-31.48),beta=.11, u0=exp(0.11*288.15),alpha=-.11,T = 288, Z=278 ))
-eval(dfdTopt, list(E=0.8,kb = 8.62E-5,T0=273.15+15, E0 = exp(-31.48),beta=.11, u0=exp(0.11*288.15),alpha=-.11,T = 288, Z=278 ))
-eval(d2fdTopt2, list(E=0.8,kb = 8.62E-5,T0=273.15+15, E0 = exp(-31.48),beta=.11, u0=exp(0.11*288.15),alpha=-.11,T = 288, Z=278 ))
+f = expression(u0*exp(a1*(Z-T0))*exp(E0*exp(a2*(Z-T0))/kb*(1/T0 - 1/T)) / (1+E0*exp(a2*(Z-T0))/(dE0 * exp(a3*(Z-T0)))*exp((E0*exp(a2*(Z-T0))+dE0 * exp(a3*(Z-T0)))/kb*(1/Z - 1/T))))
+dfdZ   = D(f, 'Z')
+d2fdZ2 = D(dfdZ, 'Z')
+
+DFdZ <- function(x, y){
+    Y <- eval(dfdZ, list(E0=1.49,a2=-.034,kb = 8.62E-5,T0=288.15, dE0 = .8,a3=.112, u0=1.52,a1=-.165,T = y, Z=x))
+    return(Y)
+}
+
+eval(f, list(E0=1.5,a2=-.03,kb = 8.62E-5,T0=273.15+15, dE0 = .4,a3=.11, u0=1.568,a1=-.165,T = 288, Z=278 ))
+dfdz_=eval(dfdZ, list(E0=1.5,a2=-.03,kb = 8.62E-5,T0=273.15+15, dE0 = .4,a3=.11, u0=1.568,a1=-.165,T = 288, Z=278 ))
+fx <- deriv(f ~ u0*exp(a1*(Z-T0))*exp(E0*exp(a2*(Z-T0))/kb*(1/T0 - 1/T)) / (1+E0*exp(a2*(Z-T0))/(dE0 * exp(a3*(Z-T0)))*exp((E0*exp(a2*(Z-T0))+dE0 * exp(a3*(Z-T0)))/kb*(1/Z - 1/T))), c("b0", "b1", "th"),
+                  function(b0, b1, th, x = 1:7){} )

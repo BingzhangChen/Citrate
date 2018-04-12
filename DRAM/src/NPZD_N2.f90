@@ -7,11 +7,12 @@ real    :: par_, muNet,muDIA
 real    :: Kp, gmax, mz,KPO4
 real    :: QN, Qp, bI0, KFe_, N2P_phy, theta_DIA
 real    :: pp_NDn,pp_PDp,Res_DIA,Mort_DIA
-real, parameter :: N2P_dia = 45d0 ! N:P ratio of diazotrophs
+real, parameter :: N2P_dia = 45. ! N:P ratio of diazotrophs
 real, parameter :: N2C_dia = 0.2  ! N:C ratio of diazotrophs
-real, parameter :: P2C_dia = 0.005! P:C ratio of diazotrophs
+real, parameter :: P2C_dia = N2C_dia/N2P_dia ! P:C ratio of diazotrophs
 real, parameter :: Q0p     = 3D-3 ! Subsistence P quota of ordinary phyto.
 real, parameter :: Lnifdet = 0.05 ! Diazotroph mortality   rate
+real, parameter :: RDN     = 0.1  ! Regeneration rate of detritus to DIN
 real            :: Lnifdin = 0.17*16 
 
 Lnifdin=params(iLnifp)  ! Diazotroph respiration rate
@@ -86,17 +87,17 @@ DO k = 1, nlev
    EGES = INGES*unass
 
   ! For production/destruction matrix:
-  pp_NDn = dtdays*params(iRDN_N)*DETn*tf_z   
+  pp_NDn = dtdays*RDN*DETn*tf_z   
   pp_PDp = dtdays*params(iRDN_P)*DETp*tf_z
   pp_NZ  = ZOO*RES        
   pp_DZ  = ZOO*EGES+Zmort 
   pp_ZP  = ZOO*INGES      
   
   ! Respiration of diazotrophs (DIA -> DIP):
-  Res_DIA = Lnifdin*tf_p*dtdays*DIA**2
+  Res_DIA  = Lnifdin*tf_p*dtdays*DIA**2
 
   ! Mortality of diazotrophs (DIA -> POP):
-  Mort_DIA= Lnifdet*tf_p*dtdays*DIA
+  Mort_DIA = Lnifdet*tf_p*dtdays*DIA
 
   ! N as the unit:
   Varout(oDET,k)  = (DETn + pp_DZ*N2P_phy) - pp_NDn + Mort_DIA*N2P_dia
@@ -105,7 +106,7 @@ DO k = 1, nlev
   Varout(oDETp,k) = (DETp + pp_DZ)- pp_PDp + Mort_DIA
 
   Varout(oNO3,k)  = (NO3+pp_NDn+pp_NZ*N2P_phy+Res_DIA*N2P_dia) &
-                  - PHY*muNet*N2P_phy
+                  - PHY*muNet*N2P_phy   ! N as the unit
 
   Varout(oPO4,k)  = (PO4+pp_PDp+pp_NZ        +Res_DIA) &
                   - PHY*muNet-DIA*muDIA ! P as the unit

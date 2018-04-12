@@ -58,7 +58,12 @@ else if (Model_ID==GeiderDroop) then
 else if (Model_ID==GeidsimIRON) then
   if(taskid==0) write(6,*) 'Geider simple model with Iron selected!'
   do_IRON = .TRUE.
-  NPHY = 1
+  NPHY    = 1
+else if (Model_ID==NP) then
+  if(taskid==0) write(6,*) 'Nutrient-Phytoplankton (NP) model selected!'
+  NPHY    = 1
+  DO_IRON = .FALSE.
+  imu0    =  1
 else if (Model_ID==EFTsimple) then
   if(taskid==0) write(6,*) 'Flexible simple model selected!'
   NPHY    = 1
@@ -597,8 +602,7 @@ if (nutrient_uptake .eq. 1) then
      ! iKP  =  iKN    + 1
      iKPnif=  iKN    + 1
      iLnifp=  iKPnif + 1
-     iRDN_N=  iLnifp + 1
-     iRDN_P=  iRDN_N + 1
+     iRDN_P=  iLnifp + 1
       iQ0N =  iRDN_P + 1
    else
       iQ0N =  iKN    + 1
@@ -754,10 +758,8 @@ if (nutrient_uptake .eq. 1) then
   ParamLabel(iLnifp)= 'Lnifp'
       params(iLnifp)= 0.17*16.
       params(iKPHY) = .5/16d0
-  ParamLabel(iRDN_N)= 'RDNn'
-      params(iRDN_N)= 0.05
   ParamLabel(iRDN_P)= 'RDNp'
-      params(iRDN_P)= 0.1
+      params(iRDN_P)= 0.15
   endif
   if (Model_ID .eq. NPZD2sp .or. Model_ID.eq.NPPZDD) then
    ParamLabel(iKN2) = 'KN2'

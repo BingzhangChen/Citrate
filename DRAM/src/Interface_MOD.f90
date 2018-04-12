@@ -418,8 +418,6 @@ case(1)
      MinValue(iLnifp)=0.05*16d0
      MaxValue(iKPHY) =1./16.
      MinValue(iKPHY) =.01/16.
-     MaxValue(iRDN_N)=.2
-     MinValue(iRDN_N)=.001
      MaxValue(iRDN_P)=.2
      MinValue(iRDN_P)=.001
   endif
