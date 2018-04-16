@@ -1,7 +1,7 @@
 MODULE MOD_1D
 use BIO_MOD
 implicit none
-public
+
 ! Grid parameters
 real, private, parameter :: hmax   = 5D2   ! Total water depth
 real, private, parameter :: thetaS = 2d0   ! surface stretching parameter
@@ -71,7 +71,7 @@ logical, public  :: INCLUDESIZE = .FALSE.
 ! New calculated state variables
 real, private, allocatable    :: ww(:,:)  
 !!$$-----------------------------------------------------------------
-!$ The declaration of the data part:
+! The declaration of the data part:
 ! length of string for labels 
 integer, parameter   :: LabelLen = 7 
 
@@ -159,10 +159,13 @@ integer              :: NL  ! for counting of OBS_DOY et al.
 integer, allocatable :: kk(:)
 
 Select case(Model_ID)
+  case(NPclosure)
+     NDTYPE      = 3  !TIN, CHL, PP
+     INCLUDESIZE = .FALSE.
   case(NPZDFix,NPPZDD,EFTPPDD,Geidersimple,GeiderDroop, EFTsimple, NPZDFixIRON, GeidsimIRON,EFT2sp,NPZD2sp, EFTsimIRON)
      ! Data types must be the same for different stations.
      ! But can be different for different models
-     NDTYPE = 4  !TIN, CHL, PP, PON
+     NDTYPE      = 4  !TIN, CHL, PP, PON
      INCLUDESIZE = .FALSE.
 
   case(NPZDN2)
@@ -182,8 +185,7 @@ Select case(Model_ID)
      INCLUDESIZE = .FALSE.
      endif
   case default
-     write(6,*) 'Model option incorrect! Quit!'
-     stop
+     stop 'Model option incorrect! Quit!'
 End select
 
 allocate(DataLabel(NDTYPE),  STAT = AllocateStatus)
@@ -191,7 +193,7 @@ IF (AllocateStatus /= 0) STOP "*** Problem in allocating DataLabel ***"
 DataLabel(itNO3) = 'TIN'
 DataLabel(itCHL) = 'CHL'
 DataLabel(itNPP) = 'NPP'
-DataLabel(itPON) = 'PON'
+if (NDTYPE .ge. 4) DataLabel(itPON) = 'PON'
 if(DO_IRON) then 
    DataLabel(itDFe) = 'DFe'
    itDFe            = itPON + 1       
@@ -260,14 +262,14 @@ allocate(NDPTS(NDTYPE,Nstn),  STAT = AllocateStatus)
 IF (AllocateStatus /= 0) STOP "*** Error in allocating NDPTS ***"
 
 Do j = 1, Nstn
-  if(taskid==0) write(6,*) 'Stn name: ',Stn(j)
+  if(taskid==0) write(6,*) 'Station name: ',Stn(j)
 ! Assign the data dimension, must be consistent with external file:
   if (trim(Stn(j)) .eq. 'S1') then
       N_Aks(j)       = 40
       NDPTS(itNO3,j) = 1127
       NDPTS(itCHL,j) = 426
       NDPTS(itNPP,j) = 128
-      NDPTS(itPON,j) = 32
+      if (NDTYPE .ge. 4) NDPTS(itPON,j) = 32
       if (DO_IRON) NDPTS(itDFe,j) = 168
       if (INCLUDESIZE) then
          NDPTS(itP10,j) = 166
@@ -280,7 +282,7 @@ Do j = 1, Nstn
       NDPTS(itNO3,j) = 1186
       NDPTS(itCHL,j) = 470
       NDPTS(itNPP,j) = 112
-      NDPTS(itPON,j) = 29
+      if (NDTYPE .ge. 4) NDPTS(itPON,j) = 29
       if (DO_IRON) NDPTS(itDFe,j) = 168
       if (INCLUDESIZE) then
          NDPTS(itP10,j) = 143
@@ -298,7 +300,7 @@ Do j = 1, Nstn
       endif
       NDPTS(itCHL,j) = 8181
       NDPTS(itNPP,j) = 1712
-      NDPTS(itPON,j) = 2806
+      if (NDTYPE .ge. 4) NDPTS(itPON,j) = 2806
       if (DO_IRON) NDPTS(itDFe,j) = 168
   else
       write(6,*) 'Station number incorrect! Stop!'
@@ -345,8 +347,10 @@ IF (AllocateStatus /= 0) STOP "*** Problem in allocating CHLData ***"
 allocate( NPPData(Tnrow(itNPP),ncol(itNPP,1)), STAT = AllocateStatus)
 IF (AllocateStatus /= 0) STOP "*** Problem in allocating NPPData ***"
 
-allocate( PONData(Tnrow(itPON),ncol(itPON,1)), STAT = AllocateStatus)
-IF (AllocateStatus /= 0) STOP "*** Problem in allocating PONData ***"
+if (NDTYPE .ge. 4) then
+   allocate( PONData(Tnrow(itPON),ncol(itPON,1)), STAT = AllocateStatus)
+   IF (AllocateStatus /= 0) STOP "*** Problem in allocating PONData ***"
+endif
 
 if (do_IRON) then
    allocate( DFeData(Tnrow(itDFe),ncol(itDFe,1)), STAT = AllocateStatus)
@@ -369,7 +373,7 @@ IF (AllocateStatus /= 0) STOP "*** Problem in allocating OBSData ***"
 TINData(:,:) = 0d0
 CHLData(:,:) = 0d0
 NPPData(:,:) = 0d0
-PONData(:,:) = 0d0
+if (NDTYPE .ge. 4) PONData(:,:) = 0d0
 
 if (N2fix) then
     PO4Data(:,:) = 0.
@@ -415,7 +419,9 @@ Do j = 1, Nstn
   call Readcsv(TIN_OBS_file(j),nrow(1,j),ncol(1,j), TINData((kk(1)+1):(kk(1)+nrow(1,j)),:))
   call Readcsv(CHL_OBS_file(j),nrow(2,j),ncol(2,j), CHLData((kk(2)+1):(kk(2)+nrow(2,j)),:))
   call Readcsv(NPP_OBS_file(j),nrow(3,j),ncol(3,j), NPPData((kk(3)+1):(kk(3)+nrow(3,j)),:))
-  call Readcsv(PON_OBS_file(j),nrow(4,j),ncol(4,j), PONData((kk(4)+1):(kk(4)+nrow(4,j)),:))
+  if (NDTYPE .ge. 4) & 
+  call Readcsv(PON_OBS_file(j),nrow(4,j),ncol(4,j), &
+               PONData((kk(4)+1):(kk(4)+nrow(4,j)),:))
 
   if (N2fix) then
   call Readcsv(PO4_OBS_file(j),nrow(itPO4,j),ncol(itPO4,j), PO4Data((kk(itPO4)+1):(kk(itPO4)+nrow(itPO4,j)),:))
@@ -686,7 +692,7 @@ do j = 1, Nstn
 Enddo
 End subroutine Model_setup
 !========================================================
-! This subroutine does the main work in the 1D model
+! This subroutine does the main heavy lifting work in the 1D model
 ! and give the output to match with the observational data
 ! Must be called after initialization
 SUBROUTINE Timestep
@@ -725,9 +731,11 @@ if (.not. allocated(NPPout)) allocate(NPPout(size(NPPData,1),1),STAT = AllocateS
 if (AllocateStatus /= 0) STOP "Problem in allocating NPPout!"
 NPPout(:,:) = 0d0
 
-if (.not. allocated(PONout)) allocate(PONout(size(PONData,1),1),STAT = AllocateStatus)
-if (AllocateStatus /= 0) STOP "Problem in allocating PONout!"
-PONout(:,:) = 0d0
+If (NDTYPE .ge. 4) then
+  if (.not. allocated(PONout)) allocate(PONout(size(PONData,1),1),STAT = AllocateStatus)
+  if (AllocateStatus /= 0) STOP "Problem in allocating PONout!"
+  PONout(:,:) = 0d0
+Endif
 
 if (do_IRON) then
   if (.not. allocated(DFeout)) allocate(DFeout(size(DFeData,1),1),STAT = AllocateStatus)
@@ -762,11 +770,18 @@ DO jj = 1, Nstn
         Vars(iPHY(i), k) = 0.1/float(NPHY)
         if (Model_ID==GeiderDroop) then
            Vars(iPHYC(i), k) = Vars(iPHY(i),k) * 106./16.
-           Vars(iCHL(i),  k) = Vars(iPHYC(i),k)*12./50.
+           Vars(iCHL(i),  k) = Vars(iPHYC(i),k)*  12./50.
         endif
      enddo
-     Vars(iZOO,k) = 0.1
-     Vars(iDET,k) = 0.1
+     if (Model_ID .eq. NPclosure) then
+
+        Vars(iVPHY, k) = Vars(iPHY,k) * params(ibeta) 
+        Vars(iVNO3, k) = Vars(iNO3,k) * params(ibeta) 
+        Vars(iCOVNP,k) = 0.
+     else
+        Vars(iZOO,k)   = 0.1
+        Vars(iDET,k)   = 0.1
+     endif
      if (iZOO2 > 0) Vars(iZOO2,k)=.05 
      if (NVAR > iDET) then
         do i = (iDET+1), NVAR
@@ -785,7 +800,6 @@ DO jj = 1, Nstn
 
        !Initial variance of 4 for Topt
        Vars(iVTo,k)=Vars(iPHY(1),k)*(cff**2 + 2.**2) 
-
        cff         =log(100.)
        Vars(iMIo,k)=Vars(iPHY(1),k)*cff
        Vars(iVIo,k)=Vars(iPHY(1),k)*(cff**2 + cff**2/4.)
@@ -852,7 +866,7 @@ DO jj = 1, Nstn
   cff     = 10**(params(iwDET))
   do k = 0,nlev-1
 
-   !Phytoplankton no sinking
+   !Phytoplankton no sinking except NPclosure model
    !Detritus sinking rate (convert to UNIT: m/s)
     if (Model_ID==NPPZDD .OR. Model_ID==EFTPPDD) then
        ww(k,ncff-1)=-cff/dble(d_per_s) 
@@ -861,6 +875,9 @@ DO jj = 1, Nstn
             Model_ID==CITRATE3) then
        ww(k,ncff-1)=-cff/dble(d_per_s) 
        ww(k,ncff)  =ww(k,ncff-1)
+    elseif (Model_ID==NPclosure) then
+       ww(k,1)    = -cff/dble(d_per_s)
+       ww(k,2)    = ww(k,1)
     else
        ww(k,ncff) = -cff/dble(d_per_s) 
     endif
@@ -1029,6 +1046,8 @@ DO jj = 1, Nstn
         call Geider_simple
       case(GeidsimIRON)
         call Geider_simple
+      case(NPclosure)
+        call NP_closure
       case default
         write(6,*) 'Error in choosing biological models! Quit.'
         stop
@@ -1043,7 +1062,7 @@ DO jj = 1, Nstn
       ! Check whether the values are valid:
       do j = 1,NVAR
          do k=1,nlev
-            if( (Vars(j,k) .ne. Vars(j,k)) ) then
+            if( (Vars(j,k) .ne. Vars(j,k))) then
                 write(6,*) 'j = ',j
                 write(6,*) 'k = ',k
                 write(6,*) 'At time step ',it
@@ -1052,8 +1071,6 @@ DO jj = 1, Nstn
                 write(6,*) 'Vars(j,k) =',  Vars(j,k)
                 stop
             endif
-
-            Vars(j,k) = max(Vars(j,k), eps)
          enddo 
       enddo
   
@@ -1099,8 +1116,6 @@ DO jj = 1, Nstn
            do j = 1, (jj-1)
               nm = nm + sum(NDPTS(:,j))
            enddo
-           !write(6,*) 'Total number of obs. at K2:', nm
-           !stop
            nm = nm + i
         endif
         DOY      = INT(min(OBS_DOY(nm),360.0))
@@ -1385,7 +1400,6 @@ DO jj = 1, Nstn
      Vars2(:) = Vars(Windex(j),:)
 
      select case (bot_bound)
-
      case(Neumann)  ! closed at bottom (Conserve total N mass)
         call adv_center(nlev,dtsec,Hz,Hz,ww_(:),1,1,zero,zero,    6,mode1,Vars2(:))
      case(Dirichlet)
@@ -1395,7 +1409,6 @@ DO jj = 1, Nstn
         write(6,*) "The boundary conditions incorrect! STOP!"
         stop
      endselect
-      
      Vars(Windex(j),:) = Vars2(:)
   enddo
   

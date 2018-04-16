@@ -363,7 +363,8 @@ endif
 ! Fennel et al. (2006) gave range of 0.009-25 m/d
 ! Kishi et al. (2007) gave sinking rate of POC of 40 m/d
 MaxValue(iwDET) =  1.3
-MinValue(iwDET) =  0d0
+MinValue(iwDET) =  -2.0
+
 
 if (Model_ID == NPPZDD .or. Model_ID == EFTPPDD) then
    MaxValue(iwDET2) = 2d0
@@ -408,7 +409,7 @@ case(1)
 ! Chai et al. (2002): 0.05~1
 ! Franks (2009): 0.005~3
   if (iKN > 0) then
-     MaxValue(iKN) =  .5
+     MaxValue(iKN) =  2.0
      MinValue(iKN) =  0.05
   endif
   if (Model_ID .eq. NPZDN2) then  ! The unit based on P
@@ -450,9 +451,14 @@ if (iQ0N > 0) then
    MinValue(iQ0N) =  0.04
 endif
 
+if (iIopt > 0) then
+  MaxValue(iIopt) = 2500.
+  MinValue(iIopt) = 50.
+endif
+
 ! Model-specific parameters:
 select case(Model_ID)
-case(Geidersimple,Geiderdisc,GeiderDroop, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFixIRON, GeidsimIRON, NPZDN2)
+case(Geidersimple,NPclosure,Geiderdisc,GeiderDroop, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFixIRON, GeidsimIRON, NPZDN2)
   !Based on the lab dataset from Chen and Laws (2017)
   !Growth rate normalized to 15 ºC based on linear regression
   !0.025% and 0.975% quantiles
@@ -463,7 +469,7 @@ case(Geidersimple,Geiderdisc,GeiderDroop, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDC
   endif
   MinValue(imu0) =  0.3
 
-  if (Model_ID .eq. NPZDcont .or. Model_ID .eq. NPZDFix .or. Model_ID .eq. NPPZDD .or. Model_ID.eq.NPZD2sp .or. Model_ID.eq.NPZDdisc .or. Model_ID .eq. NPZDFixIRON .or. Model_ID .eq. NPZDN2) then
+  if (Model_ID.eq.NPclosure .or. Model_ID .eq. NPZDcont .or. Model_ID .eq. NPZDFix .or. Model_ID .eq. NPPZDD .or. Model_ID.eq.NPZD2sp .or. Model_ID.eq.NPZDdisc .or. Model_ID .eq. NPZDFixIRON .or. Model_ID .eq. NPZDN2) then
      MaxValue(iaI0_C) =0.1
      MinValue(iaI0_C) =0.01
      if (Model_ID.eq.NPZDcont) then
@@ -509,6 +515,11 @@ case(CITRATE3)
   MaxValue(imu0)=1.2
   MinValue(imu0)=0.2
 
+case(NPclosure)
+  MaxValue(ibeta) = 7.0
+  MinValue(ibeta) = 0.001
+  MaxValue(iDp)   = 0.2
+  MinValue(iDp)   = 0.001
 !-------------------------------
 case(EFTsimple, EFTdisc, EFTcont,EFT2sp,EFTPPDD, EFTsimIRON)
 !  Following Pahlow et al. (2013), fix mu0 and V0N as 5 per day
@@ -544,12 +555,6 @@ case(EFTsimple, EFTdisc, EFTcont,EFT2sp,EFTPPDD, EFTsimIRON)
        write(6,*) 'Nutrient uptake option incorrect! Quit!'
        stop
      end select
-     !MaxValue(iV0N     ) =  8d0
-     !MaxValue(ialphaV  ) =  0.4
-
-     !MaxValue(ialphaQ  ) =  -(1d-9)
-     !MinValue(ialphaQ  ) =  -0.4
-
   endif
 case default
   write(6,*) 'Model option incorrect! Quit!'

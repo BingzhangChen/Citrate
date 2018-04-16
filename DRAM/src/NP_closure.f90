@@ -16,10 +16,8 @@ real :: QN,Qnmax,Qnmin  ! cell quota related variables
 real :: muNet
 real :: alphaI,SI,Lno3
 real :: muNet1, SI1, Lno31, QN1
-real :: rmax_T ! a scratch variable to temporally store phyto. growth rate
 real :: theta
 real :: Ptot,  CHLt,KN, NPPt
-
 !-----------------------------------------------------------------------
 DO k = nlev, 1, -1   
 
@@ -38,82 +36,59 @@ DO k = nlev, 1, -1
    VNO3   = Vars(iVNO3,   k)
    COVNP  = Vars(iCOVNP,  k)
 
-   call PHY_NPZDCONT(NO3,par_,tC,Fe,PMU,muNet,dmuNetdl,d2muNetdl2,d3mudl3,d4mudl4,SI,Lno3, theta, &
-    QN,dQNdL,d2QNdL2,dthetadL,d2thetadl2)
-
-   Varout(oTheta(1),k)= theta
-   Varout(oQN(1)   ,k)= QN   
-
-   Varout(oSI(1),k)  =SI
-   Varout(oLno3(1),k)=Lno3
-
-!=============================================================
-! Calculate the community sinking rate of phytoplankton
-! Phytoplankton sinking rate at the average size
-    w_p    = ScaleTrait(PMU,abs(w_p0),alphaW)  !Positive
-! 
-! Sinking rate (m) of phytoplankton
-    w_pAvg = w_p+0.5*VAR*d2wdl2
-! sinking rate must be negative!
-    w_pAvg = -min(w_pAvg, Wmax)
-!=============================================================
-     NPPt          = PHY*(muNet1/QN1+0.5*VAR*d2muNet_QNdl2) 
-
-     Varout(oCHLt,k) = CHLt
-     Varout(oPPt, k) = NPPt*12d0 ! Correct the unit to ug C/L
-   Endif
+   IF (mod(it, nsave) .EQ. 1) THEN
+     !Use nonmixed light to calculate NPP
+     call PHY_NPCLOSURE(NO3,PAR_,Temp_,PHY,VPHY,VNO3, COVNP, muNet,SI,theta,QN, &
+                        Snp, Chl, NPPt, SVPHY, SVNO3, SCOVNP)
+     Varout(oPPt, k)  = NPPt * 12d0 ! Correct the unit to ug C/L
+   ENDIF
+   !Use mixed light to estimate source and sink
+   call PHY_NPCLOSURE(NO3,PAR_,Temp_,PHY,VPHY,VNO3, COVNP, muNet,SI,theta,QN, &
+                        Snp, Chl, NPPt, SVPHY, SVNO3, SCOVNP)
+   ! Save some model outputs:
+   Varout(oTheta(1),k)= theta! Chl:C ratio at <N>
+   Varout(oQN(1)   ,k)= QN   ! N:C ratio at <N> 
+   Varout(oSI(1),   k)= SI   ! Light limitation
+   Varout(oCHLt,k)    = Chl  ! ensemble mean Chl
 !=============================================================
 !! Solve ODE functions:
-   Zmort2 = MES*MES*mz2*tf_z  !Mortality term for MES
-
-   !Eq. 18, Update PMU:
-   PMU = PMU + PMU0  ! Restore to positive values
-   PMU1= PMU + dtdays*(VAR*(dmuNetdl-dgdlbar1-dgdlbar2+VTR*d3mudl3) - 3d0*VTR*dmuNetdl)
-
 !All rates have been multiplied by dtdays to get the real rate correponding to the actual time step
-   PP_ND= dtdays*RDN*DET*tf_z   
-   PP_NZ= (MIC*RES1+MES*RES2)*dtdays     !Sum of MIC and MES to DIN   
-   PP_DZ= (MIC*EGES1+MES*EGES2+Zmort2)*dtdays  !Sum of MIC and MES to detritus
-   PP_PN= PHY*(muNet+0.5*VAR*(d2muNetdl2+VTR*d4mudl4)-1.5*VTR*d2muNetdl2)
+   Dp   = params(iDp)  ! Mortality rate of phytoplankton
+   PP_PN= Snp - PHY*Dp
 
 !Update tracers:
-   NO3  = NO3 + PP_ND + PP_NZ - PP_PN
-   PHY1 = PHY + PP_PN - PP_MIC_P - PP_MES_P
-   MIC  = MIC + PP_MIC_P*GGE - PP_MES_MIC
-   MES  = MES + (MES*INGES2*GGE - Zmort2)*dtdays
-   
+   NO3  = NO3   - PP_PN*dtdays
+   PHY  = PHY   + PP_PN*dtdays
+   VPHY = VPHY  + (SVPHY-2.Dp*VPHY )*dtdays
+   VNO3 = VNO3  + (SVNO3+2.Dp*COVNP)*dtdays
+   COVNP= COVNP + (SCOVNP+Dp*(VPHY-COVNP))*dtdays
    Varout(oNO3,k)      = NO3
-   Varout(oPHY(1),k)   = PHY1
-   Varout(oPHYt,  k)   = PHY1
-   Varout(oZOO,k)      = MIC
-   Varout(oZOO2,k)     = MES
-   Varout(oDET,k)      = DET1
-   Varout(oDETFe,k)    = DETFe
-   Varout(ofer,k)      = Fe
-   Varout(oPMU,k)      = PMUPHY
-   Varout(oVAR,k)      = VARPHY
-   Varout(omuNet(1),k) = muNet               !Growth rate of mean size
-   Varout(omuAvg,   k) = PP_PN/dtdays/PHY    !Avg. growth rate of the total community
+   Varout(oPHY(1),k)   = PHY
+   Varout(oVPHY  ,k)   = VPHY
+   Varout(oVNO3  ,k)   = VNO3
+   Varout(oCOVNP ,k)   = COVNP
+   Varout(oPHYt,  k)   = PHY
+   Varout(omuNet(1),k) = muNet               !Growth rate at <N>
 ENDDO
 END SUBROUTINE NP_CLOSURE 
 
 ! The subroutine only for phytoplankton
-subroutine PHY_NPCLOSURE(NO3,PAR_,Temp_,PHY, VNO3, COVNP, muNet,SI,theta,QN, Snp, Chl)
-use bio_MOD, only : TEMPBOL, params, mu_Edwards2015 
-use bio_MOD, only : iIopt, imu0, iaI0_C, iKN, Ep
-use bio_MOD, only : thetamax, thetamin
+SUBROUTINE PHY_NPCLOSURE(NO3,PAR_,Temp_,PHY,VPHY,VNO3, COVNP, muNet,SI,theta,QN, Snp, Chl, NPP, SVPHY, SVNO3, SCOVNP)
+USE bio_MOD, ONLY : TEMPBOL, params, mu_Edwards2015 
+USE bio_MOD, ONLY : iIopt, imu0, iaI0_C, iKN, Ep
+USE bio_MOD, ONLY : thetamax, thetamin
 implicit none
-real, intent(in)  :: NO3, PAR_,Temp_,PHY, VNO3, COVNP 
-real, intent(out) :: muNet, theta, QN, SI,  Snp, Chl
+real, intent(in)  :: NO3, PAR_,Temp_,PHY, VPHY, VNO3, COVNP 
+real, intent(out) :: muNet, theta, QN, SI, Snp, Chl, NPP, SVPHY, SVNO3, SCOVNP
 
 ! muNet: mean growth rate at <N>
 real :: mu0hat, mu0hatSI
-real :: alphaI, cff,cff1
+real :: alphaI, cff,cff1, eta, dYdN, dEta_dN, d2ChldN2, Q
 real :: KN, tf
 real, parameter :: Qmin = 0.06, Qmax=0.18
 
 alphaI   = params(ialphaI)
-tf       = TEMPBOL(Ep,Temp_)
+tf       = TEMPBOL(Ep,Temp_)   !Temperature effect
 
 !The temperature and light dependent component
 mu0hat   = tf*params(imu0)
@@ -123,10 +98,10 @@ mu0hatSI = mu0hat*SI
 KN = params(iKN)
 fN = NO3/(NO3 + Kn)  !Nitrogen limitation index
 
-! Phytoplankton growth rate at the mean size:
-muNet = mu0hat*SI*fN
+! Phytoplankton growth rate at the mean nitrogen:
+muNet = mu0hatSI*fN
 
-! Snp: ensemble mean production
+! Snp: ensemble mean production (nitrogen based)
 Snp   = PHY*muNet + mu0hatSI*(Kn*COVNP/(Kn+NO3)**2 - Kn*PHY*VNO3/(Kn+NO3)**3)
 
 !N:C ratio at <N>
@@ -141,11 +116,22 @@ theta = thetamin+muNet/alphaI*cff   !Unit: gChl/molC
 !Chl:N ratio at <N>
 eta   = theta/QN
 dYdN  = Kn/(NO3 + Kn)**2
-dEta_dN  = dYdN*(theta*(1./Qmax - 1./Qmin) + Q*mu0hatSI/alphaI*cff)
-d2ChldN2 = -2.*PHY*Kn/(NO3 + Kn)**3 * (thetamin*(1./Qmax - 1./Qmin) + Q*mu0hatSI/alphaI*cff)
+cff1  = 1./Qmax - 1./Qmin
+dEta_dN  = dYdN*(theta*cff1 + Q*mu0hatSI/alphaI*cff)
+d2ChldN2 = -2.*PHY*Kn/(NO3 + Kn)**3 * (thetamin*cff1 + Q*mu0hatSI/alphaI*cff)
 
+!Ensemble mean Chl
 Chl = PHY*eta + .5*(2.*COVNP*dEta_dN + VNO3*d2ChldN2)
 
+dmuQ_dN = dYdN*(muNet*cff1 + Q*mu0hatSI)
+d2NPPdN2= 2.*PHY*mu0hatSI*Kn/(NO3+Kn)**3 * (cff1*(Kn-2.*NO3)/(NO3+Kn) + 1./Qmin)
+! NPP: ensemble mean carbon based primary production
+NPP = PHY*muNet*Q + .5*(2.*COVNP*dmuQ_dN + VNO3*d2NPPdN2)
+
+! Calculate sources and sinks of variances of N, P, and covariance of NP
+SVPHY = 2.*mu0hatSI*(fN*VPHY         + Kn*PHY*       COVNP/(Kn+NO3)**2)
+SVNO3 =-2.*mu0hatSI*(fN*COVNP        + Kn*PHY*        VNO3/(Kn+NO3)**2) 
+SCOVNP=    mu0hatSI*(fN*(COVNP-VPHY) + Kn*PHY*(VNO3-COVNP)/(Kn+NO3)**2) 
 return
-end subroutine
+END SUBROUTINE PHY_NPCLOSURE
 

@@ -30,9 +30,10 @@ integer, parameter :: EFTPPDD     = 18
 integer, parameter :: NPZDN2      = 19
 integer, parameter :: CITRATE3    = 20
 integer, parameter :: GeiderDroop = 21
+integer, parameter :: NPclosure   = 22
 
 ! Parameters for phytoplankton size fractional Chl
-real, parameter :: pi=3.1415926535897932384633D0
+real, parameter :: pi      = 3.1415926535897932384633D0
 real, parameter :: eps     = 1d-30
 real, parameter :: PMU_min = log(1d1*pi/6d0*0.6**3)
 real, parameter :: PMU_max = log(1d1*pi/6d0*4d1**3)
@@ -50,21 +51,22 @@ real     :: DFe(nlev)                           ! Dissolved iron concentration
 real     :: Z_r(1:nlev), Z_w(0:nlev), Hz(nlev)  ! Grid variables
 real     :: I_zero
 integer  :: NVAR, Nout, iZOO, iZOO2, iDET,iDET2,iDETp,iDETFe, iPMU, iVAR, iPO4,iDIA
-integer  :: iMTo, iVTo, iMIo, iVIo
+integer  :: iMTo, iVTo, iMIo, iVIo, iVPHY,iVNO3,iCOVNP
 integer  :: NVsinkterms,NPHY, NPar
+integer  :: oVNO3,oVPHY,oCOVNP
 integer  :: oZOO, oZOO2,oDET, oPON, oFER, oZ2N, oD2N, oPHYt,oCHLt,oPPt,omuAvg
 integer  :: oPO4, oPOP, oDIA, oDIAu,oDETp, oDET2, oDETFe
 integer  :: oPMU, oVAR, oMTo, oVTo, oMIo, oVIo
 integer  :: odmudl,odgdl,od2mu,od2gdl,odmudT,od2mudT2,odmudI,od2mudI2  
 integer  :: oD_NO3,oD_ZOO,oD_ZOO2,oD_DET,oD_DET2,oD_fer
 integer  :: oD_PMU,oD_VAR,oD_MTo,oD_MIo,oD_VTo,oD_VIo
-integer  :: oPAR_,oD_DETp,oD_DETFe,oD_PO4,oD_DIA
+integer  :: oPAR_,oD_DETp,oD_DETFe,oD_PO4,oD_DIA,oD_VPHY,oD_VNO3,oD_COVNP
 integer  :: oMESg,oMESgMIC,odgdl1,odgdl2,od2gdl1,od2gdl2,odVAR
 integer  :: oCHLs(4)   ! Four size fractions of CHL
 
 ! Indices for parameters used in DRAM
 integer  :: imu0,iaI0,igmax,iKN,iKP,iKPHY,iKPnif,iLnifp,iKFe,iRDN_N,iRDN_P
-integer  :: ialphamu,ibetamu,ialphaKN,irhom
+integer  :: ialphamu,ibetamu,ialphaKN,irhom,iDp, iIopt, ibeta
 integer  :: imu0B, iaI0B, iA0N2, iRL2,iKN2,ibI0B
 integer  :: iVTR,iVTRL,iVTRT,iVTRI,ifer,od3mu,od4mu
 integer  :: izetaN,izetaChl, iaI0_C 
@@ -127,12 +129,16 @@ CONTAINS
 ! Calculate total nitrogen in the system
 subroutine Cal_TN
 implicit none
-integer :: i,k
+integer :: i,k, NT
 
 Ntot = 0d0
-
+if (Model_ID .eq. NPclosure) then
+    NT = iPHY !Number of tracers with real concentration
+else
+    NT = iDET
+endif
 do k = 1,nlev
-   do i = 1,iDET
+   do i = 1,NT
       Ntot = Ntot + Vars(i,k) * Hz(k)
    enddo
 enddo

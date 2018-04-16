@@ -3,7 +3,7 @@ USE bio_MOD
 implicit none
 integer             :: i
 namelist /Model/    Stn, Model_ID, nutrient_uptake, grazing_formulation, bot_bound
-character(len=10), parameter :: format_string = "(A3,I0)"
+character(len=10), parameter :: format_string = "(A5,I0)"
 
 ! open the namelist file and read station name.
 open(namlst,file='Model.nml',status='old',action='read')
@@ -59,11 +59,18 @@ else if (Model_ID==GeidsimIRON) then
   if(taskid==0) write(6,*) 'Geider simple model with Iron selected!'
   do_IRON = .TRUE.
   NPHY    = 1
-else if (Model_ID==NP) then
-  if(taskid==0) write(6,*) 'Nutrient-Phytoplankton (NP) model selected!'
+else if (Model_ID==NPclosure) then
+  if(taskid==0) write(6,*) 'Nutrient-Phytoplankton (NP) closure model selected!'
   NPHY    = 1
   DO_IRON = .FALSE.
-  imu0    =  1
+  imu0    = 1
+  iIopt   = imu0  +1
+  iaI0_C  = iIopt +1
+  iKN     = iaI0_C+1
+  iDp     = iKN   +1
+  iwDET   = iDp   +1  ! Index for phytoplankton sinking rate
+  ibeta   = iwDET +1  ! Beta: ratio of total variance to mean concentration
+  NPar    = iwDET
 else if (Model_ID==EFTsimple) then
   if(taskid==0) write(6,*) 'Flexible simple model selected!'
   NPHY    = 1
@@ -132,7 +139,7 @@ allocate(oCHL(NPHY))
 allocate(omuNet(NPHY))
 allocate(oLno3(NPHY))
 allocate(oSI(NPHY))
-allocate(oGraz(NPHY))
+if (Model_ID .ne. NPclosure) allocate(oGraz(NPHY))
 allocate(oD_PHY(NPHY))
 allocate(oD_CHL(NPHY))
 allocate(otheta(NPHY))
@@ -143,8 +150,14 @@ do i=1,NPHY
    iPHY(i) = i + iNO3
 enddo 
 
-iZOO = iPHY(NPHY)+1
-
+if (Model_ID .eq. NPclosure) then
+    iVNO3  = iPHY(NPHY) + 1
+    iVPHY  = iVNO3      + 1
+    iCOVNP = iVPHY      + 1
+    NVAR   = iCOVNP
+else
+    iZOO   = iPHY(NPHY)+1
+endif
 if (Model_ID==NPZDcont .or. Model_ID==CITRATE3) then
    iZOO2= iZOO +1
    iDET = iZOO2+1
@@ -206,6 +219,8 @@ else if (Model_ID==GeiderDroop) then
     NVsinkterms = 1 + NPHY * 3  ! Include phyto, PHYC, and Chl
 else if (Model_ID==NPPZDD .or. Model_ID==EFTPPDD .or. Model_ID==NPZDN2) then
     NVsinkterms = 2 + NPHY
+else if (Model_ID==NPclosure) then
+    NVsinkterms = NPHY*2
 else
     NVsinkterms = 1 + NPHY
 endif
@@ -213,11 +228,15 @@ endif
 allocate(Windex(NVsinkterms))
 do i=1,NPHY
    Windex(i)=iPHY(i)
-   if (Model_ID==Geiderdisc .or. Model_ID==Geidersimple .or. &
-       Model_ID==GeidsimIRON.or. Model_ID==GeiderDroop) then
+   select case(Model_ID)
+   case(Geiderdisc, Geidersimple, GeidsimIron, GeiderDroop)
       Windex(i+NPHY)=iCHL(i)
-   endif
-   if (Model_ID==GeiderDroop) Windex(i+NPHY*2)=iPHYC(i)
+   case(GeiderDroop)
+      Windex(i+NPHY*2)=iPHYC(i)
+   case(NPclosure)
+      Windex(1+NPHY)=iVPHY
+   case default
+      stop "Model_ID is incorrect!"
 enddo
 
 if (Model_ID==NPPZDD .or. Model_ID==EFTPPDD) then
@@ -240,7 +259,16 @@ endif
 do i=1,NPHY
    oPHY(i)=i+oNO3
 enddo
-oZOO =oPHY(NPHY)+1
+
+if (Model_ID .eq. NPclosure) then
+    oVNO3 =oPHY(NPHY)+1
+    oVPHY =oVNO3     +1
+    oCOVNP=oVPHY     +1
+    oCHL(1)=oCOVNP   +1
+else
+    oZOO  =oPHY(NPHY)+1
+endif
+
 if (Model_ID==NPZDcont .or. Model_ID==CITRATE3) then
     oZOO2=oZOO +1
     oDET =oZOO2+1
@@ -296,10 +324,8 @@ if (Model_ID == GeiderDroop) then
      oPHYC(i) = i + oCHL(NPHY)
   enddo 
 endif
-
 ! The above must match with i** indeces   
-
-
+!=======================================
 if (Model_ID == GeiderDroop) then
    oPHYt=oPHYC(NPHY)+1
 else
@@ -328,13 +354,18 @@ else
    enddo
 end if
 
-do i=1,NPHY
-   oGraz(i) = omuNet(NPHY) + i
-enddo
-
-do i=1,NPHY
-   oLno3(i) = oGraz(NPHY)  + i
-enddo
+if (Model_ID .eq. NPclosure) then
+   do i=1,NPHY
+      oLno3(i) = omuNet(NPHY)  + i
+   enddo
+else
+   do i=1,NPHY
+      oGraz(i) = omuNet(NPHY) + i
+   enddo
+   do i=1,NPHY
+      oLno3(i) = oGraz(NPHY)  + i
+   enddo
+endif
 
 do i=1,NPHY
    oSI(i)=oLno3(NPHY)+i
@@ -355,10 +386,15 @@ else
       otheta(i)=oQN(NPHY)+i
    enddo
 endif
-oZ2N=otheta(NPHY)+1
-oD2N=oZ2N+1
-oPPt=oD2N+1
-oPON=oPPt+1
+
+if (Model_ID .eq. NPclosure) then
+   oPPt=oD2N+1
+else
+   oZ2N=otheta(NPHY)+1
+   oD2N=oZ2N+1
+   oPPt=oD2N+1
+endif
+oPON  =oPPt+1
 oPAR_ =oPON+1
 omuAvg=oPAR_+1
 
@@ -368,75 +404,83 @@ do i=1,NPHY
    oD_PHY(i)=oD_NO3+i
 enddo
 
-oD_ZOO=oD_PHY(NPHY)+1
-if (Model_ID==NPZDcont .or. Model_ID==CITRATE3) then
-    oD_ZOO2=oD_ZOO+1
-    oD_DET =oD_ZOO2+1
-else
-    oD_DET =oD_ZOO+1
-endif
-if (Model_ID==Geiderdisc .or. Model_ID==Geidersimple .or. Model_ID==GeidsimIRON .or. Model_ID==GeiderDroop) then
-   do i=1,NPHY
-      oD_CHL(i)=oD_DET+1
-   enddo
-   if (Model_ID == GeiderDroop) then
-      do i=1,NPHY
-         oD_PHYC(i)=oD_CHL(NPHY)+1
-      enddo
-      Nout=oD_PHYC(NPHY)
-   else
-      Nout=oD_CHL(NPHY)
-   endif
-else if(Model_ID==NPPZDD .or. Model_ID==EFTPPDD) then
-   oD_DET2=oD_DET+1
-   Nout=oD_DET2
-else if(Model_ID==EFTcont .or. Model_ID==NPZDcont) then
-   oD_DETFe=oD_DET+1
-   oD_PMU=oD_DETFe+1
-   oD_VAR=oD_PMU+1
-   oD_fer=oD_VAR+1
-   od2mu =oD_fer+1
-   odmudl=od2mu +1
-   od3mu =odmudl+1
-   od4mu =od3mu +1
-   oMESg =od4mu +1
-   oMESgMIC=oMESg+1
-   odgdl1=oMESgMIC+1
-   odgdl2=odgdl1  +1
-   od2gdl1=odgdl2 +1
-   od2gdl2=od2gdl1+1
-   odVAR =od2gdl2 +1
-   Nout  =odVAR
-else if(Model_ID==CITRATE3) then
-   oD_DETFe=oD_DET+1
-   oD_PMU=oD_DETFe+1
-   oD_VAR=oD_PMU+1
-   oD_MTo=oD_VAR+1
-   oD_VTo=oD_MTo+1
-   oD_MIo=oD_VTo+1
-   oD_VIo=oD_MIo+1
-   oD_fer=oD_VIo+1
-   od2mu =oD_fer+1
-   odmudl=od2mu +1
-   odmudT=odmudl+1
-   od2mudT2=odmudT+1
-   odmudI=od2mudT2+1
-   od2mudI2=odmudI+1
-   oMESg =od2mudI2 +1
-   oMESgMIC=oMESg+1
-   odgdl1=oMESgMIC+1
-   odgdl2=odgdl1  +1
-   od2gdl1=odgdl2 +1
-   od2gdl2=od2gdl1+1
-   Nout   =od2gdl2
-else if(Model_ID==NPZDN2) then
-   oD_DETp=oD_DET +1
-   oD_PO4 =oD_DETp+1
-   oD_DIA =oD_PO4+1
-   Nout   =oD_DIA
-else
-   Nout   =oD_DET
-endif
+If (Model_ID .eq. NPclosure) then
+    oD_VPHY = oD_PHY(NPHY)+1
+    oD_VNO3 = oD_VPHY     +1
+    oD_COVNP= oD_VNO3     +1
+    Nout    = oD_COVNP
+Else
+    oD_ZOO  = oD_PHY(NPHY)+1
+    if (Model_ID==NPZDcont .or. Model_ID==CITRATE3) then
+        oD_ZOO2=oD_ZOO+1
+        oD_DET =oD_ZOO2+1
+    else
+        oD_DET =oD_ZOO+1
+    endif
+    if (Model_ID==Geiderdisc .or. Model_ID==Geidersimple .or. Model_ID==GeidsimIRON .or. Model_ID==GeiderDroop) then
+       do i=1,NPHY
+          oD_CHL(i)=oD_DET+1
+       enddo
+       if (Model_ID == GeiderDroop) then
+          do i=1,NPHY
+             oD_PHYC(i)=oD_CHL(NPHY)+1
+          enddo
+          Nout=oD_PHYC(NPHY)
+       else
+          Nout=oD_CHL(NPHY)
+       endif
+    else if(Model_ID==NPPZDD .or. Model_ID==EFTPPDD) then
+       oD_DET2=oD_DET+1
+       Nout=oD_DET2
+    else if(Model_ID==EFTcont .or. Model_ID==NPZDcont) then
+       oD_DETFe=oD_DET+1
+       oD_PMU=oD_DETFe+1
+       oD_VAR=oD_PMU+1
+       oD_fer=oD_VAR+1
+       od2mu =oD_fer+1
+       odmudl=od2mu +1
+       od3mu =odmudl+1
+       od4mu =od3mu +1
+       oMESg =od4mu +1
+       oMESgMIC=oMESg+1
+       odgdl1=oMESgMIC+1
+       odgdl2=odgdl1  +1
+       od2gdl1=odgdl2 +1
+       od2gdl2=od2gdl1+1
+       odVAR =od2gdl2 +1
+       Nout  =odVAR
+    else if(Model_ID==CITRATE3) then
+       oD_DETFe=oD_DET+1
+       oD_PMU=oD_DETFe+1
+       oD_VAR=oD_PMU+1
+       oD_MTo=oD_VAR+1
+       oD_VTo=oD_MTo+1
+       oD_MIo=oD_VTo+1
+       oD_VIo=oD_MIo+1
+       oD_fer=oD_VIo+1
+       od2mu =oD_fer+1
+       odmudl=od2mu +1
+       odmudT=odmudl+1
+       od2mudT2=odmudT+1
+       odmudI=od2mudT2+1
+       od2mudI2=odmudI+1
+       oMESg =od2mudI2 +1
+       oMESgMIC=oMESg+1
+       odgdl1=oMESgMIC+1
+       odgdl2=odgdl1  +1
+       od2gdl1=odgdl2 +1
+       od2gdl2=od2gdl1+1
+       Nout   =od2gdl2
+    else if(Model_ID==NPZDN2) then
+       oD_DETp=oD_DET +1
+       oD_PO4 =oD_DETp+1
+       oD_DIA =oD_PO4+1
+       Nout   =oD_DIA
+    else
+       Nout   =oD_DET
+    endif
+Endif
+
 allocate(Varout(Nout,nlev))
 IF (AllocateStatus /= 0) STOP "*** Error in allocating Varout ***"
 allocate(Labelout(Nout+ ow ))
@@ -460,65 +504,79 @@ do i=1,NPHY
    endif
 enddo
 
-Labelout(oZOO +ow)='ZOO'
-if (Model_ID==NPZDcont .or. Model_ID==CITRATE3) then
-    Labelout(oZOO  +ow)='MIC'
-    Labelout(oZOO2 +ow)='MES'
-endif
-Labelout(oDET +ow)='DET'
-if (Model_ID==NPPZDD  .or. Model_ID==EFTPPDD) Labelout(oDET2 +ow)='DET2'
-!
-if (Model_ID==NPZDN2) then
-    Labelout(oDETp +ow) ='DETp'
-    Labelout(oPO4  +ow) ='DIP'  ! Consistent with data file
-    Labelout(oPOP  +ow) ='POP'
-    Labelout(oDIA  +ow) ='DIA'
-    Labelout(oDIAu +ow) ='uDIA'
-    Labelout(oD_DETp+ow)='DDETp'
-    Labelout(oD_PO4 +ow)='D_DIP'
-    Labelout(oD_DIA +ow)='D_DIA'
-endif
-if (Model_ID==EFTcont .or. Model_ID==NPZDcont .or.&
-    Model_ID==CITRATE3) then
-    Labelout(oDETFe+ow)='DETFe'
-    Labelout(oPMU  +ow)='PMU'
-    Labelout(oVAR  +ow)='VAR'
-    Labelout(odmudl+ow)='dmudl'
-    Labelout(od2mu +ow)='d2mu '
-    Labelout(oD_DETFe+ow)='DDETF'
-    if (Model_ID .ne. CITRATE3) then
-       Labelout(odVAR +ow)='dVAR'
-       Labelout(od3mu +ow)='d3mu'
-       Labelout(od4mu +ow)='d4mu'
-    else
-       Labelout(oD_MIo+ow)='D_MIo'
-       Labelout(oMIo  +ow)='MIo'
-       Labelout(oMTo  +ow)='MTo'
-       Labelout(oVIo  +ow)='VIo'
-       Labelout(oVTo  +ow)='VTo'
-       Labelout(oD_VIo+ow)='D_VIo'
-       Labelout(oD_VTo+ow)='D_VTo'
-       Labelout(oD_MTo+ow)='D_MTo'
-       Labelout(odmudT+ow)='dmudT'
-       Labelout(odmudI+ow)='dmudI'
-       Labelout(od2mudT2+ow)='d2mudT2'
-       Labelout(od2mudI2+ow)='d2mudI2'
+IF (Model_ID==NPclosure) THEN
+    Labelout(oVPHY + ow) = 'VPHY'
+    Labelout(oVNO3 + ow) = 'VNO3'
+    Labelout(oCOVNP+ ow) = 'COVNP'
+    Labelout(oD_VPHY + ow) = 'D_VP'
+    Labelout(oD_VNO3 + ow) = 'D_VN'
+    Labelout(oD_COVNP + ow)= 'DC_NP'
+ELSE
+    Labelout(oZOO +ow)   = 'ZOO'
+    Labelout(oD_DET+ ow) = 'D_DET'
+    Labelout(oZ2N  + ow) = 'Z2N'
+    Labelout(oD2N  + ow) = 'D2N'
+    Labelout(oD_ZOO+ ow) = 'D_ZOO'
+
+    if (Model_ID==NPZDcont .or. Model_ID==CITRATE3) then
+        Labelout(oZOO  +ow)='MIC'
+        Labelout(oZOO2 +ow)='MES'
     endif
-    Labelout(oD_PMU+ow)='D_PMU'
-    Labelout(oD_VAR+ow)='D_VAR'
-    if (do_IRON) then
-       Labelout(ofer   +ow)='Fer'
-       Labelout(odstdep+ow)='DtDep'
-       Labelout(oFescav+ow)='Fescv'
-       Labelout(oD_fer +ow)='D_Fe'
+    Labelout(oDET +ow)='DET'
+    if (Model_ID==NPPZDD  .or. Model_ID==EFTPPDD) Labelout(oDET2 +ow)='DET2'
+    !
+    if (Model_ID==NPZDN2) then
+        Labelout(oDETp +ow) ='DETp'
+        Labelout(oPO4  +ow) ='DIP'  ! Consistent with data file
+        Labelout(oPOP  +ow) ='POP'
+        Labelout(oDIA  +ow) ='DIA'
+        Labelout(oDIAu +ow) ='uDIA'
+        Labelout(oD_DETp+ow)='DDETp'
+        Labelout(oD_PO4 +ow)='D_DIP'
+        Labelout(oD_DIA +ow)='D_DIA'
     endif
-endif
+    if (Model_ID==EFTcont .or. Model_ID==NPZDcont .or.&
+        Model_ID==CITRATE3) then
+        Labelout(oDETFe+ow)   ='DETFe'
+        Labelout(oPMU  +ow)   ='PMU'
+        Labelout(oVAR  +ow)   ='VAR'
+        Labelout(odmudl+ow)   ='dmudl'
+        Labelout(od2mu +ow)   ='d2mu '
+        Labelout(oD_DETFe+ow) ='DDETF'
+        if (Model_ID .ne. CITRATE3) then
+           Labelout(odVAR +ow)='dVAR'
+           Labelout(od3mu +ow)='d3mu'
+           Labelout(od4mu +ow)='d4mu'
+        else
+           Labelout(oD_MIo+ow)='D_MIo'
+           Labelout(oMIo  +ow)='MIo'
+           Labelout(oMTo  +ow)='MTo'
+           Labelout(oVIo  +ow)='VIo'
+           Labelout(oVTo  +ow)='VTo'
+           Labelout(oD_VIo+ow)='D_VIo'
+           Labelout(oD_VTo+ow)='D_VTo'
+           Labelout(oD_MTo+ow)='D_MTo'
+           Labelout(odmudT+ow)='dmudT'
+           Labelout(odmudI+ow)='dmudI'
+           Labelout(od2mudT2+ow)='d2mudT2'
+           Labelout(od2mudI2+ow)='d2mudI2'
+        endif
+        Labelout(oD_PMU+ow)='D_PMU'
+        Labelout(oD_VAR+ow)='D_VAR'
+        if (do_IRON) then
+           Labelout(ofer   +ow)='Fer'
+           Labelout(odstdep+ow)='DtDep'
+           Labelout(oFescav+ow)='Fescv'
+           Labelout(oD_fer +ow)='D_Fe'
+        endif
+    endif
+ENDIF
 Labelout(oPHYt+ow)='PHY_T'
 Labelout(oCHLt+ow)='CHL_T'
 
 do i=1,NPHY
    write(Labelout(omuNet(i) + ow), format_string) 'muN',i
-   write(Labelout(oGraz(i)  + ow), format_string) 'Gra',i
+   if (Model_ID .ne. NPclosure) write(Labelout(oGraz(i)  + ow), format_string) 'Gra',i
    write(Labelout(oD_PHY(i) + ow), format_string) 'D_P',i
    if (Model_ID==GeidsimIRON .or.Model_ID==Geiderdisc .or. &
        Model_ID==Geidersimple.or.Model_ID==GeiderDroop) then
@@ -529,14 +587,11 @@ do i=1,NPHY
    endif
 enddo
 
-Labelout(oZ2N  + ow)='Z2N'
-Labelout(oD2N  + ow)='D2N'
-Labelout(oPPt  + ow)='NPP_T'
+Labelout(oPPt  + ow)='NPP'
 Labelout(oPON  + ow)='PON'
 Labelout(oPAR_ + ow)='PAR_'
 Labelout(omuAvg+ ow)='muAvg'
 Labelout(oD_NO3+ ow)='D_NO3'
-Labelout(oD_ZOO+ ow)='D_ZOO'
 if (Model_ID .eq. NPZDcont .or. Model_ID .eq. CITRATE3) then
     Labelout(oD_ZOO + ow)='D_MIC'
     Labelout(oD_ZOO2+ ow)='D_MES'
@@ -547,7 +602,6 @@ if (Model_ID .eq. NPZDcont .or. Model_ID .eq. CITRATE3) then
     Labelout(od2gdl1+ ow)='d2gd1'
     Labelout(od2gdl2+ ow)='d2gd2'
 endif
-Labelout(oD_DET+ ow)='D_DET'
 if(Model_ID==NPPZDD.or.Model_ID==EFTPPDD) Labelout(oD_DET2+ow)='DDET2'
 if(Model_ID==Geiderdisc.or.Model_ID==NPZDdisc &
   .or.Model_ID==EFTdisc .or.&
@@ -694,7 +748,7 @@ if (irhom > 0) then
    params(irhom)    = 1.  !Unit: mol N (mol C)-1 d-1
 endif
 
-ParamLabel(imz)  = 'mz'
+if (imz > 0) ParamLabel(imz)  = 'mz'
 
 if (igmax > 0) then
    ParamLabel(igmax)= 'gmax'
@@ -808,10 +862,18 @@ if(Model_ID==CITRATE3) then
   ParamLabel(iVTRI)='VTRI'
   params(iVTRI)    =0.08
 endif
+if (Model_ID==NPclosure) then
+  ParamLabel(ibeta)='beta'
+  ParamLabel(iIopt)='Iopt'
+  ParamLabel(iDp)  ='DPHY'
+  params(ibeta)    =1.0
+  params(iDp)      =0.05
+  params(iIopt)    =1d3
+endif
 if(Model_ID==NPZDdisc.or.Model_ID==NPZD2sp &
  .or.Model_ID==NPPZDD.or.Model_ID==NPZDFix &
  .or. Model_ID==NPZDFixIRON .or. Model_ID==NPZDcont &
- .or. Model_ID==NPZDN2) then
+ .or. Model_ID==NPZDN2      .or. Model_ID==NPclosure) then
   ParamLabel(iaI0_C)='aI0_C'
   params(iaI0_C)    =0.055
   if (Model_ID == NPZDcont) then
