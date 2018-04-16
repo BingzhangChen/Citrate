@@ -24,7 +24,7 @@ integer               :: nsave   = INT(d_per_s)/INT(dtsec) ! Timesteps to save
 
 integer, private      :: N_Aks(Nstn)              ! Station dependent
 
-!integer, parameter    :: NFobs(TNFo)=(/12,12,360, 12,12,12,12,12,12/)
+integer, parameter    :: NFobs(TNFo)=(/12,12,360, 12,12,12,12,12,12/)
 
 ! Forcing data time indices 
 real, private, target :: obs_time_temp(NFobs(etemp), Nstn)
@@ -774,9 +774,8 @@ DO jj = 1, Nstn
         endif
      enddo
      if (Model_ID .eq. NPclosure) then
-
-        Vars(iVPHY, k) = Vars(iPHY,k) * params(ibeta) 
-        Vars(iVNO3, k) = Vars(iNO3,k) * params(ibeta) 
+        Vars(iVPHY, k) = Vars(iPHY(1),k) * params(ibeta) 
+        Vars(iVNO3, k) = Vars(iNO3,   k) * params(ibeta) 
         Vars(iCOVNP,k) = 0.
      else
         Vars(iZOO,k)   = 0.1

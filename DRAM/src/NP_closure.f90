@@ -1,35 +1,30 @@
 SUBROUTINE NP_CLOSURE
     ! This NP_closure model has 5 tracers: <N>, <P>, <N'>^2, <P'>^2, <N'P'>
     ! Governing functions follow Mandal et al. JPR (2016)
-use bio_MOD
-use MOD_1D, only: it, nsave
-implicit none
-
+USE bio_MOD
+USE MOD_1D, only: it, nsave
+IMPLICIT NONE
 integer :: k,j,i
 !INPUT PARAMETERS:
 real :: tC,par_
 !LOCAL VARIABLES of phytoplankton:
-real :: PHY1
-real :: NO3, PHY
-real :: mu0,aI0
-real :: QN,Qnmax,Qnmin  ! cell quota related variables
-real :: muNet
-real :: alphaI,SI,Lno3
-real :: muNet1, SI1, Lno31, QN1
-real :: theta
-real :: Ptot,  CHLt,KN, NPPt
+real :: NO3,PHY, VPHY, VNO3, COVNP, SVNO3, SVPHY, SCOVNP
+real :: QN  ! cell quota related variables
+real :: muNet, Dp, PP_PN 
+real :: SI
+real :: theta, Snp
+real :: Chl, NPPt
 !-----------------------------------------------------------------------
 DO k = nlev, 1, -1   
-
    ! Retrieve current (local) state variable values.
-   tC     = Temp(k)
+   tC      = Temp(k)
    ! Check whether in the MLD or not
    if (k .lt. N_MLD) then
       par_ = PAR(k)
    else
       par_ = PARavg
    endif
-   Varout(oPAR_,k)=par_
+   Varout(oPAR_,k) = par_
    NO3    = Vars(iNO3,    k)
    PHY    = Vars(iPHY(1), k)
    VPHY   = Vars(iVPHY,   k)
@@ -38,12 +33,12 @@ DO k = nlev, 1, -1
 
    IF (mod(it, nsave) .EQ. 1) THEN
      !Use nonmixed light to calculate NPP
-     call PHY_NPCLOSURE(NO3,PAR_,Temp_,PHY,VPHY,VNO3, COVNP, muNet,SI,theta,QN, &
+     call PHY_NPCLOSURE(NO3,PAR_,tC,PHY,VPHY,VNO3, COVNP, muNet,SI,theta,QN, &
                         Snp, Chl, NPPt, SVPHY, SVNO3, SCOVNP)
      Varout(oPPt, k)  = NPPt * 12d0 ! Correct the unit to ug C/L
    ENDIF
    !Use mixed light to estimate source and sink
-   call PHY_NPCLOSURE(NO3,PAR_,Temp_,PHY,VPHY,VNO3, COVNP, muNet,SI,theta,QN, &
+   call PHY_NPCLOSURE(NO3,PAR_,tC,PHY,VPHY,VNO3, COVNP, muNet,SI,theta,QN, &
                         Snp, Chl, NPPt, SVPHY, SVNO3, SCOVNP)
    ! Save some model outputs:
    Varout(oTheta(1),k)= theta! Chl:C ratio at <N>
@@ -59,8 +54,8 @@ DO k = nlev, 1, -1
 !Update tracers:
    NO3  = NO3   - PP_PN*dtdays
    PHY  = PHY   + PP_PN*dtdays
-   VPHY = VPHY  + (SVPHY-2.Dp*VPHY )*dtdays
-   VNO3 = VNO3  + (SVNO3+2.Dp*COVNP)*dtdays
+   VPHY = VPHY  + (SVPHY-2.*Dp*VPHY )*dtdays
+   VNO3 = VNO3  + (SVNO3+2.*Dp*COVNP)*dtdays
    COVNP= COVNP + (SCOVNP+Dp*(VPHY-COVNP))*dtdays
    Varout(oNO3,k)      = NO3
    Varout(oPHY(1),k)   = PHY
@@ -84,10 +79,10 @@ real, intent(out) :: muNet, theta, QN, SI, Snp, Chl, NPP, SVPHY, SVNO3, SCOVNP
 ! muNet: mean growth rate at <N>
 real :: mu0hat, mu0hatSI
 real :: alphaI, cff,cff1, eta, dYdN, dEta_dN, d2ChldN2, Q
-real :: KN, tf
+real :: KN, tf, fN, dmuQ_dN, d2NPPdN2
 real, parameter :: Qmin = 0.06, Qmax=0.18
 
-alphaI   = params(ialphaI)
+alphaI   = params(iaI0_C)
 tf       = TEMPBOL(Ep,Temp_)   !Temperature effect
 
 !The temperature and light dependent component

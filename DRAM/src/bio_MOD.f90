@@ -129,16 +129,16 @@ CONTAINS
 ! Calculate total nitrogen in the system
 subroutine Cal_TN
 implicit none
-integer :: i,k, NT
+integer :: i,k, NTC
 
 Ntot = 0d0
 if (Model_ID .eq. NPclosure) then
-    NT = iPHY !Number of tracers with real concentration
+    NTC = iPHY(NPHY) !Number of tracers with real concentration
 else
-    NT = iDET
+    NTC = iDET
 endif
 do k = 1,nlev
-   do i = 1,NT
+   do i = 1,NTC
       Ntot = Ntot + Vars(i,k) * Hz(k)
    enddo
 enddo

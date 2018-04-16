@@ -231,12 +231,13 @@ do i=1,NPHY
    select case(Model_ID)
    case(Geiderdisc, Geidersimple, GeidsimIron, GeiderDroop)
       Windex(i+NPHY)=iCHL(i)
-   case(GeiderDroop)
+      if (Model_ID == GeiderDroop) &
       Windex(i+NPHY*2)=iPHYC(i)
    case(NPclosure)
       Windex(1+NPHY)=iVPHY
    case default
       stop "Model_ID is incorrect!"
+   end select
 enddo
 
 if (Model_ID==NPPZDD .or. Model_ID==EFTPPDD) then
@@ -388,15 +389,16 @@ else
 endif
 
 if (Model_ID .eq. NPclosure) then
-   oPPt=oD2N+1
+   oPPt  =otheta(1)+1
+   oPAR_ =oPPt     +1
 else
-   oZ2N=otheta(NPHY)+1
-   oD2N=oZ2N+1
-   oPPt=oD2N+1
+   oZ2N  =otheta(NPHY)+1
+   oD2N  =oZ2N+1
+   oPPt  =oD2N+1
+   oPON  =oPPt+1
+   oPAR_ =oPON+1
 endif
-oPON  =oPPt+1
-oPAR_ =oPON+1
-omuAvg=oPAR_+1
+omuAvg   =oPAR_+1
 
 ! The diffusion output order must be consistent with the tracer order!
 oD_NO3=omuAvg+1
@@ -505,12 +507,12 @@ do i=1,NPHY
 enddo
 
 IF (Model_ID==NPclosure) THEN
-    Labelout(oVPHY + ow) = 'VPHY'
-    Labelout(oVNO3 + ow) = 'VNO3'
-    Labelout(oCOVNP+ ow) = 'COVNP'
+    Labelout(oVPHY   + ow) = 'VPHY'
+    Labelout(oVNO3   + ow) = 'VNO3'
+    Labelout(oCOVNP  + ow) = 'COVNP'
     Labelout(oD_VPHY + ow) = 'D_VP'
     Labelout(oD_VNO3 + ow) = 'D_VN'
-    Labelout(oD_COVNP + ow)= 'DC_NP'
+    Labelout(oD_COVNP+ ow) = 'DC_NP'
 ELSE
     Labelout(oZOO +ow)   = 'ZOO'
     Labelout(oD_DET+ ow) = 'D_DET'
@@ -588,7 +590,7 @@ do i=1,NPHY
 enddo
 
 Labelout(oPPt  + ow)='NPP'
-Labelout(oPON  + ow)='PON'
+if (oPON > 0) Labelout(oPON  + ow)='PON'
 Labelout(oPAR_ + ow)='PAR_'
 Labelout(omuAvg+ ow)='muAvg'
 Labelout(oD_NO3+ ow)='D_NO3'
