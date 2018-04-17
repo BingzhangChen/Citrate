@@ -70,7 +70,7 @@ else if (Model_ID==NPclosure) then
   iDp     = iKN   +1
   iwDET   = iDp   +1  ! Index for phytoplankton sinking rate
   ibeta   = iwDET +1  ! Beta: ratio of total variance to mean concentration
-  NPar    = iwDET
+  NPar    = ibeta
 else if (Model_ID==EFTsimple) then
   if(taskid==0) write(6,*) 'Flexible simple model selected!'
   NPHY    = 1
@@ -137,9 +137,11 @@ if (Model_ID == GeiderDroop) then
 endif
 allocate(oCHL(NPHY))
 allocate(omuNet(NPHY))
-allocate(oLno3(NPHY))
 allocate(oSI(NPHY))
-if (Model_ID .ne. NPclosure) allocate(oGraz(NPHY))
+if (Model_ID .ne. NPclosure) then
+   allocate(oGraz(NPHY))
+   allocate(oLno3(NPHY))
+endif
 allocate(oD_PHY(NPHY))
 allocate(oD_CHL(NPHY))
 allocate(otheta(NPHY))
@@ -205,7 +207,7 @@ else if(Model_ID==NPZDN2) then
    iPO4  = iDETp+ 1
    iDIA  = iPO4 + 1
    NVAR  = iDIA
-else
+else if(Model_ID.ne.NPclosure) then
    NVAR = iDET
 endif
 
@@ -258,73 +260,72 @@ endif
 
 ! Output array matrices (the order must be consistent with Vars)
 do i=1,NPHY
-   oPHY(i)=i+oNO3
+   oPHY(i) =i+oNO3
 enddo
 
-if (Model_ID .eq. NPclosure) then
-    oVNO3 =oPHY(NPHY)+1
-    oVPHY =oVNO3     +1
-    oCOVNP=oVPHY     +1
-    oCHL(1)=oCOVNP   +1
-else
-    oZOO  =oPHY(NPHY)+1
-endif
-
-if (Model_ID==NPZDcont .or. Model_ID==CITRATE3) then
-    oZOO2=oZOO +1
-    oDET =oZOO2+1
-else
-    oDET =oZOO+1
-endif
-if(Model_ID==EFTcont .or. Model_ID==NPZDcont .or. Model_ID==CITRATE3) then
-   oDETFe=oDET+1
-   oPMU=oDETFe+1
-   oVAR=oPMU+1
-   if (do_IRON) then
-      if (Model_ID==CITRATE3) then
-       oMTo = oVAR+1
-       oVTo = oMTo+1
-       oMIo = oVTo+1
-       oVIo = oMIo+1
-       ofer = oVIo+1
-      else
-       ofer = oVAR+1
-      endif
-      oFescav = ofer   + 1
-      odstdep = oFescav+ 1
+IF (Model_ID .eq. NPclosure) then
+    oVNO3  =oPHY(NPHY)+1
+    oVPHY  =oVNO3     +1
+    oCOVNP =oVPHY     +1
+    oCHL(1)=oCOVNP    +1
+ELSE
+    oZOO   =oPHY(NPHY)+1
+    if (Model_ID==NPZDcont .or. Model_ID==CITRATE3) then
+        oZOO2=oZOO +1
+        oDET =oZOO2+1
+    else
+        oDET =oZOO+1
+    endif
+    if(Model_ID==EFTcont .or. Model_ID==NPZDcont .or. Model_ID==CITRATE3) then
+       oDETFe=oDET+1
+       oPMU=oDETFe+1
+       oVAR=oPMU+1
+       if (do_IRON) then
+          if (Model_ID==CITRATE3) then
+           oMTo = oVAR+1
+           oVTo = oMTo+1
+           oMIo = oVTo+1
+           oVIo = oMIo+1
+           ofer = oVIo+1
+          else
+           ofer = oVAR+1
+          endif
+          oFescav = ofer   + 1
+          odstdep = oFescav+ 1
+          do i=1,NPHY
+             oCHL(i) = i + odstdep
+          enddo 
+       else
+          do i=1,NPHY
+             oCHL(i) = i + oVAR
+          enddo 
+       endif
+    else if (Model_ID == NPPZDD .or. Model_ID==EFTPPDD) then
+       oDET2=oDET+1
+       do i=1,NPHY
+          oCHL(i) = i + oDET2
+       enddo 
+    else if (Model_ID == NPZDN2) then
+       oDETp=oDET+1
+       oPO4 =oDETp+1
+       oDIA =oPO4 +1
+       oPOP =oDIA +1
+       oDIAu=oPOP +1
+       do i=1,NPHY
+          oCHL(i) = i + oDIAu
+       enddo 
+    else
       do i=1,NPHY
-         oCHL(i) = i + odstdep
+         oCHL(i) = i + oDET
       enddo 
-   else
-      do i=1,NPHY
-         oCHL(i) = i + oVAR
-      enddo 
-   endif
-else if (Model_ID == NPPZDD .or. Model_ID==EFTPPDD) then
-   oDET2=oDET+1
-   do i=1,NPHY
-      oCHL(i) = i + oDET2
-   enddo 
-else if (Model_ID == NPZDN2) then
-   oDETp=oDET+1
-   oPO4 =oDETp+1
-   oDIA =oPO4 +1
-   oPOP =oDIA +1
-   oDIAu=oPOP +1
-   do i=1,NPHY
-      oCHL(i) = i + oDIAu
-   enddo 
-else
-  do i=1,NPHY
-     oCHL(i) = i + oDET
-  enddo 
-endif
+    endif
 
-if (Model_ID == GeiderDroop) then
-  do i=1,NPHY
-     oPHYC(i) = i + oCHL(NPHY)
-  enddo 
-endif
+    if (Model_ID == GeiderDroop) then
+      do i=1,NPHY
+         oPHYC(i) = i + oCHL(NPHY)
+      enddo 
+    endif
+ENDIF
 ! The above must match with i** indeces   
 !=======================================
 if (Model_ID == GeiderDroop) then
@@ -355,22 +356,22 @@ else
    enddo
 end if
 
-if (Model_ID .eq. NPclosure) then
-   do i=1,NPHY
-      oLno3(i) = omuNet(NPHY)  + i
-   enddo
-else
+if (Model_ID .ne. NPclosure) then
    do i=1,NPHY
       oGraz(i) = omuNet(NPHY) + i
    enddo
    do i=1,NPHY
       oLno3(i) = oGraz(NPHY)  + i
    enddo
+   do i=1,NPHY
+      oSI(i)   = oLno3(NPHY)  + i
+   enddo
+else
+   do i=1,NPHY
+      oSI(i)   = omuNet(NPHY) + i
+   enddo
 endif
 
-do i=1,NPHY
-   oSI(i)=oLno3(NPHY)+i
-enddo
 do i=1,NPHY
    oQN(i)=oSI(NPHY)+i
 enddo
@@ -407,9 +408,9 @@ do i=1,NPHY
 enddo
 
 If (Model_ID .eq. NPclosure) then
-    oD_VPHY = oD_PHY(NPHY)+1
-    oD_VNO3 = oD_VPHY     +1
-    oD_COVNP= oD_VNO3     +1
+    oD_VNO3 = oD_PHY(NPHY)+1
+    oD_VPHY = oD_VNO3     +1
+    oD_COVNP= oD_VPHY     +1
     Nout    = oD_COVNP
 Else
     oD_ZOO  = oD_PHY(NPHY)+1
@@ -498,6 +499,7 @@ do i=1,NPHY
    write(Labelout(oSI(i)   +ow),  format_string) 'SI_',i
    write(Labelout(oQN(i)   +ow),  format_string) 'QN_',i
    if(N2fix) write(Labelout(oQP(i)+ow), format_string) 'QP_',i
+   if (Model_ID .ne. NPclosure) &
    write(Labelout(oLno3(i) +ow),  format_string) 'Lno',i
    write(Labelout(otheta(i)+ow),  format_string) 'The',i
    write(Labelout(oCHL(i)  +ow),  format_string) 'CHL',i
@@ -514,11 +516,11 @@ IF (Model_ID==NPclosure) THEN
     Labelout(oD_VNO3 + ow) = 'D_VN'
     Labelout(oD_COVNP+ ow) = 'DC_NP'
 ELSE
-    Labelout(oZOO +ow)   = 'ZOO'
-    Labelout(oD_DET+ ow) = 'D_DET'
-    Labelout(oZ2N  + ow) = 'Z2N'
-    Labelout(oD2N  + ow) = 'D2N'
-    Labelout(oD_ZOO+ ow) = 'D_ZOO'
+    Labelout(oZOO    + ow) = 'ZOO'
+    Labelout(oD_DET  + ow) = 'D_DET'
+    Labelout(oZ2N    + ow) = 'Z2N'
+    Labelout(oD2N    + ow) = 'D2N'
+    Labelout(oD_ZOO  + ow) = 'D_ZOO'
 
     if (Model_ID==NPZDcont .or. Model_ID==CITRATE3) then
         Labelout(oZOO  +ow)='MIC'
@@ -625,8 +627,8 @@ endif
 ! For EFT models, the affinity approach not used for now
 ! Need to have tradeoffs for maximal growth rate (mu0) and Kn
 ! Common parameters:
-if (Model_ID .ne. NPZDcont .and. Model_ID .ne. EFTsimple &
-.and. Model_ID.ne.CITRATE3 .and. Model_ID .ne. GeiderDroop) then
+IF ( Model_ID .ne. NPZDcont.and. Model_ID .ne. EFTsimple .and. Model_ID .ne. NPclosure &
+.and. Model_ID.ne.CITRATE3 .and. Model_ID .ne. GeiderDroop) THEN
   imu0    =  1
   igmax   =  imu0  + 1
   iKPHY   =  igmax + 1  
@@ -649,92 +651,92 @@ if (Model_ID .ne. NPZDcont .and. Model_ID .ne. EFTsimple &
       imz     =  iaI0   + 1
   endif
 
-if (nutrient_uptake .eq. 1) then
-   iKN     =  imz    + 1
-   if (Model_ID==NPZD2sp .or. Model_ID==NPPZDD) then
-      iKN2 =  iKN    + 1
-      iQ0N =  iKN2   + 1
-   else if (Model_ID==NPZDN2) then
-     ! iKP  =  iKN    + 1
-     iKPnif=  iKN    + 1
-     iLnifp=  iKPnif + 1
-     iRDN_P=  iLnifp + 1
-      iQ0N =  iRDN_P + 1
-   else
-      iQ0N =  iKN    + 1
-   endif
-elseif (nutrient_uptake.eq.2) then
-   if (Model_ID==NPZD2sp .or. Model_ID==NPZDFix .or. Model_ID==NPPZDD .or. Model_ID==NPZDcont .or. Model_ID==NPZDN2) then
-      if (taskid==0) write(6,*) 'We do not use affinity-based equation for NPZD model!'
-      stop
-   endif
-   iA0N    =  imz   + 1
-   if (Model_ID==EFT2sp .or. Model_ID == EFTPPDD) then
-      iA0N2 =iA0N+1   ! The ratio of A0N of the second species to the first  
-     ialphaG=iA0N2+1
-      iQ0N  =ialphaG+1
-   else   
-      iQ0N = iA0N + 1
-   endif
-endif
+  if (nutrient_uptake .eq. 1) then
+     iKN     =  imz    + 1
+     if (Model_ID==NPZD2sp .or. Model_ID==NPPZDD) then
+        iKN2 =  iKN    + 1
+        iQ0N =  iKN2   + 1
+     else if (Model_ID==NPZDN2) then
+       ! iKP  =  iKN    + 1
+       iKPnif=  iKN    + 1
+       iLnifp=  iKPnif + 1
+       iRDN_P=  iLnifp + 1
+        iQ0N =  iRDN_P + 1
+     else
+        iQ0N =  iKN    + 1
+     endif
+  elseif (nutrient_uptake.eq.2) then
+     if (Model_ID==NPZD2sp .or. Model_ID==NPZDFix .or. Model_ID==NPPZDD .or. Model_ID==NPZDcont .or. Model_ID==NPZDN2) then
+        if (taskid==0) write(6,*) 'We do not use affinity-based equation for NPZD model!'
+        stop
+     endif
+     iA0N    =  imz   + 1
+     if (Model_ID==EFT2sp .or. Model_ID == EFTPPDD) then
+        iA0N2 =iA0N+1   ! The ratio of A0N of the second species to the first  
+       ialphaG=iA0N2+1
+        iQ0N  =ialphaG+1
+     else   
+        iQ0N = iA0N + 1
+     endif
+  endif
+  
+  if (Model_ID == NPPZDD .or. Model_ID == EFTPPDD) then
+     itau   = iQ0N  +1
+     iwDET2 = itau  +1
+     iwDET  = iwDET2+1
+  else
+     iwDET  = iQ0N  +1
+  endif
 
-if (Model_ID == NPPZDD .or. Model_ID == EFTPPDD) then
-   itau   = iQ0N  +1
-   iwDET2 = itau  +1
-   iwDET  = iwDET2+1
-else
-   iwDET  = iQ0N  +1
-endif
-
-if (Model_ID==NPZDFix .or.Model_ID==NPZD2sp    .or.Model_ID==NPPZDD  &
-.or.Model_ID==NPZDdisc.or.Model_ID==NPZDFixIRON&
-.or.Model_ID==NPZDN2) then
-   iaI0_C  =  iwDET    + 1
-   if (Model_ID==NPZDFix .or. Model_ID==NPZDN2) then
-      NPar = iaI0_C
-   else if (Model_ID ==NPZD2sp .or. Model_ID == NPPZDD) then
-      iRL2 = iaI0_C + 1
-    ialphaG= iRL2   + 1
-      NPar = ialphaG
-   else if (Model_ID == NPZDFixIRON) then
-      iKFe = iaI0_C  + 1
-      NPar = iKFe
-   else
-      ialphamu=iaI0_C+1
-      ibetamu =ialphamu+1
-      ialphaI =ibetamu+1
-      ialphaG =ialphaI
-      if (nutrient_uptake.eq.1) then
-         ialphaKN=ialphaG+1
-           NPar   =ialphaKN
-      elseif(nutrient_uptake.eq.2) then
-         ialphaA  =ialphaG+1
-           NPar   =ialphaA
-      endif
-   endif
-
-else if(Model_ID==Geiderdisc.or.Model_ID==EFTdisc.or.Model_ID==EFTcont) &
-then
-   ialphaI     =iwDET   + 1
-   ialphaG     =ialphaI + 1
-   ialphamu    =ialphaG + 1
-   if (nutrient_uptake.eq.1) then
-       ialphaKN   =ialphamu+1
-           NPar   =ialphaKN
-   elseif(nutrient_uptake.eq.2) then
-       ialphaA     =ialphamu+1
-            NPar   =ialphaA
-   endif
-else if (Model_ID==GeidsimIRON .or. Model_ID==EFTsimIRON) then
-  iKFe = iQ0N + 1
-  NPar = iKFe
-else if (Model_ID==EFT2sp .or. Model_ID==EFTPPDD) then
-  iRL2 = iwDET + 1 ! The grazing preference on the second species (lower grazing impact)
-  NPar = iRL2
-else
-  NPar = iwDET
-endif
-endif
+  if (Model_ID==NPZDFix .or.Model_ID==NPZD2sp    .or.Model_ID==NPPZDD  &
+  .or.Model_ID==NPZDdisc.or.Model_ID==NPZDFixIRON&
+  .or.Model_ID==NPZDN2) then
+     iaI0_C  =  iwDET    + 1
+     if (Model_ID==NPZDFix .or. Model_ID==NPZDN2) then
+        NPar = iaI0_C
+     else if (Model_ID ==NPZD2sp .or. Model_ID == NPPZDD) then
+        iRL2 = iaI0_C + 1
+      ialphaG= iRL2   + 1
+        NPar = ialphaG
+     else if (Model_ID == NPZDFixIRON) then
+        iKFe = iaI0_C  + 1
+        NPar = iKFe
+     else
+        ialphamu=iaI0_C+1
+        ibetamu =ialphamu+1
+        ialphaI =ibetamu+1
+        ialphaG =ialphaI
+        if (nutrient_uptake.eq.1) then
+           ialphaKN=ialphaG+1
+             NPar   =ialphaKN
+        elseif(nutrient_uptake.eq.2) then
+           ialphaA  =ialphaG+1
+             NPar   =ialphaA
+        endif
+     endif
+  
+  else if(Model_ID==Geiderdisc.or.Model_ID==EFTdisc.or.Model_ID==EFTcont) &
+  then
+     ialphaI     =iwDET   + 1
+     ialphaG     =ialphaI + 1
+     ialphamu    =ialphaG + 1
+     if (nutrient_uptake.eq.1) then
+         ialphaKN   =ialphamu+1
+             NPar   =ialphaKN
+     elseif(nutrient_uptake.eq.2) then
+         ialphaA     =ialphamu+1
+              NPar   =ialphaA
+     endif
+  else if (Model_ID==GeidsimIRON .or. Model_ID==EFTsimIRON) then
+    iKFe = iQ0N + 1
+    NPar = iKFe
+  else if (Model_ID==EFT2sp .or. Model_ID==EFTPPDD) then
+    iRL2 = iwDET + 1 ! The grazing preference on the second species (lower grazing impact)
+    NPar = iRL2
+  else
+    NPar = iwDET
+  endif
+ENDIF
 
 if (taskid==0) write(6,'(I2,1x,A20)') NPar,'parameters in total to be estimated.'
 allocate(params(NPar))
@@ -742,7 +744,7 @@ allocate(ParamLabel(NPar))
 
 if (imu0 > 0) then
    ParamLabel(imu0) = 'mu0hat '
-   params(imu0)     = 0.8
+   params(imu0)     = log(0.8)
 endif
 
 if (irhom > 0) then
@@ -764,7 +766,7 @@ endif
 
 if (Model_ID .eq. NPZDN2) then
    params(imz)   = 0.15*16d0
-else
+elseif (imz > 0) then
    params(imz)   = 0.15
 endif
 
@@ -804,7 +806,7 @@ endif
 if (nutrient_uptake .eq. 1) then
   if(iKN > 0) then
   ParamLabel(iKN)  = 'KN'
-     params(iKN )  = 2d-1
+     params(iKN )  = log(1.2)
   endif
   if (Model_ID .eq. NPZDN2) then
    !ParamLabel(iKP)  = 'KP'
@@ -846,7 +848,7 @@ if(Model_ID.eq.NPZD2sp .OR. Model_ID.eq.EFTdisc .OR. &
 endif
 !
 ParamLabel(iwDET) = 'wDET   '
-params(iwDET)     = 6d-1  ! wDET = 10**params(iwDET)
+params(iwDET)     = -0.3  ! wDET = 10**params(iwDET)
 !
 if (Model_ID == NPPZDD .or. Model_ID == EFTPPDD) then
    ParamLabel(iwDET2)= 'wDET2'
@@ -868,16 +870,16 @@ if (Model_ID==NPclosure) then
   ParamLabel(ibeta)='beta'
   ParamLabel(iIopt)='Iopt'
   ParamLabel(iDp)  ='DPHY'
-  params(ibeta)    =1.0
-  params(iDp)      =0.05
-  params(iIopt)    =1d3
+  params(ibeta)    =log(1.1)
+  params(iDp)      =log(0.2)
+  params(iIopt)    =log(1d2)  ! log(Iopt)
 endif
 if(Model_ID==NPZDdisc.or.Model_ID==NPZD2sp &
  .or.Model_ID==NPPZDD.or.Model_ID==NPZDFix &
  .or. Model_ID==NPZDFixIRON .or. Model_ID==NPZDcont &
  .or. Model_ID==NPZDN2      .or. Model_ID==NPclosure) then
   ParamLabel(iaI0_C)='aI0_C'
-  params(iaI0_C)    =0.055
+  params(iaI0_C)    =log(0.055)
   if (Model_ID == NPZDcont) then
      ParamLabel(iVTR)='VTR'
      params(iVTR)    =0.01

@@ -381,7 +381,7 @@ endif
 if (Model_ID .eq. NPZDN2) then
    MaxValue(imz) =  0.3*16.   !P as the unit
    MinValue(imz) =  0.05*16.
-else
+elseif (imz > 0) then
    MaxValue(imz) =  0.2
    MinValue(imz) =  0.05
 endif
@@ -409,8 +409,8 @@ case(1)
 ! Chai et al. (2002): 0.05~1
 ! Franks (2009): 0.005~3
   if (iKN > 0) then
-     MaxValue(iKN) =  2.0
-     MinValue(iKN) =  0.05
+     MaxValue(iKN) =  log(3.0)
+     MinValue(iKN) =  log(0.05)
   endif
   if (Model_ID .eq. NPZDN2) then  ! The unit based on P
      MaxValue(iKPnif)=2D-3
@@ -452,8 +452,8 @@ if (iQ0N > 0) then
 endif
 
 if (iIopt > 0) then
-  MaxValue(iIopt) = 2500.
-  MinValue(iIopt) = 50.
+  MaxValue(iIopt) = log(2500.)
+  MinValue(iIopt) = log(50.)
 endif
 
 ! Model-specific parameters:
@@ -463,22 +463,22 @@ case(Geidersimple,NPclosure,Geiderdisc,GeiderDroop, NPZDFix,NPPZDD, NPZD2sp,NPZD
   !Growth rate normalized to 15 ºC based on linear regression
   !0.025% and 0.975% quantiles
   if (Model_ID .eq. GeiderDroop) then
-    MaxValue(imu0) =  2.5
+    MaxValue(imu0) =  log(2.5)
   else
-    MaxValue(imu0) =  1.2
+    MaxValue(imu0) =  log(2.)
   endif
-  MinValue(imu0) =  0.3
+  MinValue(imu0) =  log(0.3)
 
   if (Model_ID == NPclosure) then
-    MaxValue(ibeta) = 7.0
-    MinValue(ibeta) = 0.001
-    MaxValue(iDp)   = 0.2
-    MinValue(iDp)   = 0.001
+    MaxValue(ibeta) = log(7.0)
+    MinValue(ibeta) = log(0.001)
+    MaxValue(iDp)   = log(0.9)
+    MinValue(iDp)   = log(0.01)
   endif
 
   if (Model_ID.eq.NPclosure .or. Model_ID .eq. NPZDcont .or. Model_ID .eq. NPZDFix .or. Model_ID .eq. NPPZDD .or. Model_ID.eq.NPZD2sp .or. Model_ID.eq.NPZDdisc .or. Model_ID .eq. NPZDFixIRON .or. Model_ID .eq. NPZDN2) then
-     MaxValue(iaI0_C) =0.1
-     MinValue(iaI0_C) =0.01
+     MaxValue(iaI0_C) =log(0.1)
+     MinValue(iaI0_C) =log(0.01)
      if (Model_ID.eq.NPZDcont) then
         MaxValue(iVTR)=0.1
         MinValue(iVTR)=0D0

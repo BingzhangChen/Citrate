@@ -6,7 +6,7 @@ implicit none
 integer            :: numtasks, taskid, ierr, MPIRUN
 
 ! Number of vertical layers
-integer, parameter :: nlev        = 30  
+integer, parameter :: nlev        = 40  
 
 ! Options of biological models
 integer, parameter :: EFTdisc     = 1
@@ -34,7 +34,7 @@ integer, parameter :: NPclosure   = 22
 
 ! Parameters for phytoplankton size fractional Chl
 real, parameter :: pi      = 3.1415926535897932384633D0
-real, parameter :: eps     = 1d-30
+real, parameter :: eps     = 1d-20
 real, parameter :: PMU_min = log(1d1*pi/6d0*0.6**3)
 real, parameter :: PMU_max = log(1d1*pi/6d0*4d1**3)
 real, parameter :: PMU_1   = log(1d1*pi/6d0)

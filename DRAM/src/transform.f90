@@ -21,20 +21,20 @@ real :: max_y,min_y
 
 integer :: i
 
-! Normalization occurs after sqrt(sqrt(x)))  !
-min_y = sqrt(sqrt(xmin))
-max_y = sqrt(sqrt(xmax))
+! Normalization occurs after sqrt(x)  !
+min_y = sqrt(xmin)
+max_y = sqrt(xmax)
 
 if (convert .eq. NO) then
    do i = 1, N
-      y(i) = sqrt(sqrt(x(i)))
+      if (x(i) < 0.) stop "Negative values in input data!"
+      y(i) = sqrt(x(i))
       y(i) = (y(i)-min_y)/(max_y-min_y)
    enddo 
 else
    do i = 1, N
       y(i) = x(i)*(max_y-min_y) + min_y
-      y(i) = y(i)**4
+      y(i) = y(i)**2
    enddo 
 endif
 end subroutine transform
-

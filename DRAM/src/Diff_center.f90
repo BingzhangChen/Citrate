@@ -99,9 +99,9 @@ IMPLICIT NONE
          du(N) = Yin(N) + dt*Qsour(N)   &
                + (1d0 - cnpar)*a*(Yin(N-1)-Yin(N))
       else
-       bu(N) =  1d0 - au(N) - l
-       du(N) = Yin(N) + dt*(Qsour(N)+Yup/h(N))   &
-             + (1d0 - cnpar)*a*(Yin(N-1)-Yin(N))
+         bu(N) =  1d0 - au(N) - l
+         du(N) = Yin(N) + dt*(Qsour(N)+Yup/h(N))   &
+               + (1d0 - cnpar)*a*(Yin(N-1)-Yin(N))
       endif
    case(Dirichlet)
       au(N) = 0d0
@@ -149,7 +149,6 @@ IMPLICIT NONE
 
 !  solve linear system
    call tridiagonal(N,au,bu,cu,du,1,N,Yout)
-
    return
 end subroutine diff_center
 !-----------------------------------------------------------------------

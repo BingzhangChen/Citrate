@@ -26,11 +26,13 @@ DO k = nlev, 1, -1
    endif
    Varout(oPAR_,k) = par_
    NO3    = Vars(iNO3,    k)
+   NO3    = max(NO3,    eps)
    PHY    = Vars(iPHY(1), k)
    VPHY   = Vars(iVPHY,   k)
+   VPHY   = max(VPHY,    0.)
    VNO3   = Vars(iVNO3,   k)
+   VNO3   = max(VNO3,    0.)
    COVNP  = Vars(iCOVNP,  k)
-
    IF (mod(it, nsave) .EQ. 1) THEN
      !Use nonmixed light to calculate NPP
      call PHY_NPCLOSURE(NO3,PAR_,tC,PHY,VPHY,VNO3, COVNP, muNet,SI,theta,QN, &
@@ -44,16 +46,19 @@ DO k = nlev, 1, -1
    Varout(oTheta(1),k)= theta! Chl:C ratio at <N>
    Varout(oQN(1)   ,k)= QN   ! N:C ratio at <N> 
    Varout(oSI(1),   k)= SI   ! Light limitation
-   Varout(oCHLt,k)    = Chl  ! ensemble mean Chl
+   Varout(oCHLt,    k)= Chl  ! ensemble mean Chl
+   Varout(oCHL(1),  k)= Chl  ! ensemble mean Chl
 !=============================================================
 !! Solve ODE functions:
 !All rates have been multiplied by dtdays to get the real rate correponding to the actual time step
-   Dp   = params(iDp)  ! Mortality rate of phytoplankton
+   Dp   = exp(params(iDp))  ! Mortality rate of phytoplankton
    PP_PN= Snp - PHY*Dp
+   PP_PN= min(PP_PN, (NO3-eps)/dtdays)  !To make NO3 positive
+   PP_PN= max(PP_PN, (eps-PHY)/dtdays)  !To make PHY positive
 
 !Update tracers:
-   NO3  = NO3   - PP_PN*dtdays
-   PHY  = PHY   + PP_PN*dtdays
+   NO3  = NO3   -               PP_PN*dtdays
+   PHY  = PHY   +               PP_PN*dtdays
    VPHY = VPHY  + (SVPHY-2.*Dp*VPHY )*dtdays
    VNO3 = VNO3  + (SVNO3+2.*Dp*COVNP)*dtdays
    COVNP= COVNP + (SCOVNP+Dp*(VPHY-COVNP))*dtdays
@@ -64,6 +69,7 @@ DO k = nlev, 1, -1
    Varout(oCOVNP ,k)   = COVNP
    Varout(oPHYt,  k)   = PHY
    Varout(omuNet(1),k) = muNet               !Growth rate at <N>
+   Varout(omuAvg,   k) = Snp/PHY             !Ensemble mean growth rate 
 ENDDO
 END SUBROUTINE NP_CLOSURE 
 
@@ -71,7 +77,7 @@ END SUBROUTINE NP_CLOSURE
 SUBROUTINE PHY_NPCLOSURE(NO3,PAR_,Temp_,PHY,VPHY,VNO3, COVNP, muNet,SI,theta,QN, Snp, Chl, NPP, SVPHY, SVNO3, SCOVNP)
 USE bio_MOD, ONLY : TEMPBOL, params, mu_Edwards2015 
 USE bio_MOD, ONLY : iIopt, imu0, iaI0_C, iKN, Ep
-USE bio_MOD, ONLY : thetamax, thetamin
+USE bio_MOD, ONLY : thetamax, thetamin,eps
 implicit none
 real, intent(in)  :: NO3, PAR_,Temp_,PHY, VPHY, VNO3, COVNP 
 real, intent(out) :: muNet, theta, QN, SI, Snp, Chl, NPP, SVPHY, SVNO3, SCOVNP
@@ -82,15 +88,15 @@ real :: alphaI, cff,cff1, eta, dYdN, dEta_dN, d2ChldN2, Q
 real :: KN, tf, fN, dmuQ_dN, d2NPPdN2
 real, parameter :: Qmin = 0.06, Qmax=0.18
 
-alphaI   = params(iaI0_C)
+alphaI   = exp(params(iaI0_C))
 tf       = TEMPBOL(Ep,Temp_)   !Temperature effect
 
 !The temperature and light dependent component
-mu0hat   = tf*params(imu0)
+mu0hat   = tf*exp(params(imu0))
 SI       = mu_Edwards2015(PAR_, params(iIopt),mu0hat, alphaI) 
 mu0hatSI = mu0hat*SI
 
-KN = params(iKN)
+KN = exp(params(iKN))
 fN = NO3/(NO3 + Kn)  !Nitrogen limitation index
 
 ! Phytoplankton growth rate at the mean nitrogen:
@@ -117,6 +123,7 @@ d2ChldN2 = -2.*PHY*Kn/(NO3 + Kn)**3 * (thetamin*cff1 + Q*mu0hatSI/alphaI*cff)
 
 !Ensemble mean Chl
 Chl = PHY*eta + .5*(2.*COVNP*dEta_dN + VNO3*d2ChldN2)
+Chl = max(Chl, eps)
 
 dmuQ_dN = dYdN*(muNet*cff1 + Q*mu0hatSI)
 d2NPPdN2= 2.*PHY*mu0hatSI*Kn/(NO3+Kn)**3 * (cff1*(Kn-2.*NO3)/(NO3+Kn) + 1./Qmin)

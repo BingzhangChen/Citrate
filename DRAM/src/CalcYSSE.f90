@@ -80,7 +80,7 @@ DO j = 1, Nstn
         min_y = max(minval(OBS_data,1),0d0) ! Must be positive
      endif
    
-   ! Transform (**0.25) both model and obs. data and normalize between 0 and 1
+   ! Transform (square root) both model and obs. data and normalize between 0 and 1
      call transform(NDPTS(i,j),OBS_data,min_y,max_y,logtransform,  &
           obsval((k+1):(k+NDPTS(i,j)))  )
    
@@ -104,4 +104,3 @@ DO j = 1, Nstn
    Enddo
 ENDDO
 end subroutine CalcYSSE
-

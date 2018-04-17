@@ -3,9 +3,9 @@ use BIO_MOD
 implicit none
 
 ! Grid parameters
-real, private, parameter :: hmax   = 5D2   ! Total water depth
+real, private, parameter :: hmax   = 5d2   ! Total water depth
 real, private, parameter :: thetaS = 2d0   ! surface stretching parameter
-real, private, parameter :: dtsec  = 300d0   ! time step in seconds
+real, private, parameter :: dtsec  = 120.  ! time step in seconds
 real, private, parameter ::d_per_s = 864d2 ! how many seconds in one day
 real, private, parameter :: zero   = 0d0
                       !how many seconds of one year
@@ -774,15 +774,15 @@ DO jj = 1, Nstn
         endif
      enddo
      if (Model_ID .eq. NPclosure) then
-        Vars(iVPHY, k) = Vars(iPHY(1),k) * params(ibeta) 
-        Vars(iVNO3, k) = Vars(iNO3,   k) * params(ibeta) 
-        Vars(iCOVNP,k) = 0.
+        Vars(iVPHY, k) = Vars(iPHY(1),k) * exp(params(ibeta))
+        Vars(iVNO3, k) = Vars(iNO3,   k) * exp(params(ibeta))
+        Vars(iCOVNP,k) = zero
      else
         Vars(iZOO,k)   = 0.1
         Vars(iDET,k)   = 0.1
      endif
      if (iZOO2 > 0) Vars(iZOO2,k)=.05 
-     if (NVAR > iDET) then
+     if (NVAR > iDET .and. Model_ID .ne. NPclosure) then
         do i = (iDET+1), NVAR
            Vars(i,k) = 1D-2
         enddo
@@ -1083,13 +1083,13 @@ DO jj = 1, Nstn
       if (savefile .and. taskid == 0) then
 
       ! Save Temp data into the output file:
-         write(10, 200) Labelout(oTemp), it, current_day, Temp
+         write(10, 200) trim(Labelout(oTemp)), it, current_day, Temp
 
       ! Save PAR data into the output file:
-         write(10, 200) Labelout(oPAR),  it, current_day, PAR
+         write(10, 200) trim(Labelout(oPAR)),  it, current_day, PAR
   
       ! Save Aks data into the output file:
-         write(10, 200) Labelout(oAks),  it, current_day, Aks(1:nlev)
+         write(10, 200) trim(Labelout(oAks)),  it, current_day, Aks(1:nlev)
 
       ! Save w data into the output file:
       !   write(9+ow  , 4) it, current_day, w
@@ -1097,7 +1097,7 @@ DO jj = 1, Nstn
       ! Save state variables and diagnostics:
          do i=(ow+1),(Nout+ow)
             Vars1(:) = Varout(i-ow,:)
-            write(10, 200) Labelout(i),  it, current_day, Vars1
+            write(10, 200) trim(Labelout(i)),  it, current_day, Vars1
          enddo
       endif  !==> End of saving results
     
@@ -1137,9 +1137,9 @@ DO jj = 1, Nstn
              endif
 
            ! Calculate TIN output:
-           a(:,1) = Vars(iNO3,:)
-           call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
-                  TINout(nm,1))       
+           a(:,1) = Varout(oNO3,:)
+
+           call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1), TINout(nm,1))       
 
           elseif (i .le. (nrow(1,jj)+nrow(2,jj)) ) then
              if (jj .eq. 1) then
@@ -1156,7 +1156,7 @@ DO jj = 1, Nstn
            a(:,1) = Varout(oCHLt,:)
            call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
                 CHLout(nm,1))   
-  
+
           elseif (i .le. (nrow(1,jj)+nrow(2,jj)+nrow(3,jj)) ) then
              if (jj .eq. 1) then
                 nm = i- nrow(1,jj) - nrow(2,jj)
@@ -1360,7 +1360,6 @@ DO jj = 1, Nstn
      Vars1(:)     = Vars(j,:)
 
      ! At surface, assume zero flux  (Neumann boundary condition)
-
      selectcase (bot_bound) ! Select the type of boundary condition at bottom
      case (Dirichlet)
        if (j .eq. iNO3 .or. j .eq. ifer .or. j .eq. iPO4) then
@@ -1376,9 +1375,13 @@ DO jj = 1, Nstn
        endif
      case (Neumann)
      ! Zero flux at bottom
-       call diff_center(nlev,dtsec,cnpar,1,Hz, Neumann, Neumann, &
+       if (Model_ID == NPclosure .and. j == iCOVNP) then
+         call diff_center(nlev,dtsec,cnpar,0,Hz, Neumann, Neumann, &
                        zero, zero, Aks,Vec0,Vec0,Taur,Vars1,Vars1,Vars2)
-
+       else
+         call diff_center(nlev,dtsec,cnpar,1,Hz, Neumann, Neumann, &
+                       zero, zero, Aks,Vec0,Vec0,Taur,Vars1,Vars1,Vars2)
+       endif
      case default
        write(6,*) 'The type of bottom boundary condition incorrect!'
        stop
@@ -1389,6 +1392,15 @@ DO jj = 1, Nstn
   
      ! Update the state variables:
      do k = 1, nlev
+       ! if (Vars1(k) < 0.) then
+       !    write(6,*) trim(Labelout(j+ow)), 'negative before diffusion at ', Z_r(k)
+       !    stop
+       ! endif
+
+       ! if (Vars2(k) < 0.) then
+       !    write(6,*) trim(Labelout(j+ow)), 'negative after diffusion at ', Z_r(k)
+       !    stop
+       ! endif
         Vars(j,k)=Vars2(k)
      enddo
   enddo
