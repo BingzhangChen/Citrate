@@ -8,15 +8,13 @@ source('~/Working/FlexEFT1D/Rscripts/getData.R')
 source('~/Working/FlexEFT1D/Rscripts/get_obs_MLD.R')
 source('~/Working/FlexEFT1D/Rscripts/Interpolate_WOA.R')
 
-
-
 #Estimate C:Chl from remote sensing:
 Chl_C = readnc('Chl_C')  #A global Chl:C data on the surface
 #Obtain theta from satellite:
 theta = get_theta(Stn)
 Mo    = theta$time
 theta = theta$data
-COLS     <- c(2,3)
+COLS     <- c(1,2)
 Models   <- c('NPZDN2')
 Modnames <- c('')
 Stns     <- c('HOT')
@@ -24,14 +22,21 @@ Nstn     <- length(Stns)
 #Get enspar:
 model = 'NPZDN2'
 Stn   = 'HOT'
-DIR   = paste0('~/working/FlexEFT1D/DRAM_0.9/',model,'/',Stn,'/')
+DIR   = paste0('~/working/FlexEFT1D/DRAM/',model,'/',Stn,'/')
+setwd(DIR)
+np    = 2  #The number of CPUs for paralell computing
+EnsLen= 1  #The number of ensembles
 enspar= paste0(DIR,'enspar')
 enspar= read.table(enspar, header=T)
 enssig= paste0(DIR,'enssig')
 enssig= read.table(enssig, header=T)
 
+#Get bestpar:
+best    = which.max(enspar$LogL)
+bestpar = enspar[best,]
+
 source('~/Working/FlexEFT1D/Rscripts/plot_vertical_NChlNPP.R')
-variables=c('TIN','CHL','NPP','PON','DIP','POP','DIA')
+variables=c('DIN','CHL','NPP','PON','DIP')  #Diazotroph underestimated
 for (Stn in Stns){
     plot_v_n(Stn, Models, VARS = variables,BOTH=F)
 }

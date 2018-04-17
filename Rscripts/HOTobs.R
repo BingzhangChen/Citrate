@@ -23,7 +23,7 @@ dat       <- dat[dat$Depth <= depth_total,]
 dat0      <- dat  #Save original data
 
 #For TIN, CHL, NPP
-for (var in c('TIN','CHL','NPP','PON','DIP','POP')){
+for (var in c('TIN','CHL','NPP','PON','DIP','POP', 'N2P')){
    dat <- dat0 
    if (var == 'TIN'){
       dat[,var] <- dat$nit
@@ -45,7 +45,14 @@ for (var in c('TIN','CHL','NPP','PON','DIP','POP')){
       for (i in 1:nrow(dat)){
           if (!is.na(dat$llp[i])) dat[i,var] = dat$llp[i]/1E3
       }
-
+   } else if (var == 'N2P'){
+      NO3  <- dat$nit
+      PO4  <- dat$phos #Normal DIP
+      #Use low concentration DIP if available
+      for (i in 1:nrow(dat)){
+          if (!is.na(dat$llp[i])) PO4[i] = dat$llp[i]/1E3
+      }
+      dat[,var] <- NO3/PO4
    } else{
      stop('Variable name incorrect!')
    }

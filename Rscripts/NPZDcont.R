@@ -188,7 +188,10 @@ Mu = function(Topt = 300, Temp = 293, mu0 = 5.7, k = -0.11,
 }
 
 #Three trait function:
-mu3 = function(x, Z, I=200, NO3=1, t=10+273.15, alp=-.11,beta=.11, K0N=0.2, alphaK=.27, L=0, k=-.47, a0=.149, b=.21,mu0=.21, alphamu=.2, betamu=-0.01, Ep=.8,E0=exp(-31.48), T0=15+273.15){
+mu3 = function(x, Z, I=200, NO3=1, t=10+273.15, a1=-.16,a2=-0.03,
+               a3=.11, K0N=0.2, alphaK=.27, L=0, k=-.47, a0=.149, 
+               b =.21,mu0=.21, alphamu=.2, betamu=-0.01, Ep0p=.8,
+               dE0=exp(-31.48), T0=15+273.15){
     #x: ln optimal light (umol photons m-2 s-1)
     #Z: optimal temperature (ºC)
     #Light term
@@ -229,19 +232,26 @@ mu3 = function(x, Z, I=200, NO3=1, t=10+273.15, alp=-.11,beta=.11, K0N=0.2, alph
     #dfdZ    = h*dPdZ 
     #d2fdZ2  = h*d2PdZ2 
     #Envelope function
-    kb      = 8.62e-5
-    h       = exp(alp*(Z - T0))*exp(Ep/kb*(1./T0 - 1./t)) 
-    dE      = E0*exp(beta*Z)
-    Eh      = dE+Ep
-    P       = 1. + Ep/dE*exp(Eh/kb*(1./Z - 1./t))
-    f       = h/P
-    B       = Eh/kb*(1./Z - 1./t) - beta*Z 
-    dBdZ    = ((beta*(1./Z - 1./t) - 1./Z**2)*dE - Ep/Z**2)/kb-beta
-    dPdZ    = Ep/E0 * exp(B) * dBdZ
-    dfdZ    = f*(alp - dPdZ/P)
+    kb   = 8.62e-5
+    Ep   = Ep0 * exp(a2 * Z)
+    A    = exp(a1*(Z - T0))*exp(Ep/kb*(1./T0 - 1./t)) 
+    dE   = dE0*exp(a3*(Z-T0))
+    Eh   = dE + Ep
+    cff1 = 1./Z - 1./t
+    B    = 1. + Ep/dE*exp(Eh/kb*cff1)
+    f    = A/B  #Temp. dependent term
+    G    = (a2-a3)*(Z-T0) + (Ep+dE)*(1./Z-1./t)/kb
+    dGdZ = a2-a3+(cff1*(a2*Ep+a3*dE)-(Ep+dE)/Z**2)/kb
+    #dGdZ = a2-a3+((a2*cff1-1./Z**2)*Ep + (a3*cff1-1./Z**2)*dE)/kb
+    dBdZ = (B - 1.)*dGdZ
+    dfdZ = f*(a1 + Ep/kb * a2 * (1./T0 - 1./t) - (1.-1./B)*dGdZ)
+    #B       = Eh/kb*(1./Z - 1./t) - beta*Z 
+    #dBdZ    = ((beta*(1./Z - 1./t) - 1./Z**2)*dE - Ep/Z**2)/kb-beta
+    #dPdZ    = Ep/dE0 * exp(B) * dBdZ
+    #dfdZ    = f*(a1 - dPdZ/P)
     pai     = (2./Z - beta)/Z**2
     d2BdZ2  = (dE*pai + (beta*(1./Z - 1./t) - 1./Z**2)*beta*dE + 2.*Ep/Z**3)/kb
-    d2PdZ2  = Ep/E0 * exp(B) * (d2BdZ2 + dBdZ**2)
+    d2PdZ2  = Ep/dE0 * exp(B) * (d2BdZ2 + dBdZ**2)
     d2fdZ2  = -f*(d2PdZ2/P - (dPdZ/P)**2) + dfdZ**2/f
 
     Mu      = H * G * f

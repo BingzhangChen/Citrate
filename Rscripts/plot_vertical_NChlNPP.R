@@ -1,15 +1,16 @@
 plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
-                     VARS=c('DIN','CHL','NPP','PON','DIP','POP'), BOTH=T){
-   if (Stn == 'K2'){
-      FigNo = 6
-   }else if (Stn == 'S1'){
-      FigNo = 7
-   }else if (Stn == 'HOT'){
-      FigNo = 13
-   }
+                     VARS=c('DIN','CHL','NPP','PON','DIP','POP'), BOTH=T, 
+                     COLS=2:(length(Models)+1)){
+ #  if (Stn == 'K2'){
+ #     FigNo = 6
+ #  }else if (Stn == 'S1'){
+ #     FigNo = 7
+ #  }else if (Stn == 'HOT'){
+ #     FigNo = 13
+ #  }
 
    fname <- paste0(Models,collapse='_')
-   fname <- paste0('Fig_',FigNo, Stn, fname,'Vertical_NChlPP.pdf')
+   fname <- paste0(Stn, fname,'V_NChlPP.pdf')
    Dmax  <- 150
    pdf(fname, width=2*length(VARS),height=8,paper='a4')
    
@@ -32,6 +33,8 @@ plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
        Varname  <- expression(paste("Chl:C "*' (gChl '*molC^-1*')'))
      }else if (Var == 'PHY1'){
        Varname  <- expression(paste("PHY "*'(mmol '*m^-3*')'))
+     }else if (Var == 'N2P'){
+       Varname  <- 'N:P (mol:mol)'
      }else{
        Varname  <- bquote(.(Var) ~ ' (mmol '*m^-3*')')
      }
@@ -97,6 +100,12 @@ plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
              Chl  <- getData(DIR, Stn, 'NPP_T')
             }else if(Var == 'C_Chl'){
              Chl  <- getData(DIR, Stn,'The1')
+            }else if(Var == 'N2P'){
+             NO3  <- getData(DIR,Stn, 'NO3')
+             PO4  <- getData(DIR,Stn, 'PO4')
+             Chl$days  <- NO3$days
+             Chl$depth <- NO3$depth
+             Chl$data  <- NO3$data/PO4$data
             }else{
              Chl  <- getData(DIR,Stn,Var)
             }
@@ -124,7 +133,8 @@ plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
      }   
      mtext('Depth (m)',side = 2, outer=TRUE, line=1)
      if (Stn == 'HOT') Stn = 'ALOHA'
-     mtext(paste('Fig.', FigNo,'. Model fittings to vertical profiles of DIN, CHL, NPP, and PON at',Stn),side=1,outer=T, line=2,adj=0)
+     #mtext(paste('Fig.', FigNo,'. Model fittings to vertical profiles of DIN, CHL, NPP, and PON at',Stn),side=1,outer=T, line=2,adj=0)
+     mtext(paste('Model fittings to vertical profiles of DIN, CHL, NPP, and PON at',Stn),side=1,outer=T, line=2,adj=0)
      #mtext(Sys.time(), side = 3, outer=TRUE, line=2)
    dev.off()
  } 

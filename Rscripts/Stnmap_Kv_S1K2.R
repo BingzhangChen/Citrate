@@ -127,8 +127,9 @@ lon2 = lon1
 lon2[lon2>180]=lon2[lon2>180]-360
 axis(1, at = lon1, labels=lon2)
 
-title = expression(paste('a) Annual mean Chl (mg '*m^-3*')'))
-text(x=LON+2.5,y=LAT+2.5,labels=Stn_names,cex=1,col=2)
+title = expression(paste(' Annual mean Chl (mg '*m^-3*')'))
+text(x=LON+2.5,y=LAT+2.5,labels=Stn_names,
+     cex=1.5,col='yellow')
 mtext(title,line=.3)
 points(LON,LAT,pch=17,col=2)
 
