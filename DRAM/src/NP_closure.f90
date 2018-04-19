@@ -119,14 +119,14 @@ eta   = theta/QN
 dYdN  = Kn/(NO3 + Kn)**2
 cff1  = 1./Qmax - 1./Qmin
 dEta_dN  = dYdN*(theta*cff1 + Q*mu0hatSI/alphaI*cff)
-d2ChldN2 = -2.*PHY*Kn/(NO3 + Kn)**3 * (thetamin*cff1 + Q*mu0hatSI/alphaI*cff)
-
+d2ChldN2 = 2.*PHY*(dYdN**2*(cff1*cff*mu0hatSI/alphaI)-dEta_dN/(NO3+Kn))
 !Ensemble mean Chl
 Chl = PHY*eta + .5*(2.*COVNP*dEta_dN + VNO3*d2ChldN2)
 Chl = max(Chl, eps)
 
 dmuQ_dN = dYdN*(muNet*cff1 + Q*mu0hatSI)
-d2NPPdN2= 2.*PHY*mu0hatSI*Kn/(NO3+Kn)**3 * (cff1*(Kn-2.*NO3)/(NO3+Kn) + 1./Qmin)
+d2NPPdN2= PHY*(d2YdN2*dmuQ_dN/dYdN + 2.*dYdN**2*mu0hatSI *cff1)
+!d2NPPdN2= 2.*PHY*mu0hatSI*Kn/(NO3+Kn)**3 * (cff1*(Kn-2.*NO3)/(NO3+Kn) - 1./Qmin)
 ! NPP: ensemble mean carbon based primary production
 NPP = PHY*muNet*Q + .5*(2.*COVNP*dmuQ_dN + VNO3*d2NPPdN2)
 
