@@ -9,7 +9,7 @@
 &MCMCrun
    nruns   = 2,
    EnsLen  = 500, 
-   NDays   = 1080,
+   NDays   = 1440,
    Readfile= 0,
    NR_enspar=3,
    MPIRUN  = 1,

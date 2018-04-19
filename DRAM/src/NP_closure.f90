@@ -4,7 +4,7 @@ SUBROUTINE NP_CLOSURE
 USE bio_MOD
 USE MOD_1D, only: it, nsave
 IMPLICIT NONE
-integer :: k,j,i
+integer :: k
 !INPUT PARAMETERS:
 real :: tC,par_
 !LOCAL VARIABLES of phytoplankton:
@@ -84,7 +84,7 @@ real, intent(out) :: muNet, theta, QN, SI, Snp, Chl, NPP, SVPHY, SVNO3, SCOVNP
 
 ! muNet: mean growth rate at <N>
 real :: mu0hat, mu0hatSI
-real :: alphaI, cff,cff1, eta, dYdN, dEta_dN, d2ChldN2, Q
+real :: alphaI, cff,cff1, eta, dYdN,d2YdN2, dEta_dN, d2ChldN2, Q
 real :: KN, tf, fN, dmuQ_dN, d2NPPdN2
 real, parameter :: Qmin = 0.06, Qmax=0.18
 
@@ -95,9 +95,8 @@ tf       = TEMPBOL(Ep,Temp_)   !Temperature effect
 mu0hat   = tf*exp(params(imu0))
 SI       = mu_Edwards2015(PAR_, params(iIopt),mu0hat, alphaI) 
 mu0hatSI = mu0hat*SI
-
-KN = exp(params(iKN))
-fN = NO3/(NO3 + Kn)  !Nitrogen limitation index
+KN       = exp(params(iKN))
+fN       = NO3/(NO3 + Kn)  !Nitrogen limitation index
 
 ! Phytoplankton growth rate at the mean nitrogen:
 muNet = mu0hatSI*fN
@@ -106,27 +105,30 @@ muNet = mu0hatSI*fN
 Snp   = PHY*muNet + mu0hatSI*(Kn*COVNP/(Kn+NO3)**2 - Kn*PHY*VNO3/(Kn+NO3)**3)
 
 !N:C ratio at <N>
-cff1  = 1d0-Qmin/Qmax
-cff   = 1d0-cff1*fN
+cff1  = 1.-Qmin/Qmax
+cff   = 1.-cff1*fN
 QN    = Qmin/cff
 Q     = 1./QN
+
 !Chl:C ratio at <N>
 cff   = (thetamax - thetamin)/PAR_
 theta = thetamin+muNet/alphaI*cff   !Unit: gChl/molC
 
 !Chl:N ratio at <N>
-eta   = theta/QN
-dYdN  = Kn/(NO3 + Kn)**2
-cff1  = 1./Qmax - 1./Qmin
+eta      = theta*Q
+dYdN     = Kn/(NO3 + Kn)**2
+d2YdN2   = -dYdN*2./(NO3 + Kn) 
+cff1     = 1./Qmax - 1./Qmin
 dEta_dN  = dYdN*(theta*cff1 + Q*mu0hatSI/alphaI*cff)
 d2ChldN2 = 2.*PHY*(dYdN**2*(cff1*cff*mu0hatSI/alphaI)-dEta_dN/(NO3+Kn))
-!Ensemble mean Chl
-Chl = PHY*eta + .5*(2.*COVNP*dEta_dN + VNO3*d2ChldN2)
-Chl = max(Chl, eps)
 
-dmuQ_dN = dYdN*(muNet*cff1 + Q*mu0hatSI)
-d2NPPdN2= PHY*(d2YdN2*dmuQ_dN/dYdN + 2.*dYdN**2*mu0hatSI *cff1)
-!d2NPPdN2= 2.*PHY*mu0hatSI*Kn/(NO3+Kn)**3 * (cff1*(Kn-2.*NO3)/(NO3+Kn) - 1./Qmin)
+!Ensemble mean Chl
+Chl      = PHY*eta + .5*(2.*COVNP*dEta_dN + VNO3*d2ChldN2)
+Chl      = max(Chl, eps)
+
+dmuQ_dN  = dYdN*(muNet*cff1 + Q*mu0hatSI)
+d2NPPdN2 = PHY*(d2YdN2*dmuQ_dN/dYdN + 2.*dYdN**2*mu0hatSI*cff1)
+
 ! NPP: ensemble mean carbon based primary production
 NPP = PHY*muNet*Q + .5*(2.*COVNP*dmuQ_dN + VNO3*d2NPPdN2)
 
