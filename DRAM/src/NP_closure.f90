@@ -64,8 +64,8 @@ DO k = nlev, 1, -1
    COVNP= COVNP + (SCOVNP+Dp*(VPHY-COVNP))*dtdays
    Varout(oNO3,k)      = NO3
    Varout(oPHY(1),k)   = PHY
-   Varout(oVPHY  ,k)   = VPHY
-   Varout(oVNO3  ,k)   = VNO3
+   Varout(oVPHY  ,k)   = max(VPHY,0d0)
+   Varout(oVNO3  ,k)   = max(VNO3,0d0)
    Varout(oCOVNP ,k)   = COVNP
    Varout(oPHYt,  k)   = PHY
    Varout(omuNet(1),k) = muNet               !Growth rate at <N>
@@ -130,12 +130,13 @@ dmuQ_dN  = dYdN*(muNet*cff1 + Q*mu0hatSI)
 d2NPPdN2 = PHY*(d2YdN2*dmuQ_dN/dYdN + 2.*dYdN**2*mu0hatSI*cff1)
 
 ! NPP: ensemble mean carbon based primary production
-NPP = PHY*muNet*Q + .5*(2.*COVNP*dmuQ_dN + VNO3*d2NPPdN2)
+NPP      = PHY*muNet*Q + .5*(2.*COVNP*dmuQ_dN + VNO3*d2NPPdN2)
+NPP      = max(NPP, 0.)
 
 ! Calculate sources and sinks of variances of N, P, and covariance of NP
-SVPHY = 2.*mu0hatSI*(fN*VPHY         + Kn*PHY*       COVNP/(Kn+NO3)**2)
-SVNO3 =-2.*mu0hatSI*(fN*COVNP        + Kn*PHY*        VNO3/(Kn+NO3)**2) 
-SCOVNP=    mu0hatSI*(fN*(COVNP-VPHY) + Kn*PHY*(VNO3-COVNP)/(Kn+NO3)**2) 
+SVPHY    = 2.*mu0hatSI*(fN*VPHY         + Kn*PHY*       COVNP/(Kn+NO3)**2)
+SVNO3    =-2.*mu0hatSI*(fN*COVNP        + Kn*PHY*        VNO3/(Kn+NO3)**2) 
+SCOVNP   =    mu0hatSI*(fN*(COVNP-VPHY) + Kn*PHY*(VNO3-COVNP)/(Kn+NO3)**2) 
 return
 END SUBROUTINE PHY_NPCLOSURE
 

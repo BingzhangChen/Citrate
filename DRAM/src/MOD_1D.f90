@@ -5,7 +5,7 @@ implicit none
 ! Grid parameters
 real, private, parameter :: hmax   = 5d2   ! Total water depth
 real, private, parameter :: thetaS = 2d0   ! surface stretching parameter
-real, private, parameter :: dtsec  = 120.  ! time step in seconds
+real, private, parameter :: dtsec  = 300.  ! time step in seconds
 real, private, parameter ::d_per_s = 864d2 ! how many seconds in one day
 real, private, parameter :: zero   = 0d0
                       !how many seconds of one year
@@ -608,8 +608,8 @@ do j = 1, Nstn
    call Readcsv(forcfiletime(eAks), 1,NFobs(eAks), obs_time_Aks(:,j)) 
    obs_time_Aks(:,j)  = obs_time_Aks(:,j) *3d1*dble(d_per_s)
 
-   call Readcsv(forcfiletime(ew  ), 1,NFobs(ew)  , obs_time_w(:,j)) 
-   obs_time_w(:,j)    = obs_time_w(:,j)   *3d1*dble(d_per_s)
+   !call Readcsv(forcfiletime(ew  ), 1,NFobs(ew)  , obs_time_w(:,j)) 
+   !obs_time_w(:,j)    = obs_time_w(:,j)   *3d1*dble(d_per_s)
    
    if (N2fix) then
       call Readcsv(forcfiletime(ePO4), 1,NFobs(ePO4), obs_time_PO4(:,j)) 
@@ -1048,8 +1048,7 @@ DO jj = 1, Nstn
       case(NPclosure)
         call NP_closure
       case default
-        write(6,*) 'Error in choosing biological models! Quit.'
-        stop
+        stop 'Error in choosing biological models! Quit.'
     endselect
 
     ! Interpolate w data throughout the water column:
@@ -1058,26 +1057,25 @@ DO jj = 1, Nstn
     ! w(0   ) = 0d0
     ! w(nlev) = 0d0
     IF (mod(it, nsave) .EQ. 1) THEN
-      ! Check whether the values are valid:
-      do j = 1,NVAR
-         do k=1,nlev
-            if( (Vars(j,k) .ne. Vars(j,k))) then
-                write(6,*) 'j = ',j
-                write(6,*) 'k = ',k
-                write(6,*) 'At time step ',it
-                write(6,*) 'The variable ',trim(Labelout(j+ow)), &
-                          ' is invalid at depth ',Z_r(k)
-                write(6,*) 'Vars(j,k) =',  Vars(j,k)
-                stop
-            endif
-         enddo 
-      enddo
-  
      ! Calculate model time in days:
        current_day = int(current_sec/d_per_s)
   
     ! Calculate DATE OF the YEAR (DOY)
        current_DOY = mod(current_day, 360)
+
+      ! Check whether the values are valid:
+      do j = 1,NVAR
+         do k=1,nlev
+            if( (Vars(j,k) .ne. Vars(j,k))) then
+                write(6,*) 'At day ',current_day
+                write(6,*) 'WARNING! The variable ',trim(Labelout(j+ow)), &
+                          ' is ', Vars(j,k), ' at depth ',Z_r(k)
+                write(6,*) 'It will be forced to zero!'
+                Vars(j,k) = eps
+            endif
+         enddo 
+      enddo
+  
   
       ! Save data to output files:
       if (savefile .and. taskid == 0) then
@@ -1140,7 +1138,9 @@ DO jj = 1, Nstn
            a(:,1) = Varout(oNO3,:)
 
            call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1), TINout(nm,1))       
-
+           if (TINout(nm,1) < 0.) then
+             write(6,*) "WARNING! Negative NO3 appears at depth ", depth(1), " at day ", DOY
+           endif
           elseif (i .le. (nrow(1,jj)+nrow(2,jj)) ) then
              if (jj .eq. 1) then
                 nm = i- nrow(1,jj)
@@ -1154,9 +1154,10 @@ DO jj = 1, Nstn
 
           ! Calculate CHL output:
            a(:,1) = Varout(oCHLt,:)
-           call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
-                CHLout(nm,1))   
-
+           call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1), CHLout(nm,1))   
+           if (CHLout(nm,1) < 0.) then
+             write(6,*) "WARNING! Negative CHL appears at depth ", depth(1), " at day ", DOY
+           endif
           elseif (i .le. (nrow(1,jj)+nrow(2,jj)+nrow(3,jj)) ) then
              if (jj .eq. 1) then
                 nm = i- nrow(1,jj) - nrow(2,jj)
@@ -1172,6 +1173,10 @@ DO jj = 1, Nstn
            a(:,1) = Varout(oPPt,:)   ! Carbon based PP
            call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
                 NPPout(nm,1))  
+
+           if (NPPout(nm,1) < 0.) then
+             write(6,*) "WARNING! Negative NPP appears at depth ", depth(1), " at day ", DOY
+           endif
 
           elseif (i .le. (nrow(1,jj)+nrow(2,jj)+nrow(3,jj)+nrow(4,jj))) then
              if (jj .eq. 1) then
@@ -1392,15 +1397,6 @@ DO jj = 1, Nstn
   
      ! Update the state variables:
      do k = 1, nlev
-       ! if (Vars1(k) < 0.) then
-       !    write(6,*) trim(Labelout(j+ow)), 'negative before diffusion at ', Z_r(k)
-       !    stop
-       ! endif
-
-       ! if (Vars2(k) < 0.) then
-       !    write(6,*) trim(Labelout(j+ow)), 'negative after diffusion at ', Z_r(k)
-       !    stop
-       ! endif
         Vars(j,k)=Vars2(k)
      enddo
   enddo

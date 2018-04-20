@@ -848,7 +848,7 @@ if(Model_ID.eq.NPZD2sp .OR. Model_ID.eq.EFTdisc .OR. &
 endif
 !
 ParamLabel(iwDET) = 'wDET   '
-params(iwDET)     = -0.3  ! wDET = 10**params(iwDET)
+params(iwDET)     = -1.0  ! wDET = 10**params(iwDET)
 !
 if (Model_ID == NPPZDD .or. Model_ID == EFTPPDD) then
    ParamLabel(iwDET2)= 'wDET2'
