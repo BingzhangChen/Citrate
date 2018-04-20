@@ -1,0 +1,16 @@
+&Model
+  Stn='S1',
+  Model_ID = 22,  ! NPclosure model
+  nutrient_uptake = 1,
+  grazing_formulation = 3,
+  bot_bound = 1,   !Zero flux at boundary, conserve total nitrogen
+/
+
+&MCMCrun
+   nruns   = 2000,
+   EnsLen  = 500, 
+   NDays   = 1440,
+   Readfile= 0,
+   NR_enspar=3,
+   MPIRUN  = 1,
+/
