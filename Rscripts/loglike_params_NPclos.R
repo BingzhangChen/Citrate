@@ -1,7 +1,7 @@
 #Plot LogLikehood of two models at two stations in one plot:
 pwd1 <- getwd()
-setwd('~/Bingzhang/DRAM/NPclosure/HOT/')  
-stns    = c('HOT')
+setwd('~/Working/FlexEFT1D/DRAM/NPclosure/S1/')  
+stns    = c('S1')
 Nstn    = 1
 burnin  = 100
 NDTYPE  = 3  #The number of obs. types

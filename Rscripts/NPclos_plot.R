@@ -5,13 +5,13 @@ Model <- 'NPclosure'
 DIR   <- paste0('~/Working/FlexEFT1D/DRAM/',Model,'/S1/')
 setwd(DIR)
 source('~/Working/FlexEFT1D/Rscripts/plot_1D.R')
-source('~/Working/FlexEFT1D/Rscripts/loglike_params.R')  #Plot time-evolution of Log-Likelihoods and parameters of size model (Fig. 4 and 5)
+source('~/Working/FlexEFT1D/Rscripts/loglike_params_NPclos.R')  #Plot time-evolution of Log-Likelihoods and parameters 
 
 
 #Plot an example of four years to show seasonal cycle:
-VARs    <- c('NO3','CHL_T','R_PMU','R_VAR')
+VARs    <- c('NO3','PHY_T','VNO3','VPHY','COVNP')
 NVar    <- length(VARs)
-pdffile <- paste0('Fig3.fullyear_example_1D.pdf')
+pdffile <- paste0('fullyear_example_1D.pdf')
 
 pdf(pdffile, width = 9, height = 6, paper = 'a4')
 op <- par(font.lab = 1,
@@ -22,7 +22,7 @@ op <- par(font.lab = 1,
             oma    = c(4,4,1,0)) 
 
 j <- 0
-for (Stn in c('K2','S1')){
+for (Stn in c('HOT','S1')){
    for (i in 1:NVar){
        VAR = VARs[i]
        plot_1D(VAR,Model,Stn,finalyr = F, Dmax = -180)
@@ -36,7 +36,7 @@ for (Stn in c('K2','S1')){
 }
 mtext('Depth (m)', side = 2, outer=TRUE, line=2)
 mtext('Days     ', side = 1, outer=TRUE, line=1)
-mtext('Fig. 3 An example of modelled 4 year patterns at K2 and S1',side=1,outer=T, line=2,adj=0)
+mtext('An example of modelled 4 year patterns at HOT and S1',side=1,outer=T, line=2,adj=0)
 dev.off()
 
 
@@ -45,13 +45,13 @@ VARs <- c('NO3','PHY_T','CHL_T','VNO3','VPHY','COVNP')
 Stns <- c('S1')
 
 source('~/Working/FlexEFT1D/Rscripts/plot_stn_contour.R')
-plot_stn(Stns, VARs, Model='NPclosure', finalyr = T, Dmax = -150)
+plot_stn(Stns, VARs, Model='NPclosure', finalyr = T, Dmax = -180)
 
 #Plot comparisons of vertical profiles between data and model
 COLS     <- 2:3
 Models   <- c('NPclosure')
 Modnames <- c('NP closure')
-Stns     <- c('HOT','S1')
+Stns     <- c('S1')
 Nstn     <- length(Stns)
 DIR      <- paste0('~/Working/FlexEFT1D/DRAM/',Models,'/',Stns,'/')
 setwd(DIR)
