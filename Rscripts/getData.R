@@ -1,4 +1,4 @@
-source('/Users/apple/Working/FlexEFT1D/Rscripts/Hz.R')
+source('~/Working/FlexEFT1D/Rscripts/Hz.R')
 getData <- function(fileDIR,Stn,VAR){
    #Get all the data:
    dir    <- paste(fileDIR,Stn,sep='')

@@ -31,7 +31,7 @@ plot_1D <- function(Var,model,Stn,title='',ZLIM=NULL, finalyr = F, BOTH = T, Dma
            #colkey=list(breaks=round(seq(ZLIM[1], ZLIM[2], by = 0.1),2)),
            xlab='',ylab='',main=title,adj=0,xaxt='n',cex.axis=1.2,cex.lab=1.2)
     }else{
-      #ZLIM = as.double(quantile(unlist(data),probs=c(0.01,0.95)))
+      ZLIM = as.double(quantile(unlist(data),probs=c(0.01,0.95)))
       data[data < ZLIM[1]] <- ZLIM[1]
       data[data > ZLIM[2]] <- ZLIM[2]
       image2D(as.matrix(data), x=days, y=-depth,
@@ -68,6 +68,12 @@ plot_1D <- function(Var,model,Stn,title='',ZLIM=NULL, finalyr = F, BOTH = T, Dma
       Varname  <- expression(paste("Trait diffusion ("*d^-2*' (ln '*µm^3*')'^-2*')'))
     }else if (Var == 'd2gdl'){
       Varname  <- expression(paste("d2g/dL2 ("*d^-2*' (ln '*µm^3*')'^-2))
+    }else if (Var == 'VPHY'){
+      Varname  <- bquote(italic(V)[P] * ' (mmol '*m^-3*')'^2)
+    }else if (Var == 'VNO3'){
+      Varname  <- bquote(italic(V)[N] * ' (mmol '*m^-3*')'^2)
+    }else if (Var == 'COVNP'){
+      Varname  <- bquote(italic(COV)[NP] * ' (mmol '*m^-3*')'^2)
     }else{
       Varname  <- bquote(.(Var) ~ ' (mmol '*m^-3*')')
     }

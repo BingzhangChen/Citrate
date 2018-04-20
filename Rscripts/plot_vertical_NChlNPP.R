@@ -35,6 +35,12 @@ plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
        Varname  <- expression(paste("PHY "*'(mmol '*m^-3*')'))
      }else if (Var == 'N2P'){
        Varname  <- 'N:P (mol:mol)'
+     }else if (Var == 'VPHY'){
+       Varname  <- bquote(italic(V)[P] * ' (mmol '*m^-3*')'^2)
+     }else if (Var == 'VNO3'){
+       Varname  <- bquote(italic(V)[N] * ' (mmol '*m^-3*')'^2)
+     }else if (Var == 'COVNP'){
+       Varname  <- bquote(italic(COV)[NP] * ' (mmol '*m^-3*')'^2)
      }else{
        Varname  <- bquote(.(Var) ~ ' (mmol '*m^-3*')')
      }
@@ -97,7 +103,7 @@ plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
             }else if (Var == 'DIN'){
              Chl  <- getData(DIR,Stn, 'NO3')
             }else if(Var == 'NPP'){
-             Chl  <- getData(DIR, Stn, 'NPP_T')
+             Chl  <- getData(DIR, Stn, 'NPP')
             }else if(Var == 'C_Chl'){
              Chl  <- getData(DIR, Stn,'The1')
             }else if(Var == 'N2P'){
@@ -134,10 +140,9 @@ plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
      mtext('Depth (m)',side = 2, outer=TRUE, line=1)
      if (Stn == 'HOT') Stn = 'ALOHA'
      #mtext(paste('Fig.', FigNo,'. Model fittings to vertical profiles of DIN, CHL, NPP, and PON at',Stn),side=1,outer=T, line=2,adj=0)
-     mtext(paste('Model fittings to vertical profiles of DIN, CHL, NPP, and PON at',Stn),side=1,outer=T, line=2,adj=0)
+     VARS <- paste0(VARS, collapse = ' ')
+     mtext(paste('Model fittings to vertical profiles of ', VARS, ' at ',Stn),side=1,outer=T, line=2,adj=0)
      #mtext(Sys.time(), side = 3, outer=TRUE, line=2)
    dev.off()
  } 
-
-
 
