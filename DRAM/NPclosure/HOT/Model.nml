@@ -7,7 +7,7 @@
 /
 
 &MCMCrun
-   nruns   = 2,
+   nruns   = 2000,
    EnsLen  = 500, 
    NDays   = 1440,
    Readfile= 0,
