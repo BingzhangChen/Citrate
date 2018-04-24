@@ -159,7 +159,7 @@ integer              :: NL  ! for counting of OBS_DOY et al.
 integer, allocatable :: kk(:)
 
 Select case(Model_ID)
-  case(NPclosure)
+  case(NPclosure, NPZclosure)
      NDTYPE      = 3  !TIN, CHL, PP
      INCLUDESIZE = .FALSE.
   case(NPZDFix,NPPZDD,EFTPPDD,Geidersimple,GeiderDroop, EFTsimple, NPZDFixIRON, GeidsimIRON,EFT2sp,NPZD2sp, EFTsimIRON)
@@ -773,16 +773,22 @@ DO jj = 1, Nstn
            Vars(iCHL(i),  k) = Vars(iPHYC(i),k)*  12./50.
         endif
      enddo
-     if (Model_ID .eq. NPclosure) then
-        Vars(iVPHY, k) = Vars(iPHY(1),k) * exp(params(ibeta))
-        Vars(iVNO3, k) = Vars(iNO3,   k) * exp(params(ibeta))
+     if (Model_ID .eq. NPclosure .or. Model_ID .eq. NPZclosure) then
+        Vars(iVPHY, k) = Vars(iPHY(1),k)**2 * exp(params(ibeta))
+        Vars(iVNO3, k) = Vars(iNO3,   k)**2 * exp(params(ibeta))
         Vars(iCOVNP,k) = zero
+        if (Model_ID .eq. NPZclosure) then
+           Vars(iZOO,k)   = 0.1
+           Vars(iVZOO, k) = Vars(iZOO,k)**2 * exp(params(ibeta))
+           Vars(iCOVNZ,k) = zero
+           Vars(iCOVPZ,k) = zero
+        endif
      else
         Vars(iZOO,k)   = 0.1
         Vars(iDET,k)   = 0.1
      endif
      if (iZOO2 > 0) Vars(iZOO2,k)=.05 
-     if (NVAR > iDET .and. Model_ID .ne. NPclosure) then
+     if (NVAR > iDET .and. Model_ID < NPclosure) then
         do i = (iDET+1), NVAR
            Vars(i,k) = 1D-2
         enddo
