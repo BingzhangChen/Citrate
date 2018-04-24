@@ -93,8 +93,8 @@ tf       = TEMPBOL(Ep,Temp_)   !Temperature effect
 
 !The temperature and light dependent component
 mu0hat   = tf*exp(params(imu0))
-SI       = mu_Edwards2015(PAR_, params(iIopt),mu0hat, alphaI) 
-mu0hatSI = mu0hat*SI
+mu0hatSI = mu_Edwards2015(PAR_, params(iIopt),mu0hat, alphaI) 
+SI       = mu0hatSI/mu0hat
 KN       = exp(params(iKN))
 fN       = NO3/(NO3 + Kn)  !Nitrogen limitation index
 
