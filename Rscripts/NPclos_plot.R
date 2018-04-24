@@ -7,6 +7,8 @@ setwd(DIR)
 source('~/Working/FlexEFT1D/Rscripts/plot_1D.R')
 source('~/Working/FlexEFT1D/Rscripts/loglike_params_NPclos.R')  #Plot time-evolution of Log-Likelihoods and parameters 
 
+#Check total concentration and variance:
+source('~/Working/FlexEFT1D/Rscripts/plot_TN_TVAR.R')
 
 #Plot an example of four years to show seasonal cycle:
 VARs    <- c('NO3','PHY_T','VNO3','VPHY','COVNP')
@@ -25,7 +27,7 @@ j <- 0
 for (Stn in c('HOT','S1')){
    for (i in 1:NVar){
        VAR = VARs[i]
-       plot_1D(VAR,Model,Stn,finalyr = F, Dmax = -180)
+       plot_1D(VAR,Model,Stn,finalyr = F, Dmax = -500)
        j   = j + 1
        if (i == 1){
          mtext(paste0(letters[j],')',Stn),adj=0, outer=F)
