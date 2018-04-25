@@ -1,5 +1,5 @@
 MODULE MOD_1D
-use BIO_MOD
+USE BIO_MOD
 implicit none
 
 ! Grid parameters
@@ -774,9 +774,9 @@ DO jj = 1, Nstn
         endif
      enddo
      if (Model_ID .eq. NPclosure .or. Model_ID .eq. NPZclosure) then
-        Vars(iVPHY, k) = Vars(iPHY(1),k)**2 * exp(params(ibeta))
-        Vars(iVNO3, k) = Vars(iNO3,   k)**2 * exp(params(ibeta))
-        Vars(iCOVNP,k) = zero
+        Vars(iVPHY, k)    = Vars(iPHY(1),k)**2*exp(params(ibeta))
+        Vars(iVNO3, k)    = Vars(iNO3,   k)**2*exp(params(ibeta))
+        Vars(iCOVNP,k)    = zero
         if (Model_ID .eq. NPZclosure) then
            Vars(iZOO,k)   = 0.1
            Vars(iVZOO, k) = Vars(iZOO,k)**2 * exp(params(ibeta))

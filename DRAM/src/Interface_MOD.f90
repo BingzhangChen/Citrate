@@ -77,9 +77,6 @@ real, allocatable :: Ipv(:)   ! Initial parameter values
 ! Fixed throughout the program?
 !real, allocatable :: pSF(:)
       
-!  Bounds on the ranges of parameter values are defined using the master index (of pointers)
-real, allocatable :: MaxValue(:), MinValue(:)
-
 !!$ Variables for the distributions of parameter values, priors, etc. 
 
 ! Priors (prior estimates) for parameters: 
@@ -229,8 +226,6 @@ Np2Vary = NPar
 allocate(Apv(NPar))
 allocate(Npv(NPar))
 allocate(Ipv(NPar))
-allocate(MaxValue(NPar))
-allocate(MinValue(NPar))
 allocate(nuPar(Np2Vary))
 allocate(etaPar(Np2Vary))
 
@@ -307,261 +302,231 @@ TwtSSE=SSqE
 allocate(     dumE(NDTYPE*Nstn))
 dumE=SSqE
 
-!===================================================
-! Maximum and minimum allowed values for each parameter set here  
-! using the arrays MaxValue and MinValue. 
-!===================================================
+!! Common parameters:
+!! Based on Edwards et al. (2015) who gave aI0 ranging from
+!! 0.001 to 1 (uE m-2 s-1)-1 d-1, corresponding to the values times *4.6/(50/12)
+!! to get the unit: (mol C gChl-1 (W m-2)-1 d-1)
+!! Fasham (DSR1 1995) gave 0.025~0.14 unit: (W m-2)-1 d-1
+!! Unit: (W m-2)-1 for NPZDFix and NPZDdisc
+!! Unit: mol C gChl-1 (W m-2)-1 d-1 (other models)
+!if (iaI0 > 0) then
+!   MaxValue(iaI0) =  1.1       ! 1*4.6/(50/12)
+!   MinValue(iaI0) =  0.01
+!endif
+!
+!if (irhom > 0) then
+!   MaxValue(irhom) = 2.0
+!   MinValue(irhom) = .01
+!endif
+!
+!if (Model_ID.eq.EFT2sp .or. Model_ID.eq.EFTPPDD .or. Model_ID.eq.NPZD2sp .or. Model_ID.eq.NPPZDD) then
+!  if (Model_ID .eq. EFT2sp .or. Model_ID .eq. EFTPPDD)  & 
+!   MaxValue(iaI0) = 0.2
+!   MaxValue(iaI0B)= 2d0
+!   MinValue(iaI0B)= 0.05
+!   MaxValue(imu0B)= 0.95
+!   MinValue(imu0B)= 0.05
+!   MaxValue(iRL2) = 0.99
+!   MinValue(iRL2) = 0.1
+!   MaxValue(ialphaG)=0.1
+!   MinValue(ialphaG)=0.
+!
+!   if (Model_ID .eq. NPZD2sp .or. Model_ID .eq. NPPZDD) then
+!      MaxValue(ibI0B)=-1.5d0
+!      MinValue(ibI0B)=-4d0
+!   endif
+!endif
+!
+!! Fennel et al. (2006): 0.56~3.5
+!! Chai et al. (2002): 0.25~0.5
+!! Li et al. (2001): 0.003
+!! Chen et al. (2014) gave 0.02~7.4 ug Chl/L, 
+!! approximating 0.01~4.7 uM nitrogen
+!! Hansen et al. (1997) gave 0.4~40 ug Chl/L, approximating 0.2 ~ 20 uM N
+!! MaxValue(ikp      ) =  4.7
+!! MinValue(ikp      ) =  0.01
+!
+!! Fennel et al. (2006): 0.01~0.25
+!! Kishi et al. (2007): 0.05~0.2
+!!MaxValue(irdn     ) =  0.3
+!!MinValue(irdn     ) =  0.01
 
-! Common parameters:
-! Based on Edwards et al. (2015) who gave aI0 ranging from
-! 0.001 to 1 (uE m-2 s-1)-1 d-1, corresponding to the values times *4.6/(50/12)
-! to get the unit: (mol C gChl-1 (W m-2)-1 d-1)
-! Fasham (DSR1 1995) gave 0.025~0.14 unit: (W m-2)-1 d-1
-! Unit: (W m-2)-1 for NPZDFix and NPZDdisc
-! Unit: mol C gChl-1 (W m-2)-1 d-1 (other models)
-if (iaI0 > 0) then
-   MaxValue(iaI0) =  1.1       ! 1*4.6/(50/12)
-   MinValue(iaI0) =  0.01
-endif
-
-if (irhom > 0) then
-   MaxValue(irhom) = 2.0
-   MinValue(irhom) = .01
-endif
-
-if (Model_ID.eq.EFT2sp .or. Model_ID.eq.EFTPPDD .or. Model_ID.eq.NPZD2sp .or. Model_ID.eq.NPPZDD) then
-  if (Model_ID .eq. EFT2sp .or. Model_ID .eq. EFTPPDD)  & 
-   MaxValue(iaI0) = 0.2
-   MaxValue(iaI0B)= 2d0
-   MinValue(iaI0B)= 0.05
-   MaxValue(imu0B)= 0.95
-   MinValue(imu0B)= 0.05
-   MaxValue(iRL2) = 0.99
-   MinValue(iRL2) = 0.1
-   MaxValue(ialphaG)=0.1
-   MinValue(ialphaG)=0.
-
-   if (Model_ID .eq. NPZD2sp .or. Model_ID .eq. NPPZDD) then
-      MaxValue(ibI0B)=-1.5d0
-      MinValue(ibI0B)=-4d0
-   endif
-endif
-
-! Fennel et al. (2006): 0.56~3.5
-! Chai et al. (2002): 0.25~0.5
-! Li et al. (2001): 0.003
-! Chen et al. (2014) gave 0.02~7.4 ug Chl/L, 
-! approximating 0.01~4.7 uM nitrogen
-! Hansen et al. (1997) gave 0.4~40 ug Chl/L, approximating 0.2 ~ 20 uM N
-! MaxValue(ikp      ) =  4.7
-! MinValue(ikp      ) =  0.01
-
-! Fennel et al. (2006): 0.01~0.25
-! Kishi et al. (2007): 0.05~0.2
-!MaxValue(irdn     ) =  0.3
-!MinValue(irdn     ) =  0.01
-! Fennel et al. (2006) gave range of 0.009-25 m/d
-! Kishi et al. (2007) gave sinking rate of POC of 40 m/d
-MaxValue(iwDET) =  1.3
-MinValue(iwDET) =  -2.0
-
-
-if (Model_ID == NPPZDD .or. Model_ID == EFTPPDD) then
-   MaxValue(iwDET2) = 2d0
-   MinValue(iwDET2) = 0d0
-   MaxValue(iwDET)  = 0.5
-   MinValue(itau)   = 1D-3
-   MaxValue(itau)   = 1D-2
-endif
-
-! Fennel et al. (2006) gave 0.025, but gave a range of 0.05~0.25
-! Lima and Doney (2004) gave 0.25
-! Chai et al. (2002) gave 0.05 for mesozooplankton
-! So I decide to give a relatively large range
-if (Model_ID .eq. NPZDN2) then
-   MaxValue(imz) =  0.3*16.   !P as the unit
-   MinValue(imz) =  0.05*16.
-elseif (imz > 0) then
-   MaxValue(imz) =  0.2
-   MinValue(imz) =  0.05
-endif
-! Fennel et al. (2006) gave a range of 0.5~1.0, but used 0.6
-! Lima and Doney (2004) gave 2.75 to 3.75
-! Hansen et al. (1997) gave a range of 10**(-2) ~ 10**(0) (unit: h-1)
-! after conversion to d-1, 0.2 ~ 2.4
-if (igmax > 0) then
- MaxValue(igmax) =  2d0
- MinValue(igmax) =  0.5
-endif
-
-if (iKPHY > 0) then
- MaxValue(iKPHY) = 2d0
- MinValue(iKPHY) = .05
-endif
-
-if (Model_ID .eq. NPZDDISC .or. Model_ID .eq. EFTdisc) then
-   MaxValue(ialphaG)=.1
-   MinValue(ialphaG)=0.
-endif
-select case(nutrient_uptake)
-case(1)
-! Fennel et al. (2006): 0.007~1.5
-! Chai et al. (2002): 0.05~1
-! Franks (2009): 0.005~3
-  if (iKN > 0) then
-     MaxValue(iKN) =  log(3.0)
-     MinValue(iKN) =  log(0.05)
-  endif
-  if (Model_ID .eq. NPZDN2) then  ! The unit based on P
-     MaxValue(iKPnif)=2D-3
-     MinValue(iKPnif)=5D-5
-     MaxValue(iLnifp)=5d0
-     MinValue(iLnifp)=0.05*16d0
-     MaxValue(iKPHY) =1./16.
-     MinValue(iKPHY) =.01/16.
-     MaxValue(iRDN_P)=.2
-     MinValue(iRDN_P)=.001
-  endif
-  if (Model_ID .eq. NPZD2sp .OR. Model_ID.eq.NPPZDD) then
-     MaxValue(iKN) = 0.2D0
-     MaxValue(iKN2)= 2.6d0
-     MinValue(iKN2)= 0.01d0
-  endif
-case(2)
-  ! Pahlow et al. (2013) gave a range of 60 ~ 1000 (unit: m3 molC-1 d-1)
-  ! Smith et al. (2015) estimated as 0.15 (unit: m3 mmolC-1 d-1)
-  MaxValue(iA0N   ) =  5d0
-  MinValue(iA0N   ) =  -3d0
-  if (Model_ID .eq. EFT2sp .OR. Model_ID .eq. EFTPPDD) then
-     MinValue(iA0N) =  1d0
-     MaxValue(iA0N2)=  -0.1
-     MinValue(iA0N2)=  -8.0
-  endif
-case default
-  write(6,*) 'Nutrient uptake option incorrect! Quit!'
-  stop
-end select
-
-! This Q0N is the minimal QN value (unit: mol N: mol C), 
-! different from Geidersimple model
-! Litchman et al. (2007) gave a range from 0.01 to 0.07
-! Pahlow et al. (2013) gave a range from 0.05 to 0.13
-if (iQ0N > 0) then
-   MaxValue(iQ0N) =  0.12
-   MinValue(iQ0N) =  0.04
-endif
-
-if (iIopt > 0) then
-  MaxValue(iIopt) = log(2500.)
-  MinValue(iIopt) = log(50.)
-endif
-
-! Model-specific parameters:
-select case(Model_ID)
-case(Geidersimple,NPclosure,Geiderdisc,GeiderDroop, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFixIRON, GeidsimIRON, NPZDN2)
-  !Based on the lab dataset from Chen and Laws (2017)
-  !Growth rate normalized to 15 ºC based on linear regression
-  !0.025% and 0.975% quantiles
-  if (Model_ID .eq. GeiderDroop) then
-    MaxValue(imu0) =  log(2.5)
-  else
-    MaxValue(imu0) =  log(2.)
-  endif
-  MinValue(imu0) =  log(0.3)
-
-  if (Model_ID == NPclosure) then
-    MaxValue(ibeta) = log(7.0)
-    MinValue(ibeta) = log(0.001)
-    MaxValue(iDp)   = log(0.9)
-    MinValue(iDp)   = log(0.01)
-  endif
-
-  if (Model_ID.eq.NPclosure .or. Model_ID .eq. NPZDcont .or. Model_ID .eq. NPZDFix .or. Model_ID .eq. NPPZDD .or. Model_ID.eq.NPZD2sp .or. Model_ID.eq.NPZDdisc .or. Model_ID .eq. NPZDFixIRON .or. Model_ID .eq. NPZDN2) then
-     MaxValue(iaI0_C) =log(0.1)
-     MinValue(iaI0_C) =log(0.01)
-     if (Model_ID.eq.NPZDcont) then
-        MaxValue(iVTR)=0.1
-        MinValue(iVTR)=0D0
-        MaxValue(iKFe)=0.2
-        MinValue(iKFe)=0.02
-     endif
-  endif
-  if (Model_ID .eq. NPZD2sp .or. Model_ID .eq. NPPZDD) MinValue(iaI0_C)=1D-2
-  if (Model_ID .eq. NPZDFixIRON .or. Model_ID .eq. GeidsimIRON) then
-     ! Galbraith et al. BG (2010) used KFe = 0.8 nM
-     ! Gregg et al. (2003) used KFe 0.08 ~ 0.12 nM 
-     MaxValue(iKFe) = 1.0
-     MinValue(iKFe) = 0.05
-  endif
-
-  if (Model_ID==NPZDdisc .or. Model_ID==NPZDCONT) then
-    if (Model_ID==NPZDdisc) then
-     MaxValue(ialphamu)=0.356
-     MinValue(ialphamu)=0.044
-     MaxValue(ibetamu) =-0.0057
-     MinValue(ibetamu) =-0.029
-     MaxValue(ialphaG )=1D-20  ! Only trait diffusion
-     MinValue(ialphaG )=0.
-     MaxValue(ialphaKN)=0.3
-     MinValue(ialphaKN)=0.2
-    endif
-
-     MaxValue(ialphaI )=0.1d0
-     MinValue(ialphaI )=-0.3d0
-  endif
-!-------------------------------
-case(CITRATE3)
-  MaxValue(iVTRL)=.1
-  MinValue(iVTRL)=0.
-  MaxValue(iVTRT)=.05
-  MinValue(iVTRT)=0.
-  MaxValue(iVTRI)=.1
-  MinValue(iVTRI)=0.
-  MaxValue(iKFe)=0.2
-  MinValue(iKFe)=0.02
-  MaxValue(imu0)=1.2
-  MinValue(imu0)=0.2
-
-!-------------------------------
-case(EFTsimple, EFTdisc, EFTcont,EFT2sp,EFTPPDD, EFTsimIRON)
-!  Following Pahlow et al. (2013), fix mu0 and V0N as 5 per day
-!  Net growth rate regulated by A0N and Q0N
-
-  if (imu0 > 0) then
-     MaxValue(imu0) =  6d0
-     MinValue(imu0) =  0.2
-  endif
-
-  if (Model_ID.eq.EFTsimIRON) then
-    ! Galbraith et al. BG (2010) used KFe = 0.8 nM
-    ! Gregg et al. (2003) used KFe 0.08 ~ 0.12 nM 
-     MaxValue(iKFe) = 1.0
-     MinValue(iKFe) = 0.05
-  endif
-
-!-------------------------------
-  if(Model_ID.eq.EFTdisc .or. Model_ID.eq.EFTcont) then
-     MaxValue(ialphaI  ) =  0.0
-     MinValue(ialphaI  ) =  -0.3
-
-     MaxValue(ialphamu)  = .3
-     MinValue(ialphamu)  = 1D-3
-     select case(nutrient_uptake)
-     case(1)
-       MaxValue(ialphaKN)=  0.5
-       MinValue(ialphaKN)=  0.1
-     case(2)
-       MaxValue(ialphaA) =  -0.01
-       MinValue(ialphaA) =  -0.4
-     case default
-       write(6,*) 'Nutrient uptake option incorrect! Quit!'
-       stop
-     end select
-  endif
-case default
-  write(6,*) 'Model option incorrect! Quit!'
-  stop
-end select  
+!
+!if (Model_ID == NPPZDD .or. Model_ID == EFTPPDD) then
+!   MaxValue(iwDET2) = 2d0
+!   MinValue(iwDET2) = 0d0
+!   MaxValue(iwDET)  = 0.5
+!   MinValue(itau)   = 1D-3
+!   MaxValue(itau)   = 1D-2
+!endif
+!
+!! Fennel et al. (2006) gave 0.025, but gave a range of 0.05~0.25
+!! Lima and Doney (2004) gave 0.25
+!! Chai et al. (2002) gave 0.05 for mesozooplankton
+!! So I decide to give a relatively large range
+!if (Model_ID .eq. NPZDN2) then
+!   MaxValue(imz) =  0.3*16.   !P as the unit
+!   MinValue(imz) =  0.05*16.
+!elseif (imz > 0) then
+!   MaxValue(imz) =  0.2
+!   MinValue(imz) =  0.05
+!endif
+!! Fennel et al. (2006) gave a range of 0.5~1.0, but used 0.6
+!! Lima and Doney (2004) gave 2.75 to 3.75
+!! Hansen et al. (1997) gave a range of 10**(-2) ~ 10**(0) (unit: h-1)
+!! after conversion to d-1, 0.2 ~ 2.4
+!if (igmax > 0) then
+! MaxValue(igmax) =  2d0
+! MinValue(igmax) =  0.5
+!endif
+!
+!select case(nutrient_uptake)
+!case(1)
+!! Fennel et al. (2006): 0.007~1.5
+!! Chai et al. (2002): 0.05~1
+!! Franks (2009): 0.005~3
+!  if (iKN > 0) then
+!     MaxValue(iKN) =  log(3.0)
+!     MinValue(iKN) =  log(0.05)
+!  endif
+!  if (Model_ID .eq. NPZDN2) then  ! The unit based on P
+!     MaxValue(iKPnif)=2D-3
+!     MinValue(iKPnif)=5D-5
+!     MaxValue(iLnifp)=5d0
+!     MinValue(iLnifp)=0.05*16d0
+!     MaxValue(iKPHY) =1./16.
+!     MinValue(iKPHY) =.01/16.
+!     MaxValue(iRDN_P)=.2
+!     MinValue(iRDN_P)=.001
+!  endif
+!  if (Model_ID .eq. NPZD2sp .OR. Model_ID.eq.NPPZDD) then
+!     MaxValue(iKN) = 0.2D0
+!     MaxValue(iKN2)= 2.6d0
+!     MinValue(iKN2)= 0.01d0
+!  endif
+!case(2)
+!  ! Pahlow et al. (2013) gave a range of 60 ~ 1000 (unit: m3 molC-1 d-1)
+!  ! Smith et al. (2015) estimated as 0.15 (unit: m3 mmolC-1 d-1)
+!  MaxValue(iA0N   ) =  5d0
+!  MinValue(iA0N   ) =  -3d0
+!  if (Model_ID .eq. EFT2sp .OR. Model_ID .eq. EFTPPDD) then
+!     MinValue(iA0N) =  1d0
+!     MaxValue(iA0N2)=  -0.1
+!     MinValue(iA0N2)=  -8.0
+!  endif
+!case default
+!  write(6,*) 'Nutrient uptake option incorrect! Quit!'
+!  stop
+!end select
+!
+!! This Q0N is the minimal QN value (unit: mol N: mol C), 
+!! different from Geidersimple model
+!! Litchman et al. (2007) gave a range from 0.01 to 0.07
+!! Pahlow et al. (2013) gave a range from 0.05 to 0.13
+!if (iQ0N > 0) then
+!   MaxValue(iQ0N) =  0.12
+!   MinValue(iQ0N) =  0.04
+!endif
+!
+!! Model-specific parameters:
+!select case(Model_ID)
+!case(Geidersimple,NPclosure,Geiderdisc,GeiderDroop, NPZDFix,NPPZDD, NPZD2sp,NPZDdisc,NPZDCONT, NPZDFixIRON, GeidsimIRON, NPZDN2)
+!  !Based on the lab dataset from Chen and Laws (2017)
+!  !Growth rate normalized to 15 ºC based on linear regression
+!  !0.025% and 0.975% quantiles
+!  if (Model_ID .eq. GeiderDroop) then
+!    MaxValue(imu0) =  log(2.5)
+!  else
+!    MaxValue(imu0) =  log(2.)
+!  endif
+!  MinValue(imu0) =  log(0.3)
+!
+!
+!  if (Model_ID.eq.NPclosure .or. Model_ID .eq. NPZDcont .or. Model_ID .eq. NPZDFix .or. Model_ID .eq. NPPZDD .or. Model_ID.eq.NPZD2sp .or. Model_ID.eq.NPZDdisc .or. Model_ID .eq. NPZDFixIRON .or. Model_ID .eq. NPZDN2) then
+!     MaxValue(iaI0_C) =log(0.1)
+!     MinValue(iaI0_C) =log(0.01)
+!     if (Model_ID.eq.NPZDcont) then
+!        MaxValue(iVTR)=0.1
+!        MinValue(iVTR)=0D0
+!        MaxValue(iKFe)=0.2
+!        MinValue(iKFe)=0.02
+!     endif
+!  endif
+!  if (Model_ID .eq. NPZD2sp .or. Model_ID .eq. NPPZDD) MinValue(iaI0_C)=1D-2
+!  if (Model_ID .eq. NPZDFixIRON .or. Model_ID .eq. GeidsimIRON) then
+!     ! Galbraith et al. BG (2010) used KFe = 0.8 nM
+!     ! Gregg et al. (2003) used KFe 0.08 ~ 0.12 nM 
+!     MaxValue(iKFe) = 1.0
+!     MinValue(iKFe) = 0.05
+!  endif
+!
+!  if (Model_ID==NPZDdisc .or. Model_ID==NPZDCONT) then
+!    if (Model_ID==NPZDdisc) then
+!     MaxValue(ialphamu)=0.356
+!     MinValue(ialphamu)=0.044
+!     MaxValue(ibetamu) =-0.0057
+!     MinValue(ibetamu) =-0.029
+!     MaxValue(ialphaG )=1D-20  ! Only trait diffusion
+!     MinValue(ialphaG )=0.
+!     MaxValue(ialphaKN)=0.3
+!     MinValue(ialphaKN)=0.2
+!    endif
+!
+!     MaxValue(ialphaI )=0.1d0
+!     MinValue(ialphaI )=-0.3d0
+!  endif
+!!-------------------------------
+!case(CITRATE3)
+!  MaxValue(iVTRL)=.1
+!  MinValue(iVTRL)=0.
+!  MaxValue(iVTRT)=.05
+!  MinValue(iVTRT)=0.
+!  MaxValue(iVTRI)=.1
+!  MinValue(iVTRI)=0.
+!  MaxValue(iKFe)=0.2
+!  MinValue(iKFe)=0.02
+!  MaxValue(imu0)=1.2
+!  MinValue(imu0)=0.2
+!
+!!-------------------------------
+!case(EFTsimple, EFTdisc, EFTcont,EFT2sp,EFTPPDD, EFTsimIRON)
+!!  Following Pahlow et al. (2013), fix mu0 and V0N as 5 per day
+!!  Net growth rate regulated by A0N and Q0N
+!
+!  if (imu0 > 0) then
+!     MaxValue(imu0) =  6d0
+!     MinValue(imu0) =  0.2
+!  endif
+!
+!  if (Model_ID.eq.EFTsimIRON) then
+!    ! Galbraith et al. BG (2010) used KFe = 0.8 nM
+!    ! Gregg et al. (2003) used KFe 0.08 ~ 0.12 nM 
+!     MaxValue(iKFe) = 1.0
+!     MinValue(iKFe) = 0.05
+!  endif
+!!-------------------------------
+!  if(Model_ID.eq.EFTdisc .or. Model_ID.eq.EFTcont) then
+!     MaxValue(ialphaI  ) =  0.0
+!     MinValue(ialphaI  ) =  -0.3
+!
+!     MaxValue(ialphamu)  = .3
+!     MinValue(ialphamu)  = 1D-3
+!     select case(nutrient_uptake)
+!     case(1)
+!       MaxValue(ialphaKN)=  0.5
+!       MinValue(ialphaKN)=  0.1
+!     case(2)
+!       MaxValue(ialphaA) =  -0.01
+!       MinValue(ialphaA) =  -0.4
+!     case default
+!       write(6,*) 'Nutrient uptake option incorrect! Quit!'
+!       stop
+!     end select
+!  endif
+!case default
+!  write(6,*) 'Model option incorrect! Quit!'
+!  stop
+!end select  
 
 ! Set the prior parameters
 do k = 1, NPar
@@ -586,7 +551,6 @@ enddo
 !In such cases, using the absolute parameter values may give too much weight to those 
 !parameters having large absolute values, in the calculation of the prior 
 !contribution to the LogLikelihood. 
-
   Npv = Npv_(Apv)
 END SUBROUTINE SetUpArrays
 !-----------------------------------------------------------------------
@@ -596,12 +560,9 @@ implicit none
 real, intent(in ) :: Apv_(NPar)
 real :: vals(NPar)
 integer           :: i
-
    do i = 1, NPar 
-     ! vals(i) = (Apv_(i) - MinValue(i))/(MaxValue(i) - MinValue(i))
       vals(i) = Apv_(i)/Ipv(i)
    enddo
-
 end function Npv_
 !-----------------------------------------------------------------------
 ! This function back calculates the normalized parameter values to absolute paramter values
@@ -610,12 +571,9 @@ implicit none
 real, intent(in ) :: Npv_(NPar)
 real              :: vals(NPar)
 integer           :: i
-
    do i = 1, NPar 
-      !vals(i) = Npv_(i)*(MaxValue(i) - MinValue(i))  + MinValue(i)
       vals(i) = Npv_(i) * Ipv(i)
    enddo
-
 end function Apv_
 !-----------------------------------------------------------------------
 subroutine EstimatePriors(C, InvC, error)

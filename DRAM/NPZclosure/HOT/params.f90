@@ -68,7 +68,7 @@ character(LEN=5), parameter :: LabelForc(TNFo) &
 
 ! Indices for state variables
 integer, parameter :: iNO3   = 1
-integer, parameter :: iPHY   = 2
+integer, parameter :: iPHY(1)= 2
 integer, parameter :: iZOO   = 3
 integer, parameter :: iVNO3  = 4
 integer, parameter :: iVPHY  = 5
@@ -85,7 +85,7 @@ real               :: Vars(NVAR,nlev) = 0d0
 integer, parameter :: NVsinkterms =  2  ! Include PHY and VPHY
 
 ! Define the index of sinking tracers in the Vars matrix: 
-integer, parameter :: Windex(NVsinkterms) = [iPHY, iVPHY]
+integer, parameter :: Windex(NVsinkterms) = [iPHY(1), iVPHY]
 
 ! Indices for output variables
 integer, parameter :: oTemp  = 1,oPAR=2,oAks=3,oDust=4,ow=5
@@ -122,14 +122,18 @@ real               :: params(NPar) = 0d0  ! Define parameters
 character(LEN=8)   :: ParamLabel(NPar) = 'Unknown' !Define parameter labels
 
 !  Maxima and minima  of parameter values 
-real,    parameter :: MaxValue(NPar)   = 0d0, MinValue(NPar) = 0d0
+real               :: MaxValue(NPar)   = 0d0, MinValue(NPar) = 0d0
+integer            :: taskid
+
+! Indices in other models (not used, but needed when compiling)
+integer            :: iPHYC(NPHY), iDET, iZOO2, iPMU, iVAR, iMTo, iVTo, iMIo
+integer            :: iVIo, ifer, iDETFe,iPO4,  iDIA, iDETp 
 
 contains
 
 SUBROUTINE choose_model
 implicit none
 real cff !a scratch variable
-character(len=10), parameter :: format_string = "(A5,I0)"
 
 if(taskid==0) write(6,*) 'Nutrient-Phytoplankton-Zooplankton (NPZ) closure model selected!'
 
@@ -219,7 +223,7 @@ MinValue(iwDET)  =  0.01
 !Log transform:
 do i = 1, NPar
    if (MaxValue(i) .le. 0d0) &
-   stop "MaxValue of ", ParamLabel(i), " uninitialized!"
+   stop "Parameter MaxValues uninitialized!"
    MaxValue(i) = log(MaxValue(i))
    MinValue(i) = log(MinValue(i))
 
