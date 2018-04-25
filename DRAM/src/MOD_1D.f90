@@ -868,7 +868,7 @@ DO jj = 1, Nstn
   ! Initialize sinking rate (UNIT: m/s !):
   ww(:,:) = 0d0
   ncff    = size(ww,2)
-  cff     = 10**(params(iwDET))
+  cff     = exp(params(iwDET))
   do k = 0,nlev-1
 
    !Phytoplankton no sinking except NPclosure model
@@ -880,7 +880,7 @@ DO jj = 1, Nstn
             Model_ID==CITRATE3) then
        ww(k,ncff-1)=-cff/dble(d_per_s) 
        ww(k,ncff)  =ww(k,ncff-1)
-    elseif (Model_ID==NPclosure) then
+    elseif (Model_ID==NPclosure .or. Model_ID==NPZclosure) then
        ww(k,1)    = -cff/dble(d_per_s)
        ww(k,2)    = ww(k,1)
     else
