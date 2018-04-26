@@ -1,7 +1,7 @@
 #Plot station map:
 source('~/Working/FlexEFT1D/Rscripts/Stnmap_Kv_S1K2.R')
 
-Model <- 'NPclosure'
+Model <- 'NPZclosure'
 DIR   <- paste0('~/Working/FlexEFT1D/DRAM/',Model,'/S1/')
 setwd(DIR)
 source('~/Working/FlexEFT1D/Rscripts/plot_1D.R')
@@ -9,7 +9,7 @@ source('~/Working/FlexEFT1D/Rscripts/loglike_params_NPclos.R')  #Plot time-evolu
 
 #Check total concentration and variance:
 source('~/Working/FlexEFT1D/Rscripts/plot_TN_TVAR.R')
-
+plot_TN_TVAR('NPZclosure',Stns='HOT')
 #Plot an example of four years to show seasonal cycle:
 VARs    <- c('NO3','PHY_T','VNO3','VPHY','COVNP')
 NVar    <- length(VARs)
