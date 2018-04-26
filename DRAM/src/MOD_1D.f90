@@ -1,5 +1,5 @@
 MODULE MOD_1D
-USE BIO_MOD
+USE PARAM_MOD
 implicit none
 
 ! Grid parameters
@@ -1053,6 +1053,8 @@ DO jj = 1, Nstn
         call Geider_simple
       case(NPclosure)
         call NP_closure
+      case(NPZclosure)
+        call NPZ_closure
       case default
         stop 'Error in choosing biological models! Quit.'
     endselect
@@ -1141,7 +1143,7 @@ DO jj = 1, Nstn
              endif
 
            ! Calculate TIN output:
-           a(:,1) = Varout(oNO3,:)
+           a(:,1) = Varout(iNO3,:)
 
            call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1), TINout(nm,1))       
            if (TINout(nm,1) < 0.) then
@@ -1176,7 +1178,7 @@ DO jj = 1, Nstn
              endif
 
           ! Calculate NPP output:
-           a(:,1) = Varout(oPPt,:)   ! Carbon based PP
+           a(:,1) = Varout(oNPP,:)   ! Carbon based PP
            call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
                 NPPout(nm,1))  
 
@@ -1386,7 +1388,8 @@ DO jj = 1, Nstn
        endif
      case (Neumann)
      ! Zero flux at bottom
-       if (Model_ID == NPclosure .and. j == iCOVNP) then
+       if ((Model_ID == NPclosure .and. j == iCOVNP) .OR. &
+           (Model_ID ==NPZclosure .and.(j == iCOVNP  .or. j ==iCOVNZ .or. j==iCOVPZ))) then
          call diff_center(nlev,dtsec,cnpar,0,Hz, Neumann, Neumann, &
                        zero, zero, Aks,Vec0,Vec0,Taur,Vars1,Vars1,Vars2)
        else
@@ -1399,7 +1402,7 @@ DO jj = 1, Nstn
      end select
 
      ! Save diffusion fluxes (normalized to per day)
-     Varout(oD_NO3+j-1,:) = (Vars2(:) - Vars1(:))/dtdays
+     Varout(oD_VARS(j),:) = (Vars2(:) - Vars1(:))/dtdays
   
      ! Update the state variables:
      do k = 1, nlev
@@ -1445,29 +1448,6 @@ DO jj = 1, Nstn
 ENDDO  ! ==> End of Stn
 200   format(A10,1x,I10,1x,I7,<nlev>(2x,1pe12.3))
 END subroutine Timestep
-!=====================================================
-subroutine End_model
-  implicit none
-
-!  ! Release memory:
-  if(allocated(Vars))     deallocate(Vars)
-  if(allocated(Varout))   deallocate(Varout)
-  if(allocated(params))   deallocate(params)
-  if(allocated(iPHY))     deallocate(iPHY)
-  if(allocated(Labelout)) deallocate(Labelout)
-  if(allocated(Windex))   deallocate(Windex)
-  if(allocated(oPHY))     deallocate(oPHY)
-  if(allocated(oCHL))     deallocate(oCHL)
-  if(allocated(oTheta))   deallocate(oTheta)
-  if(allocated(oQN))      deallocate(oQN)
-  if(allocated(omuNET))   deallocate(omuNET)
-  if(allocated(oGraz))    deallocate(oGraz)
-  if(allocated(oSI))      deallocate(oSI)
-  if(allocated(oLno3))    deallocate(oLno3)
-  if(allocated(oD_PHY))   deallocate(oD_PHY)
-  if(allocated(oD_CHL))   deallocate(oD_CHL)
-
-END subroutine End_model
 !========================================================
 subroutine setup_grid
 implicit none

@@ -1,7 +1,7 @@
 SUBROUTINE NPZ_CLOSURE
     ! This NPZ_closure model has 5 tracers: <N>, <P>, <Z>,<N'>^2, <P'>^2,<Z'>^2, <N'P'>,<N'Z'>,<P'Z'>
     ! Governing functions follow Priyadarshi et al. JTB (2017)
-USE bio_MOD
+USE PARAM_MOD
 USE MOD_1D, only: it, nsave
 IMPLICIT NONE
 integer :: k
@@ -11,7 +11,7 @@ real :: par_
 real :: NO3,PHY, ZOO,VPHY, VNO3,VZOO, COVNP,COVPZ,COVNZ 
 real :: SVNO3, SVPHY, SCOVNP
 real :: QN  ! cell quota related variables
-real :: muNet, Dp, PP_PN, muSI, KN
+real :: muNet, Dp, PP_PN, muSI, KN, gmax
 real :: SI
 real :: theta, Snp
 real :: Chl, NPPt
@@ -26,14 +26,14 @@ DO k = nlev, 1, -1
    Varout(oPAR_,k) = par_
    NO3    = Vars(iNO3,    k)
    NO3    = max(NO3,    eps)
-   PHY    = Vars(iPHY(1), k)
+   PHY    = max(Vars(iPHY(1),k), eps)
    ZOO    = Vars(iZOO,    k)
-   ZOO    = max(ZOO,     0.)
+   ZOO    = max(ZOO,    eps)
    VPHY   = Vars(iVPHY,   k)
-   VPHY   = max(VPHY,    0.)
+   VPHY   = max(VPHY,   eps)
    VNO3   = Vars(iVNO3,   k)
-   VNO3   = max(VNO3,    0.)
-   VZOO   = max(Vars(iVZOO,k),0.)
+   VNO3   = max(VNO3,   eps)
+   VZOO   = max(Vars(iVZOO,k),eps)
    COVNP  = Vars(iCOVNP,  k)
    COVPZ  = Vars(iCOVPZ,  k)
    COVNZ  = Vars(iCOVNZ,  k)
@@ -50,7 +50,7 @@ DO k = nlev, 1, -1
    Varout(oTheta,k) = theta! Chl:C ratio at <N>
    Varout(oQN,   k) = QN   ! N:C ratio at <N> 
    Varout(oSI,   k) = SI   ! Light limitation
-   Varout(oCHL,  k) = Chl  ! ensemble mean Chl
+   Varout(oCHLt, k) = Chl  ! ensemble mean Chl
 !=============================================================
 !! Solve ODE functions:
 !All rates have been multiplied by dtdays to get the real rate correponding to the actual time step
@@ -65,28 +65,32 @@ DO k = nlev, 1, -1
    PP_ZP = GGE*INGES
 
 !Update tracers:
-   Varout(oNO3, k) = NO3 + (PP_NZ - PP_PN)*dtdays
-   Varout(oPHY, k) = PHY + (PP_PN - INGES)*dtdays
-   Varout(oZOO, k) = ZOO + (PP_ZP - Zmort*ZOO)*dtdays
-   Varout(oVPHY,k) = VPHY  + (SVPHY - 2.*Dp*VPHY*tf_P - 2.*gmax*(ZOO*VPHY + PHY*COVPZ))*dtdays
-   Varout(oVNO3,k) = VNO3  + (SVNO3 + 2.*Dp*COVNP*tf_P        &
-        + 2.*(1.-GGE)*gmax*(ZOO*COVNP + PHY*COVNZ) &
+   Varout(iNO3, k) = max(NO3  + (PP_NZ - PP_PN)*dtdays, eps)
+   Varout(iPHY, k) = max(PHY  + (PP_PN - INGES)*dtdays, eps)
+   Varout(iZOO, k) = ZOO  + (PP_ZP - Zmort*ZOO)*dtdays
+   Varout(iZOO, k) = max(Varout(iZOO,k), eps)
+   Varout(iVPHY,k) = VPHY + (SVPHY - 2.*Dp*VPHY*tf_P - 2.*gmax*(ZOO*VPHY + PHY*COVPZ))*dtdays
+   Varout(iVPHY,k) = max(Varout(iVPHY,k), eps)
+   Varout(iVNO3,k) = VNO3 + (SVNO3 + 2.*Dp*COVNP*tf_P        &
+        + 2.*(1.-GGE)*gmax*(ZOO*COVNP + PHY*COVNZ)           &
         + 2.*Zmort*COVNZ)*dtdays
+   Varout(iVNO3,k) = max(Varout(iVNO3,k), eps)
 
-   Varout(oVZOO  ,k) = VZOO  + 2.*dtdays*(GGE*gmax*(ZOO*COVPZ+PHY*VZOO) - Zmort*VZOO)
+   Varout(iVZOO,k) = VZOO + 2.*dtdays*(GGE*gmax*(ZOO*COVPZ+PHY*VZOO) - Zmort*VZOO)
+   Varout(iVZOO,k) = max(Varout(iVZOO,k), eps)
 
-   Varout(oCOVNP ,k) = COVNP + (SCOVNP+ Dp*tf_P*(VPHY-COVNP) + Zmort*COVPZ + &
+   Varout(iCOVNP,k)= COVNP + (SCOVNP+ Dp*tf_P*(VPHY-COVNP) + Zmort*COVPZ + &
    gmax*ZOO*((1.-GGE)*VPHY - COVNP) +gmax*PHY*((1.-GGE)* COVPZ - COVNZ) )*dtdays
 
    KN   = exp(params(iKN))
    SI   = NO3/(NO3+KN)
    NPPt = muSI*(SI*COVPZ + PHY*COVNZ*KN/(KN+NO3)**2)
 
-   Varout(oCOVPZ,k) = COVPZ + ( NPPt &
+   Varout(iCOVPZ,k) = COVPZ + ( NPPt &
    - (Dp*tf_P+Zmort)*COVPZ + gmax*ZOO*(GGE*VPHY - COVPZ) +&
    gmax * PHY*(GGE*COVPZ - VZOO))*dtdays
 
-   Varout(oCOVNZ,k) = COVNZ + (-NPPt + Dp*tf_P*COVPZ + Zmort*(VZOO-COVNZ) &
+   Varout(iCOVNZ,k) = COVNZ + (-NPPt + Dp*tf_P*COVPZ + Zmort*(VZOO-COVNZ) &
    + gmax*ZOO*(GGE*COVNP + (1.-GGE)*COVPZ) &
    + gmax*PHY*(GGE*COVNZ + (1.-GGE)*VZOO))*dtdays
 

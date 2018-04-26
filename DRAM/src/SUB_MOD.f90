@@ -24,50 +24,50 @@ function CalSSQE(Npars) result(SS)
 implicit none
 ! Used to call the model but NOT write output (for most calls in the chain) 
 real, intent(IN)  :: Npars(NPar)   ! Normalized parameters
-real              :: Ymod(ANobs)
+real              :: Ymod(ANobs), OBS(ANobs)
 real              :: Apars(NPar)  !Absolute parameters
 real              :: SS(NDTYPE*Nstn)
   ! Convert normalized parameters to real parameters:
   Apars = Apv_(Npars)
 
   ! Calculate SSqE based on parameter input (a real model run):
-  call CalcYSSE(Apars,Ymod,SS)
-
+  call CALCYSSE(Apars,Ymod,OBS,SS)
 end function CalSSQE
 !-----------------------------------------------------------------------
 ! Used to call the model with best parameters AND write output to the "bestout" file
-subroutine model(fint, subp, SS)
+subroutine model(subp, SS)
 implicit none
 
-! Unit of Data file to be written
-integer, intent(IN)  :: fint
-
 ! Current parameters
-real,    intent(IN)  :: subp(Np2Vary)
+real,    intent(IN)  :: subp(NPar)
 
 ! Calculated SSQE
 real,    intent(OUT) :: SS(NDTYPE * Nstn)
 
-real    :: Ymod(ANobs) 
+real    :: Ymod(ANobs), OBS(ANobs) 
 integer :: don
 
 ! assign Apv at each step
 Apv = Apv_(subp)
-call CalcYSSE(Apv,Ymod,SS)
+call CalcYSSE(Apv,Ymod,OBS,SS)
 
 if (taskid .eq. 0) then
-  write(fint, 3000) '  DOY    ',                                        &
-                    'Depth    ',                                        &
-                    'Data_type',                                        &
-                    'Mod_Value'
+   ! Open bestout for writing
+  open(bofint, file=bofn,status='replace',action='write')
+  write(bofint, 3000) '  DOY    ',               &
+                      'Depth    ',               &
+                      'Data_type',               &
+                      'Mod_Value', 'OBS_Value'
    ! Write the best simulation results into the file 
   do don = 1, ANobs
-     write(fint, 3100) OBS_DOY(don),OBS_Depth(don),OBS_Label(don),Ymod(don)
+     write(bofint, 3100)  &
+     OBS_DOY(don),OBS_Depth(don),OBS_Label(don),Ymod(don),OBS(don)
   enddo
+  close(bofint)
 endif
       
-3000   format(1x,     3(A10), 3x, A10)
-3100   format(1x, 2(F6.1, 2x), 5x, A5, 1x, 1pe12.3)
+3000   format(1x,     3(A10),  3x, A10,3x, A10)
+3100   format(1x, 2(F6.1, 2x), 5x, A5, 2(1x, 1pe12.3))
 end subroutine model
 !-----------------------------------------------------------------------
 subroutine modelensout(efint, runnum, subp, SS)
@@ -77,7 +77,7 @@ subroutine modelensout(efint, runnum, subp, SS)
 integer, intent(IN)  :: efint, runnum
 real,    intent(IN)  :: subp(Np2Vary)
 real,    intent(OUT) :: SS(NDTYPE  * Nstn)
-real                 :: Ymod(ANobs)
+real                 :: Ymod(ANobs), OBS(ANobs)
 integer              :: don
 
 if (taskid .eq. 0) then 
@@ -85,7 +85,7 @@ if (taskid .eq. 0) then
 
   ! Save model outputs
   savefile = .TRUE.
-  call CalcYSSE(Apv,Ymod,SS)
+  call CalcYSSE(Apv,Ymod,OBS,SS)
   savefile = .FALSE.
   
    ! Open ensout for writing
@@ -93,13 +93,13 @@ if (taskid .eq. 0) then
        action='write',position='append')
 
   do don = 1, ANobs
-     write(efint, 3100) runnum, OBS_DOY(don),OBS_Depth(don),&
+     write(efint, 3200) runnum, OBS_DOY(don),OBS_Depth(don),&
                                 OBS_Label(don), Ymod(don)
   enddo
 
   close(efint)
 endif
-3100   format(I6,1x,  2(F6.1, 2x), A10, 1x, 1pe12.4)
+3200   format(I6,1x, 2(F6.1, 2x), A10, 1x, 1pe12.4)
 end subroutine modelensout
 !-----------------------------------------------------------------------
 subroutine modelnooutput(subp, SS)
@@ -107,12 +107,11 @@ implicit none
 ! Used to call the model but NOT write output (for most calls in the chain) 
 real, intent(IN)  :: subp(Np2Vary)
 real, intent(OUT) :: SS(NDTYPE * Nstn)
-real              :: Ymod(ANobs)
+real              :: Ymod(ANobs), OBS(ANobs)
   ! The subp is the normalized value! 
   Apv      = Apv_(subp)
   savefile = .FALSE.
-  call CalcYSSE(Apv,Ymod,SS)
-
+  call CalcYSSE(Apv,Ymod,OBS,SS)
 end subroutine modelnooutput
 !-----------------------------------------------------------------------
 subroutine write_bestsigma
@@ -154,6 +153,12 @@ end subroutine
 subroutine write_bestpar
 implicit none
 integer :: i
+
+Apvcurr = Apv_(subpcurr)
+Apvguess= Apv_(subpguess)
+Apvbest = Apv_(subpbest)
+Apvmean = Apv_(subpmean)
+
 if (taskid .eq. 0) then
    ! Write into best parameter file:
    open(bpfint, file=bpfn, action='write',status='replace'  )
@@ -163,12 +168,6 @@ if (taskid .eq. 0) then
    
    write(bpfint,1220) 'Best logL =    ', BestLogLike
    write(bpfint,1300)  NewLogLike, CurrLogLike, BestLogLike
-   
-   Apvcurr = Apv_(subpcurr)
-   Apvguess= Apv_(subpguess)
-   Apvbest = Apv_(subpbest)
-   Apvmean = Apv_(subpmean)
-   
    write(bpfint,1330) (ParamLabel(i),   &
      Apvcurr(i),                        &
      Apvguess(i),                       &
@@ -176,11 +175,9 @@ if (taskid .eq. 0) then
      Apvmean(i), i = 1, Np2Vary)
    close(bpfint)
 endif
-
 1200 format(a15,1x,i16)
 1210 format('** % 1st Accept. = ',1x,1f8.2,                         &
             '     ** % 2nd Accept. = ',1f8.2)
-
 1220 format(a25,1x,1pe11.3)
 1300 format('*** LogL:    New ',1pe11.3,'     Curr ',1pe11.3,  &
            '     Best ',1pe11.3)
@@ -229,7 +226,6 @@ NOTOK = .FALSE.
 do k = 1, NPar  ! Loop over the Parameters to be varied
 
    if ((pars(k) .lt. MinValue(k)) .or. (pars(k).gt.MaxValue(k))) then
-      
       NOTOK = .true.
       exit
    endif
@@ -449,17 +445,13 @@ DO i = 1, EnsLen
        call modelensout(eofint,jrun,subpcurr, dumE)
    endif
 !   %%%%%%%end of block of outputting code
-   if (MPIRUN == 1) then
-      do j = 1, numtasks-1
-        ! Send the Pcvm (only) to child processes:
-        call MPI_SEND(Pcvm, NPar*(NPar+1)/2, MPI_REAL8, j, tag2, MPI_COMM_WORLD, ierr)
-      enddo
-   endif
+   do j = 1, numtasks-1
+     ! Send the Pcvm (only) to child processes:
+     call MPI_SEND(Pcvm, NPar*(NPar+1)/2, MPI_REAL8, j, tag2, MPI_COMM_WORLD, ierr)
+   enddo
  else
-   if (MPIRUN == 1) then
-    ! Receive Pcvm from root (child processes):
-    call MPI_RECV(Pcvm, NPar*(NPar+1)/2, MPI_REAL8, 0, tag2, MPI_COMM_WORLD, stat, ierr)
-   endif
+   ! Receive Pcvm from root (child processes):
+   call MPI_RECV(Pcvm, NPar*(NPar+1)/2, MPI_REAL8, 0, tag2, MPI_COMM_WORLD, stat, ierr)
  endif
  ! Start subcycle:
  subcycle: DO j = 1, intv
@@ -474,7 +466,6 @@ DO i = 1, EnsLen
 
     call random_number(DR_p)
     IF (log(DR_p) < (NewLogLike - CurrLogLike)) THEN
-
          CurrLogLike = NewLogLike
          CurrSSqE    = SSqE
          subpcurr    = subppro
@@ -503,7 +494,7 @@ DO i = 1, EnsLen
          endif
     ENDIF
 
-    ! save to the par_
+    ! save to the par_ (relative params!!)
      do col = 1, NPar
         par_((j-1)*NPar + col) = subpcurr(col)
      enddo
@@ -525,41 +516,37 @@ DO i = 1, EnsLen
 
    ENDDO subcycle ! END of loop of each cycle 
    
-   if (MPIRUN == 1) &
    ! Synchronize all processes:
    call MPI_BARRIER (MPI_COMM_WORLD,ierr)
 
    ! MPI root: receive matrix of accepted params from child processes:
    ! Collect the data (par_, LogLike_, sigma, SSqE_, acceptance ratios) from all tasks to the root:
    ! The dimension of output data cannot exceed 30*50:
-   if (.not. allocated(par0))   allocate(par0(intv*NPar*numtasks))
+   if (.not. ALLOCATED(par0))   allocate(par0(intv*NPar*numtasks))
    par0(:)   = 0d0
-   if (.not. allocated(sigma0)) allocate(sigma0(intv*NDTYPE*Nstn*numtasks))
+   if (.not. ALLOCATED(sigma0)) allocate(sigma0(intv*NDTYPE*Nstn*numtasks))
    sigma0(:) = 0d0
-   if (.not. allocated(SSqE0))  allocate(SSqE0(intv*NDTYPE*Nstn*numtasks))
+   if (.not. ALLOCATED(SSqE0))  allocate(SSqE0(intv*NDTYPE*Nstn*numtasks))
    SSqE0(:)  = 0d0
 
-   if (MPIRUN == 1) then
-      call MPI_Gather(par_, NPar*intv,         MPI_REAL8,     &
-                      par0, NPar*intv,         MPI_REAL8,     &
-                       0,  MPI_COMM_WORLD, ierr)
+   call MPI_Gather(par_, NPar*intv,         MPI_REAL8,     &
+                   par0, NPar*intv,         MPI_REAL8,     &
+                    0,  MPI_COMM_WORLD, ierr)
 
-      call MPI_Gather(LogLike_, intv,          MPI_REAL8,     &
-                      LogLike0, intv,          MPI_REAL8,     &
-                       0,  MPI_COMM_WORLD, ierr)
+   call MPI_Gather(LogLike_, intv,          MPI_REAL8,     &
+                   LogLike0, intv,          MPI_REAL8,     &
+                    0,  MPI_COMM_WORLD, ierr)
 
-      call MPI_Gather(sigma_, NDTYPE*intv*Nstn, MPI_REAL8,     &
-                      sigma0, NDTYPE*intv*NStn, MPI_REAL8,     &
-                       0,  MPI_COMM_WORLD, ierr)
+   call MPI_Gather(sigma_, NDTYPE*intv*Nstn, MPI_REAL8,     &
+                   sigma0, NDTYPE*intv*NStn, MPI_REAL8,     &
+                    0,  MPI_COMM_WORLD, ierr)
 
-      call MPI_Gather(SSqE_,  NDTYPE*intv*Nstn, MPI_REAL8,     &
-                      SSqE0,  NDTYPE*intv*NStn, MPI_REAL8,     &
-                       0,  MPI_COMM_WORLD, ierr)
-   endif
+   call MPI_Gather(SSqE_,  NDTYPE*intv*Nstn, MPI_REAL8,     &
+                   SSqE0,  NDTYPE*intv*NStn, MPI_REAL8,     &
+                    0,  MPI_COMM_WORLD, ierr)
 
-   if (taskid == 0) then
-
-      do k = 1, intv*numtasks
+   IF (taskid == 0) THEN
+      DO k = 1, intv*numtasks
          ! Convert par0 into a matrix (par1):
          do col = 1, NPar
             par1(k, col) = par0((k-1)*NPar + col) 
@@ -570,8 +557,7 @@ DO i = 1, EnsLen
             sigma1(k, col) = sigma0((k-1)*Nstn*NDTYPE + col) 
              SSqE1(k, col) =  SSqE0((k-1)*Nstn*NDTYPE + col) 
          enddo
-
-      enddo
+      ENDDO
 
       ! Open enspar for writing
       open(epfint,file=epfn,status='old',&
@@ -582,13 +568,9 @@ DO i = 1, EnsLen
            action='write',position='append')
 
       do k = 1, intv*numtasks
-
          cffpar = Apv_(par1(k,:))
-         
          ! Write Ensemble file(s) (Run #, LogLike and Parameters)
-         
          write(epfint,1850) LogLike0(k), (cffpar(col), col = 1,NPar)
-
          write(esfint,1850) LogLike0(k),                   &
               (sigma1(k,col),  col = 1, NDTYPE*Nstn),      &
               ( SSqE1(k,col),  col = 1, NDTYPE*Nstn)
@@ -604,12 +586,11 @@ DO i = 1, EnsLen
       !	this is to keep track of the 'best' run which 
       !	is not strictly speaking the purpose of the
       !	assimilation but an interesting output
-      !
-      if( DR_p > BestLogLike ) then
+      if(DR_p > BestLogLike ) then
          BestLogLike = DR_p     
          BestSSqE    =  SSqE1(col,:)
          sigmabest   = sigma1(col,:)
-         subpbest    =   par1(col,:)
+         subpbest    =   par1(col,:)  
       endif
 
 ! MPI root: Calculate new CVM based on collected accepted params:
@@ -625,7 +606,6 @@ DO i = 1, EnsLen
       enddo
 
       write(6, *) 'Proposal Covariance matrix for ',i+1,' ensemble run ='
-      
       DO row = 1, NPar
          write(6,3000) (Pcvm(row*(row-1)/2+col), col = 1, row )
       End do

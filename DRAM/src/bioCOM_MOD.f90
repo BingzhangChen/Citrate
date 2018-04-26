@@ -1,10 +1,53 @@
-Module BIO_MOD
+Module BIOCOM_MOD
 ! This module contains some common functions and variables for all biological models
-USE    param_MOD
 implicit none
 
 ! MPI variables:
-integer            :: numtasks, ierr, MPIRUN
+integer            :: numtasks, ierr, MPIRUN, taskid
+
+! Options of biological models
+integer, parameter :: EFTdisc     = 1
+integer, parameter :: EFTcont     = 2
+integer, parameter :: Geiderdisc  = 3
+integer, parameter :: NPZDcont    = 4
+integer, parameter :: EFTsimple   = 5
+integer, parameter :: Geidersimple= 6
+integer, parameter :: NPZDFix     = 7
+integer, parameter :: NPZDdisc    = 8
+integer, parameter :: EFTsimIRON  = 9
+integer, parameter :: NPZDFixIRON = 10
+integer, parameter :: GeidsimIRON = 11
+integer, parameter :: NPZDdiscFe  = 12
+integer, parameter :: EFTdiscFe   = 13
+integer, parameter :: EFTDarwin   = 14
+integer, parameter :: EFT2sp      = 15
+integer, parameter :: NPZD2sp     = 16
+integer, parameter :: NPPZDD      = 17
+integer, parameter :: EFTPPDD     = 18
+integer, parameter :: NPZDN2      = 19
+integer, parameter :: CITRATE3    = 20
+integer, parameter :: GeiderDroop = 21
+integer, parameter :: NPclosure   = 22
+integer, parameter :: NPZclosure  = 23
+
+! Bottom boundary condition:
+integer, parameter :: Dirichlet   = 0
+integer, parameter :: Neumann     = 1
+
+!  Indices for external forcing variables
+integer, parameter :: etemp      = 1
+integer, parameter :: eNO3       = 2
+integer, parameter :: eAks       = 3
+integer, parameter :: ew         = 4
+integer, parameter :: ePAR       = 5
+integer, parameter :: eDust      = 6
+integer, parameter :: eFer       = 7
+integer, parameter :: ePO4       = 8
+integer, parameter :: ewstr      = 9
+integer, parameter :: TNFo       = ewstr ! Total number of forcings
+
+! Indices for output variables
+integer, parameter :: oTemp  = 1,oPAR=2,oAks=3,oDust=4,ow=5
 
 ! Parameters for phytoplankton size fractional Chl
 real, parameter :: pi      = 3.1415926535897932384633D0
@@ -15,23 +58,24 @@ real, parameter :: PMU_1   = log(1d1*pi/6d0)
 real, parameter :: PMU_3   = log(1d1*pi/6d0*3d0**3)
 real, parameter :: PMU_10  = log(1d1*pi/6d0*1d1**3)
 integer  :: AllocateStatus
+
+! Number of vertical layers
+integer, parameter :: nlev = 40  
+
 integer  :: N_MLD     ! vertical grid index at the bottom of MLD
 real     :: Temp(nlev), PAR(nlev), dtdays, Ntot, PARavg, wstr0(1) 
 real     :: DFe(nlev)                           ! Dissolved iron concentration
 real     :: Z_r(1:nlev), Z_w(0:nlev), Hz(nlev)  ! Grid variables
 real     :: I_zero
-!integer  :: iZOO, iZOO2, iDET,iDET2,iDETp,iDETFe, iPMU, iVAR, iPO4,iDIA
-!integer  :: iMTo, iVTo, iMIo, iVIo, iVPHY,iVNO3,iCOVNP
-!integer  :: oVNO3,oVPHY,oCOVNP
-!integer  :: oZOO, oZOO2,oDET, oPON, oFER, oZ2N, oD2N, oPHYt,oCHLt,oPPt,omuAvg
-!integer  :: oPO4, oPOP, oDIA, oDIAu,oDETp, oDET2, oDETFe
+integer  :: iZOO2, iDET,iDET2,iDETp,iDETFe, iPMU, iVAR, iPO4,iDIA
+integer  :: oZOO, oZOO2,oDET, oPON, oFER, oZ2N, oD2N, oPHYt
+integer  :: oPO4, oPOP, oDIA, oDIAu,oDETp, oDET2, oDETFe, iwDET2
+integer  :: itau,igb,oFescav,odstdep
 !integer  :: oPMU, oVAR, oMTo, oVTo, oMIo, oVIo
 !integer  :: odmudl,odgdl,od2mu,od2gdl,odmudT,od2mudT2,odmudI,od2mudI2  
-!integer  :: oD_NO3,oD_ZOO,oD_ZOO2,oD_DET,oD_DET2,oD_fer
-!integer  :: oD_PMU,oD_VAR,oD_MTo,oD_MIo,oD_VTo,oD_VIo
-!integer  :: oPAR_,oD_DETp,oD_DETFe,oD_PO4,oD_DIA,oD_VPHY,oD_VNO3,oD_COVNP
 !integer  :: oMESg,oMESgMIC,odgdl1,odgdl2,od2gdl1,od2gdl2,odVAR
-!integer  :: oCHLs(4)   ! Four size fractions of CHL
+integer  :: oCHLs(4)   ! Four size fractions of CHL
+integer, allocatable :: iCHL(:), oCHL(:)
 !
 !! Indices for parameters used in DRAM
 !integer  :: imu0,iaI0,igmax,iKN,iKP,iKPHY,iKPnif,iLnifp,iKFe,iRDN_N,iRDN_P
@@ -41,12 +85,9 @@ real     :: I_zero
 !integer  :: izetaN,izetaChl, iaI0_C 
 !integer  :: ialphaI,iA0N,ialphaA,ialphaG,ialphaK, ialphaFe
 !integer  :: iQ0N,ialphaQ,iPenfac,iLref,iwDET,irdN,imz
-!integer  :: ithetamin,iQNmin,itau,iwDET2,igb,oFescav,odstdep
 !integer, allocatable :: iPHY(:), oPHY(:),oTheta(:),oQN(:),oQp(:)
-!integer, allocatable :: iCHL(:), oCHL(:),omuNet(:),oD_PHY(:),oD_CHL(:)
 !integer, allocatable :: iPHYC(:), oPHYC(:),oD_PHYC(:)
 !integer, allocatable :: oGraz(:),oSI(:), oLno3(:)
-!integer, allocatable :: Windex(:)
 
 ! Some common Model parameters:
 real, parameter :: PMUmax =1.5D1, VARmax=50D0
@@ -73,46 +114,13 @@ integer,   parameter :: namlst=8
 real :: INGES,gbar,EGES,Zmort,RES
 real :: pp_ZP, pp_NZ, pp_ND, pp_DZ, tf_p, tf_z
 
+! Common Indices (may not be used, but needed when compiling)
+integer            :: iMTo, iVTo, iMIo
+integer            :: iVIo, ifer 
+
 integer, parameter :: Yes = 1, No = 0
 
 CONTAINS
-!========================================================
-subroutine assign_PMU
-implicit none
-integer :: i
-real    :: dx
-integer :: AllocateStatus
-! Calculate the average size 
-allocate(PMU_(NPHY), STAT = AllocateStatus)
-IF (AllocateStatus /= 0) STOP "*** Not enough memory ***"
-PMU_(:)    = 0d0
-
-allocate(wtCHL(4,NPHY), STAT = AllocateStatus)
-IF (AllocateStatus /= 0) STOP "*** Not enough memory ***"
-
-wtCHL(:,:) = 0d0
-
-PMU_(1)= PMU_min
-dx     = (PMU_max-PMU_min)/dble(NPHY-1)
-
-do i=2,NPHY
-   PMU_(i) = PMU_(i-1)+dx
-enddo
-
-! Calculate the weight for each size class 
-! (largest size class being the first to be consistent with observational data)
-do i=1,NPHY
-   if (PMU_(i) .le. PMU_1) then
-      wtCHL(4,i) = 1d0  ! < 1 um
-   elseif (PMU_(i) .le. PMU_3) then
-      wtCHL(3,i) = 1d0  ! 1-3 um
-   elseif (PMU_(i) .le. PMU_10) then
-      wtCHL(2,i) = 1d0  ! 3-10 um
-   else
-      wtCHL(1,i) = 1d0  ! >10 um
-   endif
-enddo
-end subroutine assign_PMU
 !========================================================
 real function TEMPBOL(Ea,tC)
 implicit none
@@ -202,68 +210,4 @@ mu_Edwards2015 =  1./( I_/(alpha*exp(2.*lnIopt)) + 1./mumax -2./(alpha*exp(lnIop
             + 1./(I_*alpha)  ) 
 end function mu_Edwards2015
 
-! The subroutine for phytoplankton closure model
-SUBROUTINE PHY_NPCLOSURE(NO3,PAR_,Temp_,PHY,VPHY,VNO3, COVNP,mu0hatSI, muNet,SI,theta,QN, Snp, Chl, NPP, SVPHY, SVNO3, SCOVNP)
-implicit none
-real, intent(in)  :: NO3, PAR_,Temp_,PHY, VPHY, VNO3, COVNP 
-real, intent(out) :: muNet, theta, QN, SI, Snp, Chl, NPP, SVPHY, SVNO3, &
-SCOVNP,mu0hatSI
-
-! muNet: mean growth rate at <N>
-real :: mu0hat
-real :: alphaI, cff,cff1, eta, dYdN,d2YdN2, dEta_dN, d2ChldN2, Q
-real :: KN, tf, fN, dmuQ_dN, d2NPPdN2
-real, parameter :: Qmin = 0.06, Qmax=0.18
-
-alphaI   = exp(params(iaI0_C))
-tf       = TEMPBOL(Ep,Temp_)   !Temperature effect
-
-!The temperature and light dependent component
-mu0hat   = tf*exp(params(imu0))
-mu0hatSI = mu_Edwards2015(PAR_, params(iIopt),mu0hat, alphaI) 
-SI       = mu0hatSI/mu0hat
-KN       = exp(params(iKN))
-fN       = NO3/(NO3 + Kn)  !Nitrogen limitation index
-
-! Phytoplankton growth rate at the mean nitrogen:
-muNet = mu0hatSI*fN
-
-! Snp: ensemble mean production (nitrogen based)
-Snp   = PHY*muNet + mu0hatSI*(Kn*COVNP/(Kn+NO3)**2 - Kn*PHY*VNO3/(Kn+NO3)**3)
-
-!N:C ratio at <N>
-cff1  = 1.-Qmin/Qmax
-cff   = 1.-cff1*fN
-QN    = Qmin/cff
-Q     = 1./QN
-
-!Chl:C ratio at <N>
-cff   = (thetamax - thetamin)/PAR_
-theta = thetamin+muNet/alphaI*cff   !Unit: gChl/molC
-
-!Chl:N ratio at <N>
-eta      = theta*Q
-dYdN     = Kn/(NO3 + Kn)**2
-d2YdN2   = -dYdN*2./(NO3 + Kn) 
-cff1     = 1./Qmax - 1./Qmin
-dEta_dN  = dYdN*(theta*cff1 + Q*mu0hatSI/alphaI*cff)
-d2ChldN2 = 2.*PHY*(dYdN**2*(cff1*cff*mu0hatSI/alphaI)-dEta_dN/(NO3+Kn))
-
-!Ensemble mean Chl
-Chl      = PHY*eta + .5*(2.*COVNP*dEta_dN + VNO3*d2ChldN2)
-Chl      = max(Chl, eps)
-
-dmuQ_dN  = dYdN*(muNet*cff1 + Q*mu0hatSI)
-d2NPPdN2 = PHY*(d2YdN2*dmuQ_dN/dYdN + 2.*dYdN**2*mu0hatSI*cff1)
-
-! NPP: ensemble mean carbon based primary production
-NPP      = PHY*muNet*Q + .5*(2.*COVNP*dmuQ_dN + VNO3*d2NPPdN2)
-NPP      = max(NPP, 0.)
-
-! Calculate sources and sinks of variances of N, P, and covariance of NP
-SVPHY    = 2.*mu0hatSI*(fN*VPHY         + Kn*PHY*       COVNP/(Kn+NO3)**2)
-SVNO3    =-2.*mu0hatSI*(fN*COVNP        + Kn*PHY*        VNO3/(Kn+NO3)**2) 
-SCOVNP   =    mu0hatSI*(fN*(COVNP-VPHY) + Kn*PHY*(VNO3-COVNP)/(Kn+NO3)**2) 
-return
-END SUBROUTINE PHY_NPCLOSURE
-END Module BIO_MOD
+END Module BIOCOM_MOD

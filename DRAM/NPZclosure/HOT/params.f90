@@ -1,65 +1,22 @@
-MODULE param_MOD
+MODULE PARAM_MOD
 USE MPI
+USE BIOCOM_MOD
 implicit none
 
 ! Number of stations to run
-integer, parameter :: Nstn       = 1
+integer, parameter      :: Nstn      = 1
 
 ! Station name:
-character(len=3), parameter :: Stn(Nstn) = 'HOT'
+character(3), parameter :: Stn(Nstn) = 'HOT'
 
-! Number of vertical layers
-integer, parameter :: nlev        = 40  
-
-! Bottom boundary condition:
-integer, parameter :: Dirichlet   = 0
-integer, parameter :: Neumann     = 1
-integer, parameter :: bot_bound   = 1 ! Option of bottom boundary condition
-
-! Options of biological models
-integer, parameter :: EFTdisc     = 1
-integer, parameter :: EFTcont     = 2
-integer, parameter :: Geiderdisc  = 3
-integer, parameter :: NPZDcont    = 4
-integer, parameter :: EFTsimple   = 5
-integer, parameter :: Geidersimple= 6
-integer, parameter :: NPZDFix     = 7
-integer, parameter :: NPZDdisc    = 8
-integer, parameter :: EFTsimIRON  = 9
-integer, parameter :: NPZDFixIRON = 10
-integer, parameter :: GeidsimIRON = 11
-integer, parameter :: NPZDdiscFe  = 12
-integer, parameter :: EFTdiscFe   = 13
-integer, parameter :: EFTDarwin   = 14
-integer, parameter :: EFT2sp      = 15
-integer, parameter :: NPZD2sp     = 16
-integer, parameter :: NPPZDD      = 17
-integer, parameter :: EFTPPDD     = 18
-integer, parameter :: NPZDN2      = 19
-integer, parameter :: CITRATE3    = 20
-integer, parameter :: GeiderDroop = 21
-integer, parameter :: NPclosure   = 22
-integer, parameter :: NPZclosure  = 23
+integer, parameter :: bot_bound   = Neumann ! Option of bottom boundary condition
 
 ! Current biological MODEL!
 integer, parameter :: Model_ID    = NPZclosure
 
 ! Number of phytoplankton groups
 integer, parameter :: NPHY       = 1
-
 logical, parameter :: DO_IRON = .FALSE.  ! Whether involve iron or not
-
-!  Indices for external forcing variables
-integer, parameter :: etemp      = 1
-integer, parameter :: eNO3       = 2
-integer, parameter :: eAks       = 3
-integer, parameter :: ew         = 4
-integer, parameter :: ePAR       = 5
-integer, parameter :: eDust      = 6
-integer, parameter :: eFer       = 7
-integer, parameter :: ePO4       = 8
-integer, parameter :: ewstr      = 9
-integer, parameter :: TNFo       = ewstr ! Total number of forcings
 integer, parameter :: N_fer      = 33    ! Number of vertical layers for Iron
 ! Total of observation times in forcing data
 character(LEN=5), parameter :: LabelForc(TNFo) &
@@ -77,7 +34,7 @@ integer, parameter :: iCOVNP = 7
 integer, parameter :: iCOVPZ = 8
 integer, parameter :: iCOVNZ = 9
 integer, parameter :: NVAR   = iCOVNZ   ! Total number of biological tracers
-
+integer            :: iPHYC(NPHY)=0     ! Needed for compilation
 ! Define tracer matrix:
 real               :: Vars(NVAR,nlev) = 0d0
 
@@ -88,9 +45,8 @@ integer, parameter :: NVsinkterms =  2  ! Include PHY and VPHY
 integer, parameter :: Windex(NVsinkterms) = [iPHY(1), iVPHY]
 
 ! Indices for output variables
-integer, parameter :: oTemp  = 1,oPAR=2,oAks=3,oDust=4,ow=5
-integer, parameter :: oCHL   = iCOVNZ + 1
-integer, parameter :: oNPP   = oCHL    + 1
+integer, parameter :: oCHLt  = iCOVNZ  + 1
+integer, parameter :: oNPP   = oCHLt   + 1
 integer, parameter :: oPAR_  = oNPP    + 1
 integer, parameter :: omuNet = oPAR_   + 1
 integer, parameter :: oSI    = omuNet  + 1
@@ -118,18 +74,12 @@ integer, parameter :: ibeta   = iwDET +1  ! Beta: ratio of total variance to squ
 integer, parameter :: igmax   = ibeta +1  ! Maximal grazing rate
 integer, parameter :: imz     = igmax +1  ! Zooplankton mortality rate
 integer, parameter :: NPar    = imz       ! Total number of parameters
-real               :: params(NPar) = 0d0  ! Define parameters
+real               :: params(NPar)     = 0d0  ! Define parameters
 character(LEN=8)   :: ParamLabel(NPar) = 'Unknown' !Define parameter labels
 
 !  Maxima and minima  of parameter values 
 real               :: MaxValue(NPar)   = 0d0, MinValue(NPar) = 0d0
-integer            :: taskid
-
-! Indices in other models (not used, but needed when compiling)
-integer            :: iPHYC(NPHY), iDET, iZOO2, iPMU, iVAR, iMTo, iVTo, iMIo
-integer            :: iVIo, ifer, iDETFe,iPO4,  iDIA, iDETp 
-
-contains
+CONTAINS
 
 SUBROUTINE choose_model
 implicit none
@@ -157,7 +107,7 @@ Labelout(oQN     + ow) = 'QN'
 Labelout(otheta  + ow) = 'Theta'
 Labelout(oPAR_   + ow) = 'PAR'
 Labelout(omuNet  + ow) = 'mu'
-Labelout(oCHL    + ow) = 'CHL'
+Labelout(oCHLt   + ow) = 'CHL'
 Labelout(oNPP    + ow) = 'NPP'
 
 DO i = 1, NVAR
@@ -172,7 +122,7 @@ if (taskid == 0) then
 endif
 
 ! Initialize parameters
-if (taskid==0) write(6,'(I2,1x,A20)') NPar,'parameters to be estimated.'
+if (taskid==0) write(6,'(I2,1x,A30)') NPar,'parameters to be estimated.'
 
 ParamLabel(imu0)   = 'mu0hat'
 ParamLabel(imz)    = 'mz'
@@ -184,41 +134,51 @@ ParamLabel(ibeta)  = 'beta'
 ParamLabel(iIopt)  = 'Iopt'
 ParamLabel(iDp)    = 'DPHY'
 
-MaxValue(imz)   =  0.2
-MinValue(imz)   =  0.05
-MaxValue(igmax) =  2d0
-MinValue(igmax) =  0.5
+MaxValue(imz)      =  0.2
+MinValue(imz)      =  0.05
+  params(imz)      =  0.1
+
+MaxValue(igmax)    =  2d0
+MinValue(igmax)    =  0.02
+  params(igmax)    =  0.8
 
 ! KN:
 ! Fennel et al. (2006): 0.007~1.5
 ! Chai et al. (2002): 0.05~1
 ! Franks (2009): 0.005~3
-MaxValue(iKN) =  3.0
-MinValue(iKN) =  0.05
+MaxValue(iKN)    =  3.0
+MinValue(iKN)    =  0.05
+  params(iKN)    =  0.2
 
 ! The ranges of Iopt and aI follow Edwards et al. L&O (2015)
 MaxValue(iIopt)  = 2500.
 MinValue(iIopt)  = 50.
+  params(iIopt)  = 1d3
 
 MaxValue(ibeta)  = 7.0
 MinValue(ibeta)  = 0.001
+  params(ibeta)  = 0.01
 
 MaxValue(iDp)    = 0.5
 MinValue(iDp)    = 0.01
+  params(iDp)    = 0.1
 
 MaxValue(iaI0_C) = 0.1
 MinValue(iaI0_C) = 0.01
+  params(iaI0_C) = 0.05
 
 ! Ranges of mu0 follow Chen & Laws L&O (2017)
 MaxValue(imu0)   = 2.5
 MinValue(imu0)   = 0.1
+  params(imu0)   = 0.8
 
 ! Detritus sinking rate
 ! Fennel et al. (2006) gave range of 0.009-25 m/d
 ! Kishi et al. (2007) gave sinking rate of POC of 40 m/d
 ! But this is phytoplankton sinking rate, so based on Smayda (1970)
-MaxValue(iwDET)  =  50.
+MaxValue(iwDET)  =  40.
 MinValue(iwDET)  =  0.01
+  params(iwDET)  =  0.1
 
 !Log transform:
 do i = 1, NPar
@@ -226,14 +186,7 @@ do i = 1, NPar
    stop "Parameter MaxValues uninitialized!"
    MaxValue(i) = log(MaxValue(i))
    MinValue(i) = log(MinValue(i))
-
-   !Initial values of params randomly selected from the range between min and max
-10 call random_number(cff)
-   params(i)   = MinValue(i) + cff*(MaxValue(i) - MinValue(i))
-
-   !To avoid zero in initial params
-   if (params(i) == 0d0) goto 10
-
+   params(i)   = log(params(i))
 enddo
 end subroutine choose_model
 END MODULE

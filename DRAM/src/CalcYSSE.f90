@@ -1,14 +1,14 @@
 !-----------------------------------------------------------------------
 !Major computation is called here. 
 ! Calculates model output and Sum of Squares
-subroutine CalcYSSE(pars,modval,ssqe)
+subroutine CalcYSSE(pars,MODVAL,OBSVAL,ssqe)
 use MOD_1D
 implicit none
 ! parameter sets for calculating sum of squares
 real, intent(in)  :: pars(NPar)    
 real, intent(OUT) :: modval(ANobs)
-! Log transformed observational values
-real              :: obsval(ANobs)
+! observational values
+real, intent(out) :: obsval(ANobs)
 
 ! Minimal and maximal values for transformation
 real              :: max_y,min_y
@@ -96,7 +96,10 @@ DO j = 1, Nstn
      ! Convert back to absolute values
      call transform( NDPTS(i,j),   modval((k+1):(k+NDPTS(i,j))),      &
           min_y,max_y,backlog,     modval((k+1):(k+NDPTS(i,j)))  )
-     
+
+     call transform( NDPTS(i,j),   obsval((k+1):(k+NDPTS(i,j))),      &
+          min_y,max_y,backlog,     obsval((k+1):(k+NDPTS(i,j)))  )
+  
      k = k + NDPTS(i,j)
      deallocate(OBS_data)
      deallocate(MOD_data)

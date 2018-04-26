@@ -1,7 +1,7 @@
 SUBROUTINE NP_CLOSURE
     ! This NP_closure model has 5 tracers: <N>, <P>, <N'>^2, <P'>^2, <N'P'>
     ! Governing functions follow Mandal et al. JPR (2016)
-USE bio_MOD
+USE PARAM_MOD
 USE MOD_1D, only: it, nsave
 IMPLICIT NONE
 integer :: k

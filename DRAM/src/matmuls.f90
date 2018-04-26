@@ -1,5 +1,5 @@
 subroutine matmuls(x,v,p)
-use BIO_MOD, only: NPar
+USE PARAM_MOD, only: NPar
 implicit none
 real, intent(in) :: v(NPar)
 real, intent(in) :: x(NPar,NPar)

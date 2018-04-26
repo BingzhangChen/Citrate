@@ -185,7 +185,7 @@ integer, parameter :: epfint = 30
 integer, parameter :: esfint = 31
 
 !!$ Output filenames
-character(7), parameter :: bofn = 'bestout'
+character(7), parameter :: bofn  = 'bestout'
 
 ! Output files for best parameters
 character(8),  parameter :: bpfn = 'bestpar'
@@ -206,7 +206,6 @@ character(len=20) function str(k)
     write (str, *) k
     str = adjustl(str)
 end function str
-!-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 subroutine SetUpArrays  ! sets up the arrays of models and parameters 
 implicit none
@@ -531,7 +530,7 @@ dumE=SSqE
 ! Set the prior parameters
 do k = 1, NPar
    Apv(k)   = Params(k) 
-   Ipv(k)   = Apv(k)
+   Ipv(k)   = Apv(k)  !Ipv should be the same for all MPI processes
    if (taskid .eq. 0) then
       write(6,101) 'ParamLabel(',k,') =',trim(ParamLabel(k))
       write(6,102) 'Params(',k,') =',Params(k)
@@ -595,9 +594,8 @@ integer              :: m, q, nullty
      nuPar(m)     = Npv(m)
 
 !   Assume a coefficient of variation
-!     etaPar(m)    = CVprior * abs(nuPar(m))
      etaPar(m)    = (MaxValue(m)-MinValue(m))/6d0
-     etaPar(m)    = etaPar(m)/Ipv(m)
+     etaPar(m)    = abs(etaPar(m)/Ipv(m))
 
 !   Set the variances on the diagonal of the Prior Covariance matrix
 !   Here, assuming no cross-correlations
