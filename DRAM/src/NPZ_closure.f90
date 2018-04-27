@@ -54,7 +54,7 @@ DO k = nlev, 1, -1
 !=============================================================
 !! Solve ODE functions:
 !All rates have been multiplied by dtdays to get the real rate correponding to the actual time step
-   Dp    = exp(params(iDp))  ! Mortality rate of phytoplankton
+   Dp    = exp(params(iDp))*exp(params(imu0))  ! Mortality rate of phytoplankton
    tf_P  = TEMPBOL(Ep, Temp(k))
    PP_PN = Snp - PHY*Dp*tf_P
    tf_Z  = TEMPBOL(Ez, Temp(k))

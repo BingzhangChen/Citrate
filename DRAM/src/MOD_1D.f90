@@ -1075,15 +1075,14 @@ DO jj = 1, Nstn
       do j = 1,NVAR
          do k=1,nlev
             if( (Vars(j,k) .ne. Vars(j,k))) then
-                write(6,*) 'At day ',current_day
-                write(6,*) 'WARNING! The variable ',trim(Labelout(j+ow)), &
-                          ' is ', Vars(j,k), ' at depth ',Z_r(k)
-                write(6,*) 'It will be forced to zero!'
+                !write(6,*) 'At day ',current_day
+                !write(6,*) 'WARNING! The variable ',trim(Labelout(j+ow)), &
+                !          ' is ', Vars(j,k), ' at depth ',Z_r(k)
+                !write(6,*) 'It will be forced to zero!'
                 Vars(j,k) = eps
             endif
          enddo 
       enddo
-  
   
       ! Save data to output files:
       if (savefile .and. taskid == 0) then

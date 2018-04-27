@@ -157,9 +157,10 @@ MinValue(iIopt)  = 50.
 
 MaxValue(ibeta)  = 7.0
 MinValue(ibeta)  = 0.001
-  params(ibeta)  = 0.01
+  params(ibeta)  = 2.0
 
-MaxValue(iDp)    = 0.5
+! The ratio of phytoplankton death rate to mumax
+MaxValue(iDp)    = 0.9
 MinValue(iDp)    = 0.01
   params(iDp)    = 0.1
 
