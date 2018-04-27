@@ -1,22 +1,18 @@
 #Plot LogLikehood of two models at two stations in one plot:
-pwd1 <- getwd()
-setwd('~/Working/FlexEFT1D/DRAM/NPclosure/S1/')  
-stns    = c('S1')
-Nstn    = 1
-burnin  = 100
-NDTYPE  = 3  #The number of obs. types
-np      = 2  #The number of CPUs for paralell computing
-EnsLen  = 500  #The number of ensembles
-enssig  = read.table('enssig',header=T)
-enspar  = read.table('enspar',header=T)
+pwd1  <- getwd()
+model <- 'NPZclosure'
+stn   <- 'HOT'
+setwd(paste0('~/Working/FlexEFT1D/DRAM/',model, '/',stn, '/'))
+Nstn       <- 1
+burnin     <- 100
+NDTYPE     <- 3  #The number of obs. types
+np         <- 5  #The number of CPUs for paralell computing
+EnsLen     <- 20  #The number of ensembles
+enssig     <- read.table('enssig',header=T)
+enspar     <- read.table('enspar',header=T)
+
 #Convert params to original unit:
-for (i in 2:ncol(enspar)){
-  if (i == (ncol(enspar)-1)){
-    enspar[,i] <- 10**(enspar[,i])
-  }else{
-    enspar[,i] <- exp(enspar[,i])
-  }
-}
+enspar[,2:ncol(enspar)] <- exp(enspar[,2:ncol(enspar)])
 
 
 #Get bestpar:
@@ -90,6 +86,11 @@ paramlab[5]  <- expression(paste(italic(D)['P']))
 paramlab[6]  <- expression(paste(italic(W)))
 paramlab[7]  <- expression(paste(italic(beta)))
 
+if (model == 'NPZclosure'){
+   paramlab[8]  <- expression(paste(italic(g)['max']))
+   paramlab[9]  <- expression(paste(italic(m)['z']))
+}
+
 #Plot time evolution of different parameters:
 pdf('Params.pdf',
       width=4*2,height=3*2,paper='a4')
@@ -98,7 +99,7 @@ op <- par(font.lab = 1,
            mar    = c(2,4,1,.3),
            mgp    = c(2,1,0),
            oma    = c(3,0,0,0),
-           mfrow  = c(4,2), cex.lab=1.2, cex.axis=1.2)
+           mfrow  = c(ceiling(NPAR/2),2), cex.lab=1.2, cex.axis=1.2)
 
 for (i in 1:NPAR){
     plot(fx/1000, params[fx,i,1],
@@ -116,48 +117,35 @@ mtext(xlab,side=1,outer=TRUE,line=1,cex=.8)
 mtext('Time evolution of fitted model parameters.',side=1,outer=T, line=2,adj=0)
 dev.off()
 
-##Plot pairs of parameter values together with LogLike:
-#burnin = 1E3
-#fx = burnin:runno
-##Convert Loglike to vectors
-#Loglike1 = as.vector(loglike[fx,]) 
-#
-##Convert params to matrix:
-#PARS = matrix(NA, nr = length(fx)*np, nc = NPAR)
-#
-#for (i in 1:NPAR){
-#  PARS[,i] = as.vector(params[fx, i, ])
-#}
-#
-#PARS = as.data.frame(PARS)
-#colnames(PARS) = names(enspar)[2:(NPAR+1)]
-#
-#Loglike2 = quantile(Loglike1,probs=c(0.1,0.25,0.5,0.75,0.9))
-#PARS$Colour <- cut(Loglike1, breaks = c(-Inf,Loglike2,+Inf), 
-#                 labels = jet.col(n=6),
-#                 right  = FALSE)
-#
-#pdf('params_loglike.pdf', width = 9, height = 6, paper = 'a4')
-#op <- par(font.lab = 1,
-#            family ="serif", cex.axis=1.2, cex.lab=1.2,
-#            mar    = c(2,2,1.5,3.5),
-#            mgp    = c(2.3,1,0),
-#            mfcol  = c(4,4),
-#            oma    = c(4,4,1,0)) 
-#
-#for (i in 1:(NPAR-1)){
-#    for (j in (i+1):NPAR){
-#        plot(PARS[,i],PARS[,j], xlab=paramlab[i],ylab=paramlab[j], pch=16, cex=.2,col=PARS$Colour)
-#       # plot(PARS[,i],PARS[,j], pch=16, cex=.2,col=jet.col(8)[8])
-#    #Plot legend:
-#    if (i == 1 && j == 2){
-#    legend('bottomleft',pch=16,legend=c(Loglike2,max(Loglike1)),
-#           border=jet.col(6),fill=jet.col(6),col=jet.col(n=6))
-#    }
-#    }
-#}
-#
-#
-#
-#dev.off()
-#setwd(pwd1)
+##Plot pairs of parameter values together with LogLike and their correlations with Loglike:
+
+enspar1   <- enspar[enspar$LogL > 2000, ]
+#Convert Loglike to vectors
+Loglike2  <- quantile(enspar1$LogL, probs=c(0.1,0.25,0.5,0.75,0.9))
+enspar1$Col <- cut(enspar1$LogL, breaks = c(-Inf,Loglike2,+Inf), 
+                 labels = jet.col(n=6),
+                 right  = FALSE)
+
+Rcol <- unique(enspar1$Col[order(enspar1$LogL)])
+pdf('params_loglike.pdf', width = 9, height = 6, paper = 'a4')
+op <- par(font.lab = 1,
+            family ="serif", cex.axis=1, cex.lab=1.2,
+            mar    = c(4,4,1.5,0.5),
+            mgp    = c(2.3,1,0),
+            mfcol  = c(2,2),
+            oma    = c(4,4,1,0)) 
+
+for (i in 2:(NPAR-1)){
+    for (j in (i+1):(NPAR+1)){
+       plot(enspar1[,i],enspar1[,j], 
+            xlab=paramlab[i-1],ylab=paramlab[j-1], pch=16, cex=.5,col=enspar1$Col)
+
+       #Plot legend:
+       if (i == 2 && j == 3){
+          legend('topleft',pch=16, cex=.5,
+              legend=paste0('Loglike < ', c(Loglike2,max(enspar1[,1]))),
+              border=Rcol,fill=Rcol,col=Rcol)
+       }
+    }
+}
+dev.off()

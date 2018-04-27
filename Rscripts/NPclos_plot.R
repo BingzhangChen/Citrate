@@ -1,6 +1,5 @@
 #Plot station map:
 source('~/Working/FlexEFT1D/Rscripts/Stnmap_Kv_S1K2.R')
-
 Model <- 'NPZclosure'
 DIR   <- paste0('~/Working/FlexEFT1D/DRAM/',Model,'/S1/')
 setwd(DIR)
@@ -10,8 +9,12 @@ source('~/Working/FlexEFT1D/Rscripts/loglike_params_NPclos.R')  #Plot time-evolu
 #Check total concentration and variance:
 source('~/Working/FlexEFT1D/Rscripts/plot_TN_TVAR.R')
 plot_TN_TVAR('NPZclosure',Stns='HOT')
-#Plot an example of four years to show seasonal cycle:
-VARs    <- c('NO3','PHY_T','VNO3','VPHY','COVNP')
+#Plot an example of five years to show seasonal cycle:
+if (model == 'NPclosure'){
+   VARs    <- c('NO3','PHY','VNO3','VPHY','COVNP')
+}else if (model == 'NPZclosure'){
+   VARs    <- c('NO3','PHY','ZOO','VNO3','VPHY','VZOO','COVNP','COVNZ', 'COVPZ')
+}
 NVar    <- length(VARs)
 pdffile <- paste0('fullyear_example_1D.pdf')
 
@@ -20,7 +23,7 @@ op <- par(font.lab = 1,
             family ="serif", cex.axis=1.2, cex.lab=1.2,
             mar    = c(2,2,1.5,3.5),
             mgp    = c(2.3,1,0),
-            mfcol  = c(NVar,2),
+            mfcol  = c(ceiling(sqrt(NVar)),ceiling(sqrt(NVar))),
             oma    = c(4,4,1,0)) 
 
 j <- 0
@@ -38,25 +41,29 @@ for (Stn in c('HOT','S1')){
 }
 mtext('Depth (m)', side = 2, outer=TRUE, line=2)
 mtext('Days     ', side = 1, outer=TRUE, line=1)
-mtext('An example of modelled 4 year patterns at HOT and S1',side=1,outer=T, line=2,adj=0)
+mtext('An example of modelled 5 year patterns at HOT and S1',side=1,outer=T, line=2,adj=0)
 dev.off()
 
-
 #One plot for one station (only final year):
-VARs <- c('NO3','PHY_T','CHL_T','VNO3','VPHY','COVNP')
-Stns <- c('S1')
+if (model == 'NPclosure'){
+   VARs <- c('NO3','PHY_T','CHL_T','VNO3','VPHY', 'COVNP')
+}else if{
+   VARs <- c('NO3','PHY_T','CHL_T','VNO3','VPHY', 'VZOO', 'COVNP', 'COV')
+}
+Stns <- c('HOT')
 
 source('~/Working/FlexEFT1D/Rscripts/plot_stn_contour.R')
 plot_stn(Stns, VARs, Model='NPclosure', finalyr = T, Dmax = -180)
 
-#Plot comparisons of vertical profiles between data and model
+#Plot comparisons of vertical profiles between data and model based on best parameter
 COLS     <- 2:3
-Models   <- c('NPclosure')
-Modnames <- c('NP closure')
-Stns     <- c('S1')
+Models   <- c('NPZclosure')
+Modnames <- c('NPZ closure')
+Stns     <- c('HOT')
 Nstn     <- length(Stns)
 DIR      <- paste0('~/Working/FlexEFT1D/DRAM/',Models,'/',Stns,'/')
 setwd(DIR)
+
 source('~/Working/FlexEFT1D/Rscripts/plot_vertical_NChlNPP.R')
 for (Stn in Stns){
     plot_v_n(Stn, Models, VARS=c('DIN','CHL','NPP'), BOTH=F)

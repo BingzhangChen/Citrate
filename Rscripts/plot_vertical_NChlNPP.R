@@ -99,7 +99,7 @@ plot_v_n <- function(Stn = 'S1', Models = c('NPZDcont_sRun'),
             }
             #Get modeled data
             if (Var == 'CHL'){
-             Chl  <- getData(DIR,Stn, 'CHL_T')
+             Chl  <- getData(DIR,Stn, 'CHL')
             }else if (Var == 'DIN'){
              Chl  <- getData(DIR,Stn, 'NO3')
             }else if(Var == 'NPP'){
