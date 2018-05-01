@@ -3,7 +3,7 @@ export SCRATCHDIR=Compile
 export SRCDIR=../../src
 export MPIDIR=/shared/openmpi_64
 MPI=1
-Test=0 
+Test=1 
 if [[ $MPI == 1 ]]; then
   CFT=mpifort
   MPIINC="-I$MPIDIR/include"
@@ -19,15 +19,15 @@ mkdir ${SCRATCHDIR}
 
 /bin/cp -f  ${SRCDIR}/*.f90    $SCRATCHDIR
 /bin/cp -f  ${SRCDIR}/*.f      $SCRATCHDIR
-/bin/cp -f  ${SRCDIR}/Makefile ${SCRATCHDIR}/Makefile1
 
 #Replace global setting with local setting
 /bin/cp -f params.f90 ${SCRATCHDIR}/
+/bin/cp -f Makefile ${SCRATCHDIR}/Makefile1
 
 if [[ $CFT == ifort ]]; then
   if [[ $Test == 1 ]]; then
      echo 'Run model with debug options...'
-     FFLAGS="-O0 -r8 -i4 -g -check all -fpe0 -warn -traceback -debug extended -nogen-interface"
+     FFLAGS="-O0 -r8 -i4 -g -check all -fpe-all=0 -warn -traceback -debug extended -nogen-interface"
   else
      FFLAGS="-fast -r8 -i4"
      echo 'Run model without debug options...'
@@ -35,7 +35,7 @@ if [[ $CFT == ifort ]]; then
 elif [[ $CFT == mpifort ]]; then
   if [[ $Test == 1 ]]; then
      echo 'Using mpi with debug options...'
-     FFLAGS="-O0 -r8 -i4 -g -check all -fpe0 -warn -traceback -debug extended -nogen-interface"
+     FFLAGS="-O0 -r8 -i4 -g -check all -fpe-all=0 -warn -traceback -debug extended -nogen-interface"
   else
      FFLAGS="-fast -r8 -i4"
      echo 'Using mpi without debug options...'
