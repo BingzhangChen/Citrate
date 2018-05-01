@@ -7,7 +7,7 @@ Nstn       <- 1
 burnin     <- 100
 NDTYPE     <- 3  #The number of obs. types
 np         <- 5  #The number of CPUs for paralell computing
-EnsLen     <- 20  #The number of ensembles
+EnsLen     <- 100  #The number of ensembles
 enssig     <- read.table('enssig',header=T)
 enspar     <- read.table('enspar',header=T)
 
@@ -119,11 +119,11 @@ dev.off()
 
 ##Plot pairs of parameter values together with LogLike and their correlations with Loglike:
 
-enspar1   <- enspar[enspar$LogL > 2000, ]
+enspar1   <- enspar[enspar$LogL > 100, ]
 #Convert Loglike to vectors
-Loglike2  <- quantile(enspar1$LogL, probs=c(0.1,0.25,0.5,0.75,0.9))
+Loglike2    <- quantile(enspar1$LogL, probs=c(0.1,0.5,0.9))
 enspar1$Col <- cut(enspar1$LogL, breaks = c(-Inf,Loglike2,+Inf), 
-                 labels = jet.col(n=6),
+                 labels = jet.col(n=(length(Loglike2)+1)),
                  right  = FALSE)
 
 Rcol <- unique(enspar1$Col[order(enspar1$LogL)])

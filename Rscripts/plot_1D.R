@@ -72,8 +72,14 @@ plot_1D <- function(Var,model,Stn,title='',ZLIM=NULL, finalyr = F, BOTH = F, Dma
       Varname  <- bquote(italic(V)[P] * ' (mmol '*m^-3*')'^2)
     }else if (Var == 'VNO3'){
       Varname  <- bquote(italic(V)[N] * ' (mmol '*m^-3*')'^2)
+    }else if (Var == 'VZOO'){
+      Varname  <- bquote(italic(V)[Z] * ' (mmol '*m^-3*')'^2)
     }else if (Var == 'COVNP'){
       Varname  <- bquote(italic(COV)[NP] * ' (mmol '*m^-3*')'^2)
+    }else if (Var == 'COVNZ'){
+      Varname  <- bquote(italic(COV)[NZ] * ' (mmol '*m^-3*')'^2)
+    }else if (Var == 'COVPZ'){
+      Varname  <- bquote(italic(COV)[PZ] * ' (mmol '*m^-3*')'^2)
     }else{
       Varname  <- bquote(.(Var) ~ ' (mmol '*m^-3*')')
     }
