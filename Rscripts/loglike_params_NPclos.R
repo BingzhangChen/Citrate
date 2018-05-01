@@ -19,6 +19,9 @@ enspar[,2:ncol(enspar)] <- exp(enspar[,2:ncol(enspar)])
 best    = which.max(enspar$LogL)
 bestpar = enspar[best,]
 
+#Best SSqE:
+bestsig = enssig[which.max(enssig$LogL),]
+
 NPAR    = ncol(enspar)-1
 runno   = nrow(enssig)/np   #Number of runs for each processor
 intv    = runno/EnsLen      #Number of runs each ensemble

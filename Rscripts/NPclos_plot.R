@@ -69,6 +69,9 @@ for (Stn in Stns){
     plot_v_n(Stn, Models, VARS=c('DIN','CHL','NPP'), BOTH=F)
 }
 
+#Compare single run with different beta values:
+Models   <- c('NPZclosure_sRun')
+
 
 #Plot for HOT:
 Model    <- 'NPZDcont_sRun'
