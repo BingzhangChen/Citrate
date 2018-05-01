@@ -36,17 +36,16 @@ DO k = nlev, 1, -1
      !Use nonmixed light to calculate NPP
      call PHY_NPCLOSURE(NO3,PAR_,Temp(k),PHY,VPHY,VNO3, COVNP,muSI, muNet,SI,theta,QN, &
                         Snp, Chl, NPPt, SVPHY, SVNO3, SCOVNP)
-     Varout(oPPt, k)  = NPPt * 12d0 ! Correct the unit to ug C/L
+     Varout(oNPP, k)  = NPPt * 12d0 ! Correct the unit to ug C/L
    ENDIF
    !Use mixed light to estimate source and sink
    call PHY_NPCLOSURE(NO3,PAR_,Temp(k),PHY,VPHY,VNO3, COVNP,muSI, muNet,SI,theta,QN, &
                         Snp, Chl, NPPt, SVPHY, SVNO3, SCOVNP)
    ! Save some model outputs:
-   Varout(oTheta(1),k)= theta! Chl:C ratio at <N>
-   Varout(oQN(1)   ,k)= QN   ! N:C ratio at <N> 
-   Varout(oSI(1),   k)= SI   ! Light limitation
-   Varout(oCHLt,    k)= Chl  ! ensemble mean Chl
-   Varout(oCHL(1),  k)= Chl  ! ensemble mean Chl
+   Varout(oTheta,k)= theta! Chl:C ratio at <N>
+   Varout(oQN   ,k)= QN   ! N:C ratio at <N> 
+   Varout(oSI,   k)= SI   ! Light limitation
+   Varout(oCHLt, k)= Chl  ! ensemble mean Chl
 !=============================================================
 !! Solve ODE functions:
 !All rates have been multiplied by dtdays to get the real rate correponding to the actual time step
@@ -61,13 +60,11 @@ DO k = nlev, 1, -1
    VPHY = VPHY  + (SVPHY-2.*Dp*VPHY*tf_P )*dtdays
    VNO3 = VNO3  + (SVNO3+2.*Dp*COVNP*tf_P)*dtdays
    COVNP= COVNP + (SCOVNP+Dp*(VPHY-COVNP)*tf_P)*dtdays
-   Varout(oNO3,k)      = NO3
-   Varout(oPHY(1),k)   = PHY
-   Varout(oVPHY  ,k)   = max(VPHY,0d0)
-   Varout(oVNO3  ,k)   = max(VNO3,0d0)
-   Varout(oCOVNP ,k)   = COVNP
-   Varout(oPHYt,  k)   = PHY
-   Varout(omuNet(1),k) = muNet               !Growth rate at <N>
-   Varout(omuAvg,   k) = Snp/PHY             !Ensemble mean growth rate 
+   Varout(iNO3,k)      = NO3
+   Varout(iPHY(1),k)   = PHY
+   Varout(iVPHY  ,k)   = max(VPHY,0d0)
+   Varout(iVNO3  ,k)   = max(VNO3,0d0)
+   Varout(iCOVNP ,k)   = COVNP
+   Varout(omuNet ,k)   = muNet               !Growth rate at <N>
 ENDDO
 END SUBROUTINE NP_CLOSURE 
