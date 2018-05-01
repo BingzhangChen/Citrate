@@ -47,13 +47,13 @@ dev.off()
 #One plot for one station (only final year):
 if (model == 'NPclosure'){
    VARs <- c('NO3','PHY_T','CHL_T','VNO3','VPHY', 'COVNP')
-}else if{
-   VARs <- c('NO3','PHY_T','CHL_T','VNO3','VPHY', 'VZOO', 'COVNP', 'COV')
+}else if (model == 'NPZclosure'){
+   VARs <- c('NO3','PHY','CHL','VNO3','VPHY', 'VZOO', 'COVNP', 'COVPZ','COVNZ')
 }
 Stns <- c('HOT')
 
 source('~/Working/FlexEFT1D/Rscripts/plot_stn_contour.R')
-plot_stn(Stns, VARs, Model='NPclosure', finalyr = T, Dmax = -180)
+plot_stn(Stns, VARs, Model='NPZclosure', finalyr = T, Dmax = -180)
 
 #Plot comparisons of vertical profiles between data and model based on best parameter
 COLS     <- 2:3
