@@ -12,9 +12,12 @@ real :: NO3,PHY, ZOO,VPHY, VNO3,VZOO, COVNP,COVPZ,COVNZ
 real :: SVNO3, SVPHY, SCOVNP
 real :: QN  ! cell quota related variables
 real :: muNet, Dp, PP_PN, muSI, KN, gmax
-real :: SI
+real :: SI, CFF1, CFF2
 real :: theta, Snp
-real :: Chl, NPPt
+real :: Chl, NPPt, Zmort1
+
+! Half-saturation constant (squared) of zooplankton grazing 
+real, parameter :: Kp = 0.25d0   
 !-----------------------------------------------------------------------
 DO k = nlev, 1, -1   
    ! Check whether in the MLD or not
@@ -60,39 +63,57 @@ DO k = nlev, 1, -1
    tf_Z  = TEMPBOL(Ez, Temp(k))
    gmax  = exp(params(iGmax))*tf_Z
    Zmort = exp(params(imz))  *tf_Z   ! Mortality rate of zooplankton
-   INGES = gmax*(PHY*ZOO + COVPZ)
-   PP_NZ = (1.-GGE)*INGES + Zmort*ZOO
+   Zmort1= Zmort * (ZOO**2 + VZOO)
+
+   ! Define two scratch variables that are repeatly used below
+   CFF1  = PHY**2 / (Kp + PHY**2)
+   CFF2  = Kp*PHY / (Kp + PHY**2)**2
+
+   INGES = gmax*(CFF1 * ZOO                           &
+         + Kp * ZOO * VPHY * (Kp - 3.* PHY**2)/(Kp + PHY**2)**3         &
+         + 2. * CFF2 * COVPZ )
+
+   PP_NZ = (1. - GGE )*INGES + Zmort1
    PP_ZP = GGE*INGES
 
 !Update tracers:
    Varout(iNO3, k) = max(NO3  + (PP_NZ - PP_PN)*dtdays, eps)
    Varout(iPHY, k) = max(PHY  + (PP_PN - INGES)*dtdays, eps)
-   Varout(iZOO, k) = ZOO  + (PP_ZP - Zmort*ZOO)*dtdays
+   Varout(iZOO, k) = ZOO  + (PP_ZP - Zmort1)*dtdays
    Varout(iZOO, k) = max(Varout(iZOO,k), eps)
-   Varout(iVPHY,k) = VPHY + (SVPHY - 2.*Dp*VPHY*tf_P - 2.*gmax*(ZOO*VPHY + PHY*COVPZ))*dtdays
+   Varout(iVPHY,k) = VPHY + (SVPHY - 2.*Dp*VPHY*tf_P &
+      - 2.*gmax*(2.* CFF2 * ZOO * VPHY + CFF1 * COVPZ) )*dtdays
+
    Varout(iVPHY,k) = max(Varout(iVPHY,k), eps)
-   Varout(iVNO3,k) = VNO3 + (SVNO3 + 2.*Dp*COVNP*tf_P        &
-        + 2.*(1.-GGE)*gmax*(ZOO*COVNP + PHY*COVNZ)           &
-        + 2.*Zmort*COVNZ)*dtdays
+
+   Varout(iVNO3,k) = VNO3 + (SVNO3 + 2.*Dp*COVNP*tf_P                   &
+        + 2.*(1.-GGE)*gmax*(2.* CFF2 * ZOO * COVNP + CFF1 * COVNZ)      &
+        + 4. * Zmort * ZOO * COVNZ)*dtdays
+
    Varout(iVNO3,k) = max(Varout(iVNO3,k), eps)
 
-   Varout(iVZOO,k) = VZOO + 2.*dtdays*(GGE*gmax*(ZOO*COVPZ+PHY*VZOO) - Zmort*VZOO)
+   Varout(iVZOO,k) = VZOO + 2.*dtdays*(GGE*gmax*(2.* CFF2 * ZOO * COVPZ &
+       + CFF1 * VZOO) - 2. * Zmort * ZOO * VZOO)
    Varout(iVZOO,k) = max(Varout(iVZOO,k), eps)
 
-   Varout(iCOVNP,k)= COVNP + (SCOVNP+ Dp*tf_P*(VPHY-COVNP) + Zmort*COVPZ + &
-   gmax*ZOO*((1.-GGE)*VPHY - COVNP) +gmax*PHY*((1.-GGE)* COVPZ - COVNZ) )*dtdays
+   Varout(iCOVNP,k)= COVNP + (SCOVNP + Dp*tf_P*(VPHY-COVNP)             &
+       +  2.*Zmort * ZOO * COVPZ                                        &
+       +  2.*gmax*ZOO * CFF2 * ((1.-GGE)* VPHY - COVNP)                 &
+       +     gmax      *CFF1 * ((1.-GGE)*COVPZ - COVNZ) )*dtdays
 
    KN   = exp(params(iKN))
    SI   = NO3/(NO3+KN)
    NPPt = muSI*(SI*COVPZ + PHY*COVNZ*KN/(KN+NO3)**2)
 
-   Varout(iCOVPZ,k) = COVPZ + ( NPPt &
-   - (Dp*tf_P+Zmort)*COVPZ + gmax*ZOO*(GGE*VPHY - COVPZ) +&
-   gmax * PHY*(GGE*COVPZ - VZOO))*dtdays
+   Varout(iCOVPZ,k) = COVPZ + ( NPPt                                    &
+       - (Dp*tf_P + 2. * ZOO * Zmort)*COVPZ                             &
+       + 2.* gmax * ZOO * CFF2 * (GGE * VPHY - COVPZ)                   &
+       + gmax * CFF1 *(GGE * COVPZ - VZOO))*dtdays
 
-   Varout(iCOVNZ,k) = COVNZ + (-NPPt + Dp*tf_P*COVPZ + Zmort*(VZOO-COVNZ) &
-   + gmax*ZOO*(GGE*COVNP + (1.-GGE)*COVPZ) &
-   + gmax*PHY*(GGE*COVNZ + (1.-GGE)*VZOO))*dtdays
+   Varout(iCOVNZ,k) = COVNZ + (-NPPt + Dp*tf_P*COVPZ                    & 
+       + 2. * ZOO  * Zmort * (VZOO-COVNZ)                               &
+       + 2. * gmax * ZOO * CFF2 * (GGE*COVNP + (1.-GGE)*COVPZ)          &
+       + gmax * CFF1 * (GGE*COVNZ + (1.-GGE)*VZOO) )*dtdays
 
    Varout(omuNet, k) = muNet               !Growth rate at <N>
 ENDDO
