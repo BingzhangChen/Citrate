@@ -3,7 +3,6 @@ source('~/Working/FlexEFT1D/Rscripts/Stnmap_Kv_S1K2.R')
 Model <- 'NPZclosure'
 DIR   <- paste0('~/Working/FlexEFT1D/DRAM/',Model,'/S1/')
 setwd(DIR)
-source('~/Working/FlexEFT1D/Rscripts/plot_1D.R')
 source('~/Working/FlexEFT1D/Rscripts/loglike_params_NPclos.R')  #Plot time-evolution of Log-Likelihoods and parameters 
 
 #Check total concentration and variance:
@@ -15,34 +14,8 @@ if (model == 'NPclosure'){
 }else if (model == 'NPZclosure'){
    VARs    <- c('NO3','PHY','ZOO','VNO3','VPHY','VZOO','COVNP','COVNZ', 'COVPZ')
 }
-NVar    <- length(VARs)
-pdffile <- paste0('fullyear_example_1D.pdf')
-
-pdf(pdffile, width = 9, height = 6, paper = 'a4')
-op <- par(font.lab = 1,
-            family ="serif", cex.axis=1.2, cex.lab=1.2,
-            mar    = c(2,2,1.5,3.5),
-            mgp    = c(2.3,1,0),
-            mfcol  = c(ceiling(sqrt(NVar)),ceiling(sqrt(NVar))),
-            oma    = c(4,4,1,0)) 
-
-j <- 0
-for (Stn in c('HOT','S1')){
-   for (i in 1:NVar){
-       VAR = VARs[i]
-       plot_1D(VAR,Model,Stn,finalyr = F, Dmax = -500)
-       j   = j + 1
-       if (i == 1){
-         mtext(paste0(letters[j],')',Stn),adj=0, outer=F)
-       } else{
-         mtext(paste0(letters[j],')'),adj=0, outer=F)
-       }
-   }
-}
-mtext('Depth (m)', side = 2, outer=TRUE, line=2)
-mtext('Days     ', side = 1, outer=TRUE, line=1)
-mtext('An example of modelled 5 year patterns at HOT and S1',side=1,outer=T, line=2,adj=0)
-dev.off()
+source('~/Working/FlexEFT1D/Rscripts/plot_stn_contour.R')
+plot_stn('HOT', VARs, Model='NPZclosure', finalyr = F, Dmax = -500)
 
 #One plot for one station (only final year):
 if (model == 'NPclosure'){
@@ -52,7 +25,6 @@ if (model == 'NPclosure'){
 }
 Stns <- c('HOT')
 
-source('~/Working/FlexEFT1D/Rscripts/plot_stn_contour.R')
 plot_stn(Stns, VARs, Model='NPZclosure', finalyr = T, Dmax = -180)
 
 #Plot comparisons of vertical profiles between data and model based on best parameter
@@ -69,10 +41,27 @@ for (Stn in Stns){
     plot_v_n(Stn, Models, VARS=c('DIN','CHL','NPP'), BOTH=F)
 }
 
-#Compare single run with different beta values:
+#Compare single run with different beta values (0.1 and 2.0):
 Models   <- c('NPZclosure_sRun')
+DIR      <- paste0('~/Working/FlexEFT1D/DRAM/',Models,'/',Stns,'/')
+setwd(DIR)
+
+Stn <- 'HOT'
+system('ln -s HOT.out.beta0.1 HOT.out')
+plot_v_n(Stn, Models, VARS=c('DIN','CHL','NPP'), BOTH=F)
+system('mv HOTNPZclosure_sRunV_NChlPP.pdf HOTNPZclosure_NChlPP_beta0.1.pdf')
+plot_stn('HOT', VARs, Model='NPZclosure', finalyr = F, Dmax = -500)
+system('mv HOT_1D.pdf HOT1D_beta0.1.pdf')
+system('unlink HOT.out')
 
 
+#Change to beta = 2.0
+system('ln -s HOT.out.beta2.0 HOT.out')
+plot_v_n(Stn, Models, VARS=c('DIN','CHL','NPP'), BOTH=F)
+system('mv HOTNPZclosure_sRunV_NChlPP.pdf HOTNPZclosure_NChlPP_beta2.0.pdf')
+plot_stn('HOT', VARs, Model='NPZclosure', finalyr = F, Dmax = -500)
+system('mv HOT_1D.pdf HOT1D_beta2.0.pdf')
+system('unlink HOT.out')
 #Plot for HOT:
 Model    <- 'NPZDcont_sRun'
 Modnames <- 'NPZDcont'
