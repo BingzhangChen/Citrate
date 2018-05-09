@@ -93,8 +93,9 @@ IMPLICIT NONE
       a     = 2.0*dt*nuY(N-1)/(h(N)+h(N-1))/h(N)
       l     = dt*Lsour(N)
 
-      au(N) =-cnpar*a
-      if (posconc .eq. 1 .and. Yup.lt.0d0) then ! Patankar (1980) trick
+      au(N) = -cnpar*a
+
+      if (posconc .eq. 1 .and. Yup .lt. 0d0) then ! Patankar (1980) trick
          bu(N) =  1d0 - au(N) - l  - dt*Yup/Yin(N)/h(N)
          du(N) = Yin(N) + dt*Qsour(N)   &
                + (1d0 - cnpar)*a*(Yin(N-1)-Yin(N))

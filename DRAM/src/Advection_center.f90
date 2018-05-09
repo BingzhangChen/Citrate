@@ -206,7 +206,7 @@ subroutine adv_center(N,dt,h,ho,ww,Bcup,Bcdw,Yup,Ydw,method,mode,Y)
 !     do the vertical advection step which will be used for prescribed
 !     vertical flow velocity and for settling of suspended matter.
 
-      if (mode.eq.0) then ! non-conservative, water vertical velocity
+      if (mode .eq. 0) then ! non-conservative, water vertical velocity
          do k=1,N
             Y(k)=Y(k)-1d0/float(it)*dt*((cu(k)-cu(k-1))/        &
                  h(k)-Y(k)*(ww(k)-ww(k-1))/h(k))

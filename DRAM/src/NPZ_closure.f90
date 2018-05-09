@@ -1,6 +1,6 @@
 SUBROUTINE NPZ_CLOSURE
     ! This NPZ_closure model has 5 tracers: <N>, <P>, <Z>,<N'>^2, <P'>^2,<Z'>^2, <N'P'>,<N'Z'>,<P'Z'>
-    ! Governing functions follow Priyadarshi et al. JTB (2017)
+    ! Governing functions modified following Priyadarshi et al. JTB (2017)
 USE PARAM_MOD
 USE MOD_1D, only: it, nsave
 IMPLICIT NONE
@@ -13,11 +13,11 @@ real :: SVNO3, SVPHY, SCOVNP
 real :: QN  ! cell quota related variables
 real :: muNet, Dp, PP_PN, muSI, KN, gmax
 real :: SI, CFF1, CFF2
-real :: theta, Snp
+real :: theta, Snp, Kp
 real :: Chl, NPPt, Zmort1
 
-! Half-saturation constant (squared) of zooplankton grazing 
-real, parameter :: Kp = 0.25d0   
+! Maximal grazing rate of zooplankton grazing 
+real, parameter :: Gm = 1d0   
 !-----------------------------------------------------------------------
 DO k = nlev, 1, -1   
    ! Check whether in the MLD or not
@@ -40,11 +40,12 @@ DO k = nlev, 1, -1
    COVNP  = Vars(iCOVNP,  k)
    COVPZ  = Vars(iCOVPZ,  k)
    COVNZ  = Vars(iCOVNZ,  k)
+
    IF (mod(it, nsave) .EQ. 1) THEN
      !Use nonmixed light to calculate NPP
      call PHY_NPCLOSURE(NO3,PAR_,Temp(k),PHY,VPHY,VNO3, COVNP,muSI, muNet,SI,theta,QN, &
                         Snp, Chl, NPPt, SVPHY, SVNO3, SCOVNP)
-     Varout(oNPP, k)  = NPPt * 12d0 ! Correct the unit to ug C/L
+     Varout(oNPP, k) = NPPt * 12d0 ! Correct the unit to ug C/L
    ENDIF
    !Use mixed light to estimate source and sink
    call PHY_NPCLOSURE(NO3,PAR_,Temp(k),PHY,VPHY,VNO3, COVNP, muSI, muNet,SI,theta,QN, &
@@ -61,27 +62,29 @@ DO k = nlev, 1, -1
    tf_P  = TEMPBOL(Ep, Temp(k))
    PP_PN = Snp - PHY*Dp*tf_P
    tf_Z  = TEMPBOL(Ez, Temp(k))
-   gmax  = exp(params(iGmax))*tf_Z
+   gmax  = Gm * tf_Z
    Zmort = exp(params(imz))  *tf_Z   ! Mortality rate of zooplankton
    Zmort1= Zmort * (ZOO**2 + VZOO)
 
    ! Define two scratch variables that are repeatly used below
+   Kp    = exp(params(iKPHY))
    CFF1  = PHY**2 / (Kp + PHY**2)
    CFF2  = Kp*PHY / (Kp + PHY**2)**2
 
-   INGES = gmax*(CFF1 * ZOO                           &
+   INGES = gmax*( CFF1 * ZOO                                            &
          + Kp * ZOO * VPHY * (Kp - 3.* PHY**2)/(Kp + PHY**2)**3         &
          + 2. * CFF2 * COVPZ )
 
-   PP_NZ = (1. - GGE )*INGES + Zmort1
+   PP_NZ = (1. - GGE)*INGES + Zmort1
    PP_ZP = GGE*INGES
 
 !Update tracers:
-   Varout(iNO3, k) = max(NO3  + (PP_NZ - PP_PN)*dtdays, eps)
-   Varout(iPHY, k) = max(PHY  + (PP_PN - INGES)*dtdays, eps)
-   Varout(iZOO, k) = ZOO  + (PP_ZP - Zmort1)*dtdays
+   Varout(iNO3, k) = max(NO3  + (PP_NZ - PP_PN )*dtdays, eps)
+   Varout(iPHY, k) = max(PHY  + (PP_PN - INGES )*dtdays, eps)
+   Varout(iZOO, k) = ZOO      + (PP_ZP - Zmort1)*dtdays
    Varout(iZOO, k) = max(Varout(iZOO,k), eps)
-   Varout(iVPHY,k) = VPHY + (SVPHY - 2.*Dp*VPHY*tf_P &
+
+   Varout(iVPHY,k) = VPHY + (SVPHY - 2.*Dp*VPHY*tf_P                    &
       - 2.*gmax*(2.* CFF2 * ZOO * VPHY + CFF1 * COVPZ) )*dtdays
 
    Varout(iVPHY,k) = max(Varout(iVPHY,k), eps)
@@ -93,7 +96,7 @@ DO k = nlev, 1, -1
    Varout(iVNO3,k) = max(Varout(iVNO3,k), eps)
 
    Varout(iVZOO,k) = VZOO + 2.*dtdays*(GGE*gmax*(2.* CFF2 * ZOO * COVPZ &
-       + CFF1 * VZOO) - 2. * Zmort * ZOO * VZOO)
+       + CFF1 * VZOO)     - 2.*Zmort * ZOO * VZOO)
    Varout(iVZOO,k) = max(Varout(iVZOO,k), eps)
 
    Varout(iCOVNP,k)= COVNP + (SCOVNP + Dp*tf_P*(VPHY-COVNP)             &
@@ -102,8 +105,8 @@ DO k = nlev, 1, -1
        +     gmax      *CFF1 * ((1.-GGE)*COVPZ - COVNZ) )*dtdays
 
    KN   = exp(params(iKN))
-   SI   = NO3/(NO3+KN)
-   NPPt = muSI*(SI*COVPZ + PHY*COVNZ*KN/(KN+NO3)**2)
+   SI   = NO3/(NO3 + KN)
+   NPPt = muSI*(SI * COVPZ + PHY * COVNZ * KN / (KN+NO3)**2 )
 
    Varout(iCOVPZ,k) = COVPZ + ( NPPt                                    &
        - (Dp*tf_P + 2. * ZOO * Zmort)*COVPZ                             &
@@ -113,7 +116,7 @@ DO k = nlev, 1, -1
    Varout(iCOVNZ,k) = COVNZ + (-NPPt + Dp*tf_P*COVPZ                    & 
        + 2. * ZOO  * Zmort * (VZOO-COVNZ)                               &
        + 2. * gmax * ZOO * CFF2 * (GGE*COVNP + (1.-GGE)*COVPZ)          &
-       + gmax * CFF1 * (GGE*COVNZ + (1.-GGE)*VZOO) )*dtdays
+       + gmax * CFF1 * (GGE * COVNZ + (1. - GGE) * VZOO))*dtdays
 
    Varout(omuNet, k) = muNet               !Growth rate at <N>
 ENDDO

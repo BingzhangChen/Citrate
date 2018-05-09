@@ -5,7 +5,7 @@ implicit none
 ! Grid parameters
 real, private, parameter :: hmax   = 5d2   ! Total water depth
 real, private, parameter :: thetaS = 2d0   ! surface stretching parameter
-real, private, parameter :: dtsec  = 300.  ! time step in seconds
+real, private, parameter :: dtsec  = 3D2   ! time step in seconds
 real, private, parameter ::d_per_s = 864d2 ! how many seconds in one day
 real, private, parameter :: zero   = 0d0
                       !how many seconds of one year
@@ -1073,7 +1073,7 @@ DO jj = 1, Nstn
 
       ! Check whether the values are valid:
       do j = 1,NVAR
-         do k=1,nlev
+         do k = 1, nlev
             if( (Vars(j,k) .ne. Vars(j,k))) then
                 !write(6,*) 'At day ',current_day
                 !write(6,*) 'WARNING! The variable ',trim(Labelout(j+ow)), &
@@ -1362,14 +1362,15 @@ DO jj = 1, Nstn
   !---------------------------------------------------------------------
  ENDIF  !==> END of daily work
 4 format(I10,1x,I7, <nlev+1>(2x,1pe12.3))
+
   ! Pass the new state variables to Vars
   do j = 1,NVAR
-     Vars(j,:)=Varout(j,:)
+     Vars(j,:)= Varout(j,:)
   enddo
   
   ! Diffusion:
   do j = 1,NVAR
-     Vars1(:)     = Vars(j,:)
+     Vars1(:) = Vars(j,:)
 
      ! At surface, assume zero flux  (Neumann boundary condition)
      selectcase (bot_bound) ! Select the type of boundary condition at bottom
@@ -1396,17 +1397,14 @@ DO jj = 1, Nstn
                        zero, zero, Aks,Vec0,Vec0,Taur,Vars1,Vars1,Vars2)
        endif
      case default
-       write(6,*) 'The type of bottom boundary condition incorrect!'
-       stop
+       stop 'The type of bottom boundary condition incorrect!'
      end select
 
      ! Save diffusion fluxes (normalized to per day)
      Varout(oD_VARS(j),:) = (Vars2(:) - Vars1(:))/dtdays
   
      ! Update the state variables:
-     do k = 1, nlev
-        Vars(j,k)=Vars2(k)
-     enddo
+     Vars(j,:) = Vars2(:)
   enddo
   
   ! Sinking:
@@ -1421,8 +1419,7 @@ DO jj = 1, Nstn
         ! Open bottom boundary
         call adv_center(nlev,dtsec,Hz,Hz,ww_(:),1,2,zero,Vars2(1),6,mode1,Vars2(:))
      case default
-        write(6,*) "The boundary conditions incorrect! STOP!"
-        stop
+        stop "The boundary conditions incorrect! STOP!"
      endselect
      Vars(Windex(j),:) = Vars2(:)
   enddo
