@@ -3,7 +3,7 @@ export SCRATCHDIR=Compile
 export SRCDIR=../../src
 export MPIDIR=/shared/openmpi_64
 MPI=1
-Test=1 
+Test=0 
 if [[ $MPI == 1 ]]; then
   CFT=mpifort
   MPIINC="-I$MPIDIR/include"

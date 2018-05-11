@@ -1,7 +1,8 @@
 #Plot station map:
 source('~/Working/FlexEFT1D/Rscripts/Stnmap_Kv_S1K2.R')
 Model <- 'NPZclosure'
-DIR   <- paste0('~/Working/FlexEFT1D/DRAM/',Model,'/S1/')
+Stn   <- 'S1'
+DIR   <- paste0('~/Working/FlexEFT1D/DRAM/',Model,'/',Stn,'/')
 setwd(DIR)
 source('~/Working/FlexEFT1D/Rscripts/loglike_params_NPclos.R')  #Plot time-evolution of Log-Likelihoods and parameters 
 
@@ -15,7 +16,7 @@ if (model == 'NPclosure'){
    VARs    <- c('NO3','PHY','ZOO','VNO3','VPHY','VZOO','COVNP','COVNZ', 'COVPZ')
 }
 source('~/Working/FlexEFT1D/Rscripts/plot_stn_contour.R')
-plot_stn('HOT', VARs, Model='NPZclosure', finalyr = F, Dmax = -500)
+plot_stn('S1', VARs, Model='NPZclosure', finalyr = F, Dmax = -200)
 
 #One plot for one station (only final year):
 if (model == 'NPclosure'){
@@ -23,15 +24,15 @@ if (model == 'NPclosure'){
 }else if (model == 'NPZclosure'){
    VARs <- c('NO3','PHY','CHL','VNO3','VPHY', 'VZOO', 'COVNP', 'COVPZ','COVNZ')
 }
-Stns <- c('HOT')
-
-plot_stn(Stns, VARs, Model='NPZclosure', finalyr = T, Dmax = -180)
+Stns <- c('S1')
+plot_stn(Stns, VARs = c('NO3','PHY','ZOO'), 
+         Model = 'NPZclosure', finalyr = T, Dmax = -180)
 
 #Plot comparisons of vertical profiles between data and model based on best parameter
 COLS     <- 2:3
 Models   <- c('NPZclosure')
 Modnames <- c('NPZ closure')
-Stns     <- c('HOT')
+Stns     <- c('S1')
 Nstn     <- length(Stns)
 DIR      <- paste0('~/Working/FlexEFT1D/DRAM/',Models,'/',Stns,'/')
 setwd(DIR)
@@ -46,14 +47,32 @@ Models   <- c('NPZclosure_sRun')
 DIR      <- paste0('~/Working/FlexEFT1D/DRAM/',Models,'/',Stns,'/')
 setwd(DIR)
 
-Stn <- 'HOT'
-system('ln -s HOT.out.beta0.1 HOT.out')
+Stn <- 'S1'
+system('ln -s S1.out.beta0.001 S1.out')
+
+plot_stn(Stns, VARs = c('NO3','PHY','ZOO'), 
+         Model = 'NPZclosure_sRun', finalyr = T, Dmax = -180)
+system('mv S1_1D.pdf S1_beta0.001.pdf')
+
 plot_v_n(Stn, Models, VARS=c('DIN','CHL','NPP'), BOTH=F)
 system('mv HOTNPZclosure_sRunV_NChlPP.pdf HOTNPZclosure_NChlPP_beta0.1.pdf')
 plot_stn('HOT', VARs, Model='NPZclosure', finalyr = F, Dmax = -500)
 system('mv HOT_1D.pdf HOT1D_beta0.1.pdf')
 system('unlink HOT.out')
 
+#Change to beta = 0.1
+system('mv S1.out S1.out.beta0.1')
+system('ln -s S1.out.beta0.1 S1.out')
+
+plot_stn(Stns, VARs = c('NO3','PHY','ZOO'), 
+         Model = 'NPZclosure_sRun', finalyr = T, Dmax = -180)
+system('mv S1_1D.pdf S1_beta0.001.pdf')
+
+plot_v_n(Stn, Models, VARS=c('DIN','CHL','NPP'), BOTH=F)
+system('mv HOTNPZclosure_sRunV_NChlPP.pdf HOTNPZclosure_NChlPP_beta0.1.pdf')
+plot_stn('HOT', VARs, Model='NPZclosure', finalyr = F, Dmax = -500)
+system('mv HOT_1D.pdf HOT1D_beta0.1.pdf')
+system('unlink HOT.out')
 
 #Change to beta = 2.0
 system('ln -s HOT.out.beta2.0 HOT.out')

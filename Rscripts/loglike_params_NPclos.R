@@ -1,7 +1,7 @@
 #Plot LogLikehood of two models at two stations in one plot:
 pwd1  <- getwd()
 model <- 'NPZclosure'
-stn   <- 'HOT'
+stn   <- 'S1'
 setwd(paste0('~/Working/FlexEFT1D/DRAM/',model, '/',stn, '/'))
 Nstn       <- 1
 burnin     <- 100

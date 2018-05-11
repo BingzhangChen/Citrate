@@ -3,21 +3,30 @@ plot_stn <- function(Stns, VARs, Model='NPZDcont', BOTH = F, finalyr = T, Dmax =
    NVar = length(VARs)
    for (Stn in Stns){
      pdffile <- paste0(Stn,'_1D.pdf')
-     pdf(pdffile, width = 8, height = 8, paper = 'a4')
+     pdf(pdffile, width = 4, height = 6)
      op <- par(font.lab = 1,
                  family ="serif", cex.axis=1.2, cex.lab=1.2,
                  mar    = c(2,2,1.5,3.5),
                  mgp    = c(2.3,1,0),
-                 mfrow  = c(ceiling(NVar/2),2),
+                 mfrow  = c(NVar,1),
                  oma    = c(4,4,1,0)) 
      for (i in 1:NVar){
          VAR = VARs[i]
-         plot_1D(VAR,Model,Stn,finalyr = finalyr,BOTH=Both, Dmax = Dmax)
+         if (VAR == 'NO3'){
+           zlim <- c(0, 3)
+         }else if (VAR == 'PHY'){
+           zlim <- c(0, 1)
+         }else if (VAR == 'ZOO'){
+           zlim <- c(0, 1)
+         }else{
+           zlim <- NULL
+         }
+         plot_1D(VAR,Model,Stn,finalyr = finalyr,BOTH=Both, Dmax = Dmax, ZLIM = zlim)
          mtext(paste0(letters[i],')'),adj=0, outer=F)
      }
      mtext('Depth (m)', side = 2, outer=TRUE, line=2)
      if (Stn == 'HOT') Stn = 'ALOHA'
-     mtext(paste('Modelled seasonal patterns at',Stn),side=1,outer=T, line=2,adj=0)
+     #mtext(paste('Modelled seasonal patterns at',Stn),side=1,outer=T, line=2,adj=0)
      dev.off()
    }
 }
