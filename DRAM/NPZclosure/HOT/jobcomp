@@ -27,7 +27,7 @@ mkdir ${SCRATCHDIR}
 if [[ $CFT == ifort ]]; then
   if [[ $Test == 1 ]]; then
      echo 'Run model with debug options...'
-     FFLAGS="-O0 -r8 -i4 -g -check all -fpe-all=0 -warn -traceback -debug extended -nogen-interface"
+     FFLAGS="-O0 -r8 -i4 -g -check all -fpe-all=0 -warn -traceback -debug extended -nogen-interface -warn interfaces"
   else
      FFLAGS="-fast -r8 -i4"
      echo 'Run model without debug options...'
@@ -35,7 +35,7 @@ if [[ $CFT == ifort ]]; then
 elif [[ $CFT == mpifort ]]; then
   if [[ $Test == 1 ]]; then
      echo 'Using mpi with debug options...'
-     FFLAGS="-O0 -r8 -i4 -g -check all -fpe-all=0 -warn -traceback -debug extended -nogen-interface"
+     FFLAGS="-O0 -r8 -i4 -g -check all -fpe-all=0 -warn -traceback -debug all -gen-interface"
   else
      FFLAGS="-fast -r8 -i4"
      echo 'Using mpi without debug options...'

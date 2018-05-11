@@ -9,14 +9,14 @@ integer, parameter      :: Nstn      = 1
 ! Station name:
 character(3), parameter :: Stn(Nstn) = 'HOT'
 
-integer, parameter :: bot_bound   = Neumann ! Option of bottom boundary condition
+integer, parameter :: bot_bound  = Neumann ! Option of bottom boundary condition
 
 ! Current biological MODEL!
-integer, parameter :: Model_ID    = NPZclosure
+integer, parameter :: Model_ID   = NPZclosure
 
 ! Number of phytoplankton groups
 integer, parameter :: NPHY       = 1
-logical, parameter :: DO_IRON = .FALSE.  ! Whether involve iron or not
+logical, parameter :: DO_IRON    = .FALSE.  ! Whether involve iron or not
 integer, parameter :: N_fer      = 33    ! Number of vertical layers for Iron
 ! Total of observation times in forcing data
 character(LEN=5), parameter :: LabelForc(TNFo) &
@@ -65,15 +65,15 @@ real               :: Varout(Nout, nlev) = 0d0
 character(LEN=10)  :: Labelout(Nout+ow)  = 'Unknown'
 ! Define parameter indices:
 integer, parameter :: imu0    = 1
-integer, parameter :: iIopt   = imu0  +1
-integer, parameter :: iaI0_C  = iIopt +1
-integer, parameter :: iKN     = iaI0_C+1
-integer, parameter :: iDp     = iKN   +1
-integer, parameter :: iwDET   = iDp   +1  ! Index for phytoplankton sinking rate
-integer, parameter :: ibeta   = iwDET +1  ! Beta: ratio of total variance to squares of mean concentration
-integer, parameter :: igmax   = ibeta +1  ! Maximal grazing rate
-integer, parameter :: imz     = igmax +1  ! Zooplankton mortality rate
-integer, parameter :: NPar    = imz       ! Total number of parameters
+integer, parameter :: iIopt   = imu0  + 1
+integer, parameter :: iaI0_C  = iIopt + 1
+integer, parameter :: iKN     = iaI0_C+ 1
+integer, parameter :: iDp     = iKN   + 1
+integer, parameter :: iwDET   = iDp   + 1  ! Index for phytoplankton sinking rate
+integer, parameter :: ibeta   = iwDET + 1  ! Beta: ratio of total variance to squares of mean concentration
+integer, parameter :: iKPHY   = ibeta + 1  ! Maximal grazing rate
+integer, parameter :: imz     = iKPHY + 1  ! Zooplankton mortality rate
+integer, parameter :: NPar    = imz        ! Total number of parameters
 real               :: params(NPar)     = 0d0  ! Define parameters
 character(LEN=8)   :: ParamLabel(NPar) = 'Unknown' !Define parameter labels
 
@@ -126,7 +126,7 @@ if (taskid==0) write(6,'(I2,1x,A30)') NPar,'parameters to be estimated.'
 
 ParamLabel(imu0)   = 'mu0hat'
 ParamLabel(imz)    = 'mz'
-ParamLabel(igmax)  = 'gmax'
+ParamLabel(iKPHY)  = 'KPHY'
 ParamLabel(iaI0_C) = 'aI0_C'
 ParamLabel(iKN)    = 'KN'
 ParamLabel(iwDET)  = 'wPHY'
@@ -138,9 +138,9 @@ MaxValue(imz)      =  0.2
 MinValue(imz)      =  0.05
   params(imz)      =  0.1
 
-MaxValue(igmax)    =  2d0
-MinValue(igmax)    =  0.02
-  params(igmax)    =  0.8
+MaxValue(iKPHY)    =  2d0**2
+MinValue(iKPHY)    =  0.02**2
+  params(iKPHY)    =  0.25
 
 ! KN:
 ! Fennel et al. (2006): 0.007~1.5
@@ -157,7 +157,7 @@ MinValue(iIopt)  = 50.
 
 MaxValue(ibeta)  = 7.0
 MinValue(ibeta)  = 0.001
-  params(ibeta)  = 2.0
+  params(ibeta)  = .1
 
 ! The ratio of phytoplankton death rate to mumax
 MaxValue(iDp)    = 0.9
