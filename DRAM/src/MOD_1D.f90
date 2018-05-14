@@ -159,10 +159,10 @@ integer              :: NL  ! for counting of OBS_DOY et al.
 integer, allocatable :: kk(:)
 
 Select case(Model_ID)
-  case(NPclosure, NPZclosure)
+  case(NPclosure)
      NDTYPE      = 3  !TIN, CHL, PP
      INCLUDESIZE = .FALSE.
-  case(NPZDFix,NPPZDD,EFTPPDD,Geidersimple,GeiderDroop, EFTsimple, NPZDFixIRON, GeidsimIRON,EFT2sp,NPZD2sp, EFTsimIRON)
+  case(NPZDFix, NPZclosure, NPPZDD,EFTPPDD,Geidersimple,GeiderDroop, EFTsimple, NPZDFixIRON, GeidsimIRON,EFT2sp,NPZD2sp, EFTsimIRON)
      ! Data types must be the same for different stations.
      ! But can be different for different models
      NDTYPE      = 4  !TIN, CHL, PP, PON
@@ -262,7 +262,7 @@ allocate(NDPTS(NDTYPE,Nstn),  STAT = AllocateStatus)
 IF (AllocateStatus /= 0) STOP "*** Error in allocating NDPTS ***"
 
 Do j = 1, Nstn
-  if(taskid==0) write(6,*) 'Station name: ',Stn(j)
+  if(taskid==0) write(6,*) 'Station name: ', trim(Stn(j))
 ! Assign the data dimension, must be consistent with external file:
   if (trim(Stn(j)) .eq. 'S1') then
       N_Aks(j)       = 40
