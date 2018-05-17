@@ -1,14 +1,15 @@
 subroutine  Readcsv(filename,nrow,ncol,dat)
 implicit none
 character(LEN=20),intent(in)      :: filename
-integer,          intent(out)     :: nrow, ncol
+integer,          intent(in)      :: nrow, ncol
 character(LEN=10),dimension(ncol) :: header
 integer,          parameter       :: stdout=6, funit = 9
 real, dimension(nrow,ncol), intent(out):: dat
-integer    :: err, ix, IOS
+integer    :: err, ix
 logical    :: I_opened
-character(LEN=100000) :: cff
+real       :: cff(ncol)
 
+   dat(:,:) = 0.0
    ! Inquire whether the unit has been opened or not
    INQUIRE (funit, OPENED=I_opened) 
 
@@ -26,6 +27,8 @@ character(LEN=100000) :: cff
 
    ELSE
      read(funit,*,iostat=err) header  !read the first row
+    ! write(stdout,*)  header
+
 
      if (err .gt. 0) then 
        write(stdout,*) 'The error is: ', err, 'at Row: ',ix, ' for ',TRIM(filename)
@@ -37,37 +40,26 @@ character(LEN=100000) :: cff
        CLOSE(funit)
        stop
      else
-       ! Determine nrow and ncol in the file
-
-       do while (IOS == 0)
-          read(fh, '(A)', iostat=ios) buffer
-          if (ios == 0) then
-             line = line + 1
-             
-             ! Find the first instance of whitespace.
-             ! Split label and data.
-             pos = scan(buffer, '    ')
-             label = buffer(1:pos)
-             buffer =
-                                     buffer(pos+1:)do ix = 1, nrow  
-         read(funit,*,iostat=IO) cff
-         if (err .gt. 0) then 
-           write(stdout,*) 'The error is: ', err, 'at Row: ',ix, ' for ',TRIM(filename)
-           CLOSE(funit)
-           stop
-         elseif (err .lt. 0) then
-           write(stdout,*) 'The error is: ', err, 'at Row: ',ix, ' for ',TRIM(filename)  
-           write(stdout,*) 'End of file reached!'
-           CLOSE(funit)
-           stop
-         else
-           dat(ix,:) = cff(:)
-         endif
-       enddo  
+       continue
      endif
-     dat(:,:) = 0.0
+
+     do ix = 1,nrow  
+       read(funit,*,iostat=err) cff(:)
+       if (err .gt. 0) then 
+         write(stdout,*) 'The error is: ', err, 'at Row: ',ix, ' for ',TRIM(filename)
+         CLOSE(funit)
+         stop
+       elseif (err .lt. 0) then
+         write(stdout,*) 'The error is: ', err, 'at Row: ',ix, ' for ',TRIM(filename)  
+         write(stdout,*) 'End of file reached!'
+         CLOSE(funit)
+         stop
+       else
+         dat(ix,:) = cff(:)
+       endif
+     enddo  
+
    ENDIF
    CLOSE(funit)
 ! End reading data
 End subroutine Readcsv
-
