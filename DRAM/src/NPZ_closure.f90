@@ -14,11 +14,14 @@ real :: QN  ! cell quota related variables
 real :: muNet, Dp, PP_PN, muSI, KN, gmax
 real :: SI, CFF1, CFF2
 real :: theta, Snp, Kp
-real :: Chl, NPPt, Zmort1
+real :: Chl, NPPt, Zmort1, Zmort2
 
-! Maximal grazing rate of zooplankton grazing 
-real, parameter :: Gm = 1d0   
+!Zooplankton feeding threshold for phytoplankton
+real, parameter :: Pt_bio = 0d0
+
 !-----------------------------------------------------------------------
+KN   = exp(params(iKN))
+Kp   = exp(params(iKPHY))
 DO k = nlev, 1, -1   
    ! Check whether in the MLD or not
    if (k .lt. N_MLD) then
@@ -47,6 +50,7 @@ DO k = nlev, 1, -1
                         Snp, Chl, NPPt, SVPHY, SVNO3, SCOVNP)
      Varout(oNPP, k) = NPPt * 12d0 ! Correct the unit to ug C/L
    ENDIF
+
    !Use mixed light to estimate source and sink
    call PHY_NPCLOSURE(NO3,PAR_,Temp(k),PHY,VPHY,VNO3, COVNP, muSI, muNet,SI,theta,QN, &
                         Snp, Chl, NPPt, SVPHY, SVNO3, SCOVNP)
@@ -62,62 +66,91 @@ DO k = nlev, 1, -1
    tf_P  = TEMPBOL(Ep, Temp(k))
    PP_PN = Snp - PHY*Dp*tf_P
    tf_Z  = TEMPBOL(Ez, Temp(k))
-   gmax  = Gm * tf_Z
-   Zmort = exp(params(imz))  *tf_Z   ! Mortality rate of zooplankton
-   Zmort1= Zmort * (ZOO**2 + VZOO)
+
+   ! params(igmax) is scaled factor to imu0
+   gmax  = exp(params(igmax)) * exp(params(imu0)) * tf_Z
+   Zmort = exp(params(imz))   * gmax   ! Mortality rate of zooplankton
+
+   Select case(ZOO_MORT)
+   case(linear)
+      Zmort1 = Zmort * ZOO
+      Zmort2 = Zmort
+   case(quadratic)
+      Zmort1 = Zmort * (ZOO**2 + VZOO)
+      Zmort2 = 2.*Zmort * ZOO
+   case default
+      stop "The correct zooplankton mortality option is NOT selected!"
+   end select
 
    ! Define two scratch variables that are repeatly used below
-   Kp    = exp(params(iKPHY))
-   CFF1  = PHY**2 / (Kp + PHY**2)
-   CFF2  = Kp*PHY / (Kp + PHY**2)**2
+   select case(grazing_formulation)
+   case(linear)
+      CFF1  = PHY
+      CFF2  = 1d0
+      INGES = gmax*(CFF1 * ZOO + COVPZ)
+   case(H2T) !Holling type 2 with threshold
+      NPPt   = PHY - Pt_bio
+      if (NPPt < 0.) then
+         CFF1  = 0d0
+         CFF2  = 1d0
+         INGES = 0d0
+      else
+         CFF1  = NPPt/ (Kp + NPPt)
+         CFF2  = Kp  / (Kp + NPPt)**2
+         INGES = gmax*( CFF1 * ZOO                                      &
+               - Kp * ZOO * VPHY /(Kp + NPPt)**3 + CFF2 * COVPZ)
+      endif
 
-   INGES = gmax*( CFF1 * ZOO                                            &
-         + Kp * ZOO * VPHY * (Kp - 3.* PHY**2)/(Kp + PHY**2)**3         &
-         + 2. * CFF2 * COVPZ )
+   case(H3)  !Holling type 3
+      CFF1  =    PHY**2 / (Kp**2 + PHY**2)
+      CFF2  = 2.*Kp**2 * PHY / (Kp**2 + PHY**2)**2
+
+      INGES = gmax*( CFF1 * ZOO                                          &
+            + Kp**2 * ZOO * VPHY*(Kp**2 - 3.*PHY**2)/(Kp**2 + PHY**2)**3 &
+            + CFF2 * COVPZ )
+   case default
+      stop "The correct option for zooplankton grazing function is NOT selected!"
+   end select
 
    PP_NZ = (1. - GGE)*INGES + Zmort1
-   PP_ZP = GGE*INGES
+   PP_ZP =        GGE*INGES
 
 !Update tracers:
    Varout(iNO3, k) = max(NO3  + (PP_NZ - PP_PN )*dtdays, eps)
    Varout(iPHY, k) = max(PHY  + (PP_PN - INGES )*dtdays, eps)
-   Varout(iZOO, k) = ZOO      + (PP_ZP - Zmort1)*dtdays
-   Varout(iZOO, k) = max(Varout(iZOO,k), eps)
+   Varout(iZOO, k) = max(ZOO  + (PP_ZP - Zmort1)*dtdays, eps)
+
+   SI   = NO3/(NO3 + KN)
+   NPPt = muSI*(SI * COVPZ + PHY * COVNZ * KN / (KN + NO3)**2 )
 
    Varout(iVPHY,k) = VPHY + (SVPHY - 2.*Dp*VPHY*tf_P                    &
-      - 2.*gmax*(2.* CFF2 * ZOO * VPHY + CFF1 * COVPZ) )*dtdays
-
-   Varout(iVPHY,k) = max(Varout(iVPHY,k), eps)
+      - 2.*gmax*(CFF2 * ZOO * VPHY + CFF1 * COVPZ) )*dtdays
 
    Varout(iVNO3,k) = VNO3 + (SVNO3 + 2.*Dp*COVNP*tf_P                   &
-        + 2.*(1.-GGE)*gmax*(2.* CFF2 * ZOO * COVNP + CFF1 * COVNZ)      &
-        + 4. * Zmort * ZOO * COVNZ)*dtdays
+        + 2.*(1.-GGE)*gmax*(CFF2 * ZOO * COVNP + CFF1 * COVNZ)          &
+        + 2.* Zmort2 * COVNZ) * dtdays
 
-   Varout(iVNO3,k) = max(Varout(iVNO3,k), eps)
+   Varout(iVZOO,k) = VZOO + 2.*dtdays*(GGE*gmax*( CFF2 * ZOO * COVPZ    &
+        + CFF1 * VZOO) - 2. * Zmort2 * VZOO )
 
-   Varout(iVZOO,k) = VZOO + 2.*dtdays*(GGE*gmax*(2.* CFF2 * ZOO * COVPZ &
-       + CFF1 * VZOO)     - 2.*Zmort * ZOO * VZOO)
-   Varout(iVZOO,k) = max(Varout(iVZOO,k), eps)
-
-   Varout(iCOVNP,k)= COVNP + (SCOVNP + Dp*tf_P*(VPHY-COVNP)             &
-       +  2.*Zmort * ZOO * COVPZ                                        &
-       +  2.*gmax*ZOO * CFF2 * ((1.-GGE)* VPHY - COVNP)                 &
-       +     gmax      *CFF1 * ((1.-GGE)*COVPZ - COVNZ) )*dtdays
-
-   KN   = exp(params(iKN))
-   SI   = NO3/(NO3 + KN)
-   NPPt = muSI*(SI * COVPZ + PHY * COVNZ * KN / (KN+NO3)**2 )
+   Varout(iCOVNP,k)= COVNP + (SCOVNP + Dp*tf_P*(VPHY - COVNP)           &
+       +     Zmort    * COVPZ                                           &
+       +     gmax*ZOO * CFF2 * ((1.-GGE)* VPHY - COVNP)                 &
+       +     gmax     * CFF1 * ((1.-GGE)*COVPZ - COVNZ) )*dtdays
 
    Varout(iCOVPZ,k) = COVPZ + ( NPPt                                    &
-       - (Dp*tf_P + 2. * ZOO * Zmort)*COVPZ                             &
-       + 2.* gmax * ZOO * CFF2 * (GGE * VPHY - COVPZ)                   &
-       + gmax * CFF1 *(GGE * COVPZ - VZOO))*dtdays
+       - (Dp*tf_P +  Zmort2)* COVPZ                                     &
+       + gmax * ZOO * CFF2 * (GGE * VPHY - COVPZ)                       &
+       + gmax       * CFF1 * (GGE * COVPZ - VZOO))*dtdays
 
    Varout(iCOVNZ,k) = COVNZ + (-NPPt + Dp*tf_P*COVPZ                    & 
-       + 2. * ZOO  * Zmort * (VZOO-COVNZ)                               &
-       + 2. * gmax * ZOO * CFF2 * (GGE*COVNP + (1.-GGE)*COVPZ)          &
-       + gmax * CFF1 * (GGE * COVNZ + (1. - GGE) * VZOO))*dtdays
+       + Zmort2*(VZOO - COVNZ)                                          &
+       + gmax * ZOO  * CFF2 * (GGE*COVNP + (1.-GGE)*COVPZ)              &
+       + gmax        * CFF1 * (GGE*COVNZ + (1.-GGE)*VZOO))*dtdays
 
    Varout(omuNet, k) = muNet               !Growth rate at <N>
+   Varout(iVPHY,k)   = max(Varout(iVPHY,k), eps)
+   Varout(iVNO3,k)   = max(Varout(iVNO3,k), eps)
+   Varout(iVZOO,k)   = max(Varout(iVZOO,k), eps)
 ENDDO
 END SUBROUTINE NPZ_CLOSURE 

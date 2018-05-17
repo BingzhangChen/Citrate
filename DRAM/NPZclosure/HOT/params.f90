@@ -72,7 +72,8 @@ integer, parameter :: iDp     = iKN   + 1
 integer, parameter :: iwDET   = iDp   + 1  ! Index for phytoplankton sinking rate
 integer, parameter :: ibeta   = iwDET + 1  ! Beta: ratio of total variance to squares of mean concentration
 integer, parameter :: iKPHY   = ibeta + 1  ! Maximal grazing rate
-integer, parameter :: imz     = iKPHY + 1  ! Zooplankton mortality rate
+integer, parameter :: igmax   = iKPHY + 1  ! Zooplankton mortality rate
+integer, parameter :: imz     = igmax + 1  ! Zooplankton mortality rate
 integer, parameter :: NPar    = imz        ! Total number of parameters
 real               :: params(NPar)     = 0d0  ! Define parameters
 character(LEN=8)   :: ParamLabel(NPar) = 'Unknown' !Define parameter labels
@@ -127,6 +128,7 @@ if (taskid==0) write(6,'(I2,1x,A30)') NPar,'parameters to be estimated.'
 ParamLabel(imu0)   = 'mu0hat'
 ParamLabel(imz)    = 'mz'
 ParamLabel(iKPHY)  = 'KPHY'
+ParamLabel(igmax)  = 'gmax'
 ParamLabel(iaI0_C) = 'aI0_C'
 ParamLabel(iKN)    = 'KN'
 ParamLabel(iwDET)  = 'wPHY'
@@ -134,13 +136,19 @@ ParamLabel(ibeta)  = 'beta'
 ParamLabel(iIopt)  = 'Iopt'
 ParamLabel(iDp)    = 'DPHY'
 
-MaxValue(imz)      =  0.2
-MinValue(imz)      =  0.05
+!Scaling factor of real gmax to mumax
+MaxValue(igmax)    =  10.
+MinValue(igmax)    =  0.2
+  params(igmax)    =  2.0
+
+!Scaling factor of real mz to gmax (assume linear mortality)
+MaxValue(imz)      =  0.8
+MinValue(imz)      =  0.01
   params(imz)      =  0.1
 
-MaxValue(iKPHY)    =  2d0**2
-MinValue(iKPHY)    =  0.02**2
-  params(iKPHY)    =  0.25
+MaxValue(iKPHY)    =  2d0
+MinValue(iKPHY)    =  0.02
+  params(iKPHY)    =  0.5
 
 ! KN:
 ! Fennel et al. (2006): 0.007~1.5
@@ -155,7 +163,7 @@ MaxValue(iIopt)  = 2500.
 MinValue(iIopt)  = 50.
   params(iIopt)  = 1d3
 
-MaxValue(ibeta)  = 7.0
+MaxValue(ibeta)  = 1d1
 MinValue(ibeta)  = 0.001
   params(ibeta)  = .1
 
