@@ -73,9 +73,11 @@ integer, parameter :: iDp     = iKN   + 1
 integer, parameter :: iwDET   = iDp   + 1  ! Index for phytoplankton sinking rate
 integer, parameter :: ibeta   = iwDET + 1  ! Beta: ratio of total variance to squares of mean concentration
 integer, parameter :: iKPHY   = ibeta + 1  ! Maximal grazing rate
-integer, parameter :: igmax   = iKPHY + 1  ! Zooplankton mortality rate
+integer, parameter :: igmax   = iKPHY + 1  ! Zooplankton maximal grazing rate
 integer, parameter :: imz     = igmax + 1  ! Zooplankton mortality rate
-integer, parameter :: NPar    = imz        ! Total number of parameters
+integer, parameter :: iVPHY0  = imz   + 1  ! Initial fraction of VPHY over B
+integer, parameter :: iVNO30  = iVPHY0+ 1  ! Initial fraction of VNO3 over B
+integer, parameter :: NPar    = iVNO30     ! Total number of parameters
 real               :: params(NPar)     = 0d0  ! Define parameters
 character(LEN=8)   :: ParamLabel(NPar) = 'Unknown' !Define parameter labels
 
@@ -136,6 +138,8 @@ if (taskid==0) write(6,'(I2,1x,A30)') NPar,'parameters to be estimated.'
 
 ParamLabel(imu0)   = 'mu0hat'
 ParamLabel(imz)    = 'mz'
+ParamLabel(iVPHY0) = 'VPHY0'
+ParamLabel(iVNO30) = 'VNO30'
 ParamLabel(iKPHY)  = 'KPHY'
 ParamLabel(igmax)  = 'gmax'
 ParamLabel(iaI0_C) = 'aI0_C'
@@ -158,6 +162,14 @@ MinValue(imz)      =  0.01
 MaxValue(iKPHY)    =  2d0
 MinValue(iKPHY)    =  0.02
   params(iKPHY)    =  0.5
+
+MaxValue(iVPHY0)   =  0.35
+MinValue(iVPHY0)   =  0.01
+  params(iVPHY0)   =  0.3
+
+MaxValue(iVNO30)   =  0.35
+MinValue(iVNO30)   =  0.01
+  params(iVNO30)   =  0.3
 
 ! KN:
 ! Fennel et al. (2006): 0.007~1.5
