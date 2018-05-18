@@ -705,7 +705,7 @@ integer  :: i,k,nm, j,jj, Nstep, current_day, current_DOY,DOY
 integer  :: j_
 
 ! Counting of the index of each data type
-real     :: cff,current_sec
+real     :: cff,current_sec, TA, TB
 real     :: I_0(1), dust0(1),Aks(0:nlev),w(0:nlev)
 real     :: depth(1)
 real     :: CHL_(nlev),Vars1(nlev),Vars2(nlev),ww_(0:nlev)
@@ -773,16 +773,29 @@ DO jj = 1, Nstn
            Vars(iCHL(i),  k) = Vars(iPHYC(i),k)*  12./50.
         endif
      enddo
-     if (Model_ID .eq. NPclosure .or. Model_ID .eq. NPZclosure) then
-        Vars(iVPHY, k)    = Vars(iPHY(1),k)**2*exp(params(ibeta))
-        Vars(iVNO3, k)    = Vars(iNO3,   k)**2*exp(params(ibeta))
-        Vars(iCOVNP,k)    = zero
-        if (Model_ID .eq. NPZclosure) then
-           Vars(iZOO,k)   = 0.1
-           Vars(iVZOO, k) = Vars(iZOO,k)**2 * exp(params(ibeta))
-           Vars(iCOVNZ,k) = zero
-           Vars(iCOVPZ,k) = zero
-        endif
+     if (Model_ID .eq. NPclosure) then
+
+        ! Total mean concentration
+        TA = Vars(iPHY(1),k) + Vars(iNO3,k)
+
+        ! Total variance
+        TB = TA**2 * exp(params(ibeta))
+
+        Vars(iVPHY, k) = TB * exp(params(iVPHY0))
+        Vars(iVNO3, k) = TB * exp(params(iVNO30)) 
+        Vars(iCOVNP,k) = (TB - Vars(iVPHY,k) - Vars(iVNO3,k))/2.
+     else if (Model_ID .eq. NPZclosure) then
+        Vars(iZOO,k)   = 0.1
+        TA             = Vars(iPHY(1),k) + Vars(iNO3,k) + Vars(iZOO,k)
+        TB             = TA**2 * exp(params(ibeta))
+        Vars(iVPHY, k) = TB * exp(params(iVPHY0))
+        Vars(iVNO3, k) = TB * exp(params(iVNO30))
+        Vars(iCOVNP,k) = TB * 0.01
+
+        Vars(iVZOO, k) = TB * 0.3
+        Vars(iCOVNZ,k) = TB * 0.01
+        Vars(iCOVPZ,k) = (TB - Vars(iVPHY,k)-Vars(iVNO3,k)               &
+             - Vars(iVZOO,k)-2.*Vars(iCOVNP,k)-2.*Vars(iCOVNZ,k))/2.
      else
         Vars(iZOO,k)   = 0.1
         Vars(iDET,k)   = 0.1
@@ -1014,7 +1027,6 @@ DO jj = 1, Nstn
         enddo 
         PARavg = PARavg/abs(Z_w(N_MLD-1))
      endif
-  
     ! Biological rhs:
     selectcase(Model_ID)
       case(NPZD2sp)

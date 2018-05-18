@@ -81,7 +81,6 @@ DO k = nlev, 1, -1
    case default
       stop "The correct zooplankton mortality option is NOT selected!"
    end select
-
    ! Define two scratch variables that are repeatly used below
    select case(grazing_formulation)
    case(LINEAR)

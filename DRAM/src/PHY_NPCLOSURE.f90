@@ -36,7 +36,7 @@ Q     = 1./QN
 
 !Chl:C ratio at <N>
 cff   = (thetamax - thetamin)/PAR_
-theta = thetamin+muNet/alphaI*cff   !Unit: gChl/molC
+theta = thetamin + muNet/alphaI*cff   !Unit: gChl/molC
 
 !Chl:N ratio at <N>
 eta      = theta*Q

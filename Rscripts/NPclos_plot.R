@@ -51,7 +51,7 @@ Stn <- 'S1'
 system('ln -s S1.out.beta0.001 S1.out')
 
 plot_stn(Stns, VARs = c('NO3','PHY','ZOO'), 
-         Model = 'NPZclosure_sRun', finalyr = T, Dmax = -180)
+         Model = 'NPZclosure', finalyr = T, Dmax = -180)
 system('mv S1_1D.pdf S1_beta0.001.pdf')
 
 plot_v_n(Stn, Models, VARS=c('DIN','CHL','NPP'), BOTH=F)

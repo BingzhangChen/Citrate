@@ -95,7 +95,7 @@ real            :: Femin  =0.02,K0Fe  =0.8, alphaFe=0.14
 real, parameter :: GGE    =0.3, unass =0.24
 real, parameter :: Fe_N   =0.0265 ! Fe:Nitrogen molar ratio (nmol : umol)
 real, parameter :: RMchl0 =0.1
-real, parameter :: Ep     =0.5,  Ez   =0.65 
+real, parameter :: Ep     =0.4,  Ez    =0.4 
 real            :: alphamu=0.2,  betamu=-0.01
 real, parameter :: zetaChl=0.6,  zetaN =0.8
 real, parameter :: thetamax = 0.63, thetamin=0.02
