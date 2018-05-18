@@ -72,10 +72,10 @@ DO k = nlev, 1, -1
    Zmort = exp(params(imz))   * gmax   ! Mortality rate of zooplankton
 
    Select case(ZOO_MORT)
-   case(linear)
+   case(LINEAR)
       Zmort1 = Zmort * ZOO
       Zmort2 = Zmort
-   case(quadratic)
+   case(QUADRATIC)
       Zmort1 = Zmort * (ZOO**2 + VZOO)
       Zmort2 = 2.*Zmort * ZOO
    case default
@@ -84,7 +84,7 @@ DO k = nlev, 1, -1
 
    ! Define two scratch variables that are repeatly used below
    select case(grazing_formulation)
-   case(linear)
+   case(LINEAR)
       CFF1  = PHY
       CFF2  = 1d0
       INGES = gmax*(CFF1 * ZOO + COVPZ)
@@ -152,5 +152,6 @@ DO k = nlev, 1, -1
    Varout(iVPHY,k)   = max(Varout(iVPHY,k), eps)
    Varout(iVNO3,k)   = max(Varout(iVNO3,k), eps)
    Varout(iVZOO,k)   = max(Varout(iVZOO,k), eps)
+   Varout(oPON, k)   = PHY + ZOO
 ENDDO
 END SUBROUTINE NPZ_CLOSURE 

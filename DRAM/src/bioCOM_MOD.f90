@@ -68,7 +68,7 @@ real     :: DFe(nlev)                           ! Dissolved iron concentration
 real     :: Z_r(1:nlev), Z_w(0:nlev), Hz(nlev)  ! Grid variables
 real     :: I_zero
 integer  :: iZOO2, iDET,iDET2,iDETp,iDETFe, iPMU, iVAR, iPO4,iDIA
-integer  :: oZOO, oZOO2,oDET, oPON, oFER, oZ2N, oD2N, oPHYt
+integer  :: oZOO, oZOO2,oDET, oFER, oZ2N, oD2N, oPHYt
 integer  :: oPO4, oPOP, oDIA, oDIAu,oDETp, oDET2, oDETFe, iwDET2
 integer  :: itau,igb,oFescav,odstdep
 !integer  :: oPMU, oVAR, oMTo, oVTo, oMIo, oVIo
@@ -99,7 +99,7 @@ real, parameter :: Ep     =0.5,  Ez   =0.65
 real            :: alphamu=0.2,  betamu=-0.01
 real, parameter :: zetaChl=0.6,  zetaN =0.8
 real, parameter :: thetamax = 0.63, thetamin=0.02
-integer, parameter :: nutrient_uptake=1, grazing_formulation=3   
+integer, parameter :: nutrient_uptake=1
 real :: KFe    =0.08     !Unit: nM. Gregg (2003) used ~0.1 nM for phyto
 
 ! Size and weights for discrete models
