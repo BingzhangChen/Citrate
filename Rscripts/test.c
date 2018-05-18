@@ -3,11 +3,12 @@
 #define D2SEC 86400.    // How many seconds in one day
 #define NDAYS 36500     // How many years to run
 
-int main{
+int main() 
+{
     // A simple NPZ model
-    double N, P, Z
-    double dtday
-    int    Nsteps, i
+    double N, P, Z;
+    double dtday;
+    int    Nsteps, i;
 
     Nsteps = NDAYS * int(D2SEC)/int(DT); // The total number of time steps
     dtday  = DT/D2SEC;  // Time of one step in terms of days
