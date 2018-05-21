@@ -17,7 +17,7 @@ real :: theta, Snp, Kp
 real :: Chl, NPPt, Zmort1, Zmort2
 
 !Zooplankton feeding threshold for phytoplankton
-real, parameter :: Pt_bio = 0d0
+real, parameter :: Pt_bio = 0.1d0
 
 !-----------------------------------------------------------------------
 KN   = exp(params(iKN))
