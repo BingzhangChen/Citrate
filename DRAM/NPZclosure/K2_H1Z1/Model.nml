@@ -1,6 +1,6 @@
 &MCMCrun
-   nruns   = 10000,
-   EnsLen  = 100, 
+   nruns   = 2000,
+   EnsLen  = 2, 
    NDays   = 1800,
    Readfile= 0,
    NR_enspar=3,
