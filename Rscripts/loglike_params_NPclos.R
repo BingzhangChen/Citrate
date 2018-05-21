@@ -1,13 +1,13 @@
 #Plot LogLikehood of two models at two stations in one plot:
 pwd1  <- getwd()
 model <- 'NPZclosure'
-stn   <- 'S1'
+stn   <- 'S1_H3Z1'
 setwd(paste0('~/Working/FlexEFT1D/DRAM/',model, '/',stn, '/'))
 Nstn       <- 1
 burnin     <- 100
 NDTYPE     <- 3  #The number of obs. types
-np         <- 5  #The number of CPUs for paralell computing
-EnsLen     <- 100  #The number of ensembles
+np         <- 2  #The number of CPUs for paralell computing
+EnsLen     <- 20  #The number of ensembles
 enssig     <- read.table('enssig',header=T)
 enspar     <- read.table('enspar',header=T)
 
