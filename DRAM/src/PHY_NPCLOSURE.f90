@@ -1,10 +1,11 @@
 ! The subroutine for phytoplankton closure model
-SUBROUTINE PHY_NPCLOSURE(NO3,PAR_,Temp_,PHY,VPHY,VNO3, COVNP,mu0hatSI, muNet,SI,theta,QN, Snp, Chl, NPP, SVPHY, SVNO3, SCOVNP)
+SUBROUTINE PHY_NPCLOSURE(NO3,PAR_,Temp_,PHY,VPHY,VNO3, COVNP,mu0hatSI,  &
+        muNet,SI,theta,QN, PP_P_N, PP_N_P, Chl, NPP, PP_PP_NP, PP_NP_NN)
 USE PARAM_MOD
 Implicit none
 real, intent(in)  :: NO3, PAR_,Temp_,PHY, VPHY, VNO3, COVNP 
-real, intent(out) :: muNet, theta, QN, SI, Snp, Chl, NPP, SVPHY, SVNO3, &
-SCOVNP,mu0hatSI
+real, intent(out) :: muNet, theta, QN, SI, PP_P_N,PP_N_P, Chl, NPP, PP_NP_NN, PP_PP_NP, &
+mu0hatSI
 
 ! muNet: mean growth rate at <N>
 real :: mu0hat
@@ -24,10 +25,6 @@ fN       = NO3/(NO3 + Kn)  !Nitrogen limitation index
 
 ! Phytoplankton growth rate at the mean nitrogen:
 muNet = mu0hatSI*fN
-
-! Snp: ensemble mean production (nitrogen based)
-Snp   = PHY*muNet + mu0hatSI*(Kn*COVNP/(Kn+NO3)**2 - Kn*PHY*VNO3/(Kn+NO3)**3)
-
 !N:C ratio at <N>
 cff1  = 1.-Qmin/Qmax
 cff   = 1.-cff1*fN
@@ -57,9 +54,11 @@ d2NPPdN2 = PHY*(d2YdN2*dmuQ_dN/dYdN + 2.*dYdN**2*mu0hatSI*cff1)
 NPP      = PHY*muNet*Q + .5*(2.*COVNP*dmuQ_dN + VNO3*d2NPPdN2)
 NPP      = max(NPP, 0.)
 
+PP_P_N = PHY*muNet + mu0hatSI*Kn*COVNP/(Kn+NO3)**2 
+PP_N_P = mu0hatSI*Kn*PHY*VNO3/(Kn+NO3)**3
+
 ! Calculate sources and sinks of variances of N, P, and covariance of NP
-SVPHY    = 2.*mu0hatSI*(fN*VPHY         + Kn*PHY*       COVNP/(Kn+NO3)**2)
-SVNO3    =-2.*mu0hatSI*(fN*COVNP        + Kn*PHY*        VNO3/(Kn+NO3)**2) 
-SCOVNP   =    mu0hatSI*(fN*(COVNP-VPHY) + Kn*PHY*(VNO3-COVNP)/(Kn+NO3)**2) 
+PP_PP_NP = mu0hatSI*(fN*VPHY   + Kn*PHY*COVNP/(Kn+NO3)**2)
+PP_NP_NN = mu0hatSI*(fN*COVNP  + Kn*PHY* VNO3/(Kn+NO3)**2) 
 return
 END SUBROUTINE PHY_NPCLOSURE
