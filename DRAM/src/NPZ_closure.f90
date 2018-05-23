@@ -133,7 +133,7 @@ DO k = nlev, 1, -1
         + CFF1 * VZOO) - 2. * Zmort2 * VZOO )
 
    Varout(iCOVNP,k)= COVNP + (SCOVNP + Dp*tf_P*(VPHY - COVNP)           &
-       +     Zmort    * COVPZ                                           &
+       +     Zmort2   * COVPZ                                           &
        +     gmax*ZOO * CFF2 * ((1.-GGE)* VPHY - COVNP)                 &
        +     gmax     * CFF1 * ((1.-GGE)*COVPZ - COVNZ) )*dtdays
 

@@ -1,7 +1,7 @@
-program main
+PROGRAM main
 USE PARAM_MOD
 IMPLICIT NONE
-real, parameter   :: tC   = 15.
+real, parameter   :: temp_= 15.
 real, parameter   :: PAR_ = 1000.
 ! Time step
 real, parameter   :: dtsec   = 60.
@@ -16,102 +16,122 @@ integer, parameter:: Nstep = NDAYS*INT(d_per_s)/INT(dtsec)
 ! Total nutrient concentration:
 real, parameter   :: A    = 2.
 
-real    :: B, beta
+! Number of beta values
+integer, parameter:: NB   = 5
+real, parameter   :: beta(NB) = [0.01, 0.1, 1., 2., 5.]
+
+! Number of parameters to test
+integer, parameter:: NPS  = 50
+
+real    :: B 
 real    :: current_sec 
 
 real    :: NO3, PHY, ZOO, VNO3, VPHY, VZOO, COVNP, COVNZ, COVPZ
+real    :: PP_P_N = 0d0, PP_N_P=0d0, PP_PP_NP=0d0
+real    :: PP_NP_NN=0d0, PP_NP_PP=0d0, PP_PZ_PP=0d0
+real    :: PP_Z_P=0d0, PP_N_Z=0d0
+real    :: PP_NP_PZ =0d0
+real    :: PP_NN_NP =0d0
+real    :: PP_NN_NZ =0d0
+real    :: PP_ZZ_PZ =0d0
+real    :: PP_PZ_NZ =0d0
+real    :: PP_NZ_PZ =0d0
+real    :: PP_NZ_NP =0d0
+real    :: PP_NZ_ZZ =0d0
 
 ! To count time
 real    :: start, finish
 integer :: i,j,k,it, current_day
 character(20)       :: str
-character(LEN=20)   :: outfile = ' '
+character(LEN=50)   :: outfile = ' '
 
 
 call cpu_time(start) 
+
 !Set parameters:
-params(imu0)    = log(2.)
-params(igmax)   = log(1.)
+params(imu0)    = log(1.)
 params(iKN)     = log(A * 0.5)
 params(iIopt)   = log(1d3)
 params(iaI0_C)  = log(0.05)
-params(iDp)     = log(0.4)
+params(iDp)     = log(0.1)
 params(imz)     = log(0.07)
 params(iKPHY)   = log(1d0)
 
 !Initialize:
 NO3   = 1.0
-PHY   = 0.5
+PHY   = 0.6
 ZOO   = A - NO3 - PHY
-beta  = 0.1
-B     = A*A*beta
 
-! B   = VNO3 + VPHY + VZOO + 2*(COVNP + COVPZ + COVNZ)
-VNO3  = B*0.3
-VPHY  = B*0.3
-VZOO  = B*0.4
-COVNP = B*.0
-COVPZ = B*.0
-COVNZ = B*.0
+DO j = 1, NPS
 
-! Create data out file
-write(str, '(F12.2)') beta
-str     = adjustl(str)
-outfile = 'beta'//str//'.out'
+  params(igmax) = log((5. - 0.1)/dble(NPS-1)*dble(j-1) + 0.1)
+  
+  DO i = 1, NB
+    B     = A*A*beta(i)
+    
+    ! B   = VNO3 + VPHY + VZOO + 2*(COVNP + COVPZ + COVNZ)
+    VNO3  = B*0.3
+    VPHY  = B*0.4
+    VZOO  = B*0.3
+    COVNP = B*.0
+    COVPZ = B*.0
+    COVNZ = B*.0
+    
+    ! Create data out file
+    write(str, '(F12.2)') beta(i)
+    str     = adjustl(str)
+    outfile = 'beta'//trim(str)
+    write(str, '(F12.2)') exp(params(igmax))
+    str     = adjustl(str)
+    outfile = trim(outfile)//'Gm'//trim(str)
 
-open (unit=10, file = outfile, status = 'replace')
-write(10, 101) 'Timestep', 'Days', 'NO3', 'PHY', 'ZOO', 'VNO3', 'VPHY',   &
-  'VZOO', 'COVNP', 'COVNZ', 'COVPZ' 
-write(10, 200) 0, 0, NO3,PHY,ZOO, VPHY,VNO3,VZOO,COVNP,COVNZ,COVPZ
+    open (unit=10, file = outfile, status = 'replace')
+    write(10, 101) 'Timestep', 'Days', 'NO3', 'PHY', 'ZOO', 'VNO3', 'VPHY', &
+      'VZOO', 'COVNP', 'COVNZ', 'COVPZ','P_N', 'N_P', 'Z_P','N_Z','PP_NP','NP_NN',& 
+      'NP_PP','PZ_PP', 'NP_PZ',                                             &
+      'NN_NP','NN_NZ','ZZ_PZ','PZ_NZ','NZ_PZ','NZ_NP','NZ_ZZ'
+  
+    write(10, 200) 0, 0, NO3,PHY,ZOO, VPHY,VNO3,VZOO,COVNP,COVNZ,COVPZ,PP_P_N,&
+     PP_N_P, PP_Z_P,PP_N_Z, PP_PP_NP, PP_NP_NN,PP_NP_PP,PP_PZ_PP,PP_NP_PZ,PP_NN_NP,&
+     PP_NN_NZ,PP_ZZ_PZ,PP_PZ_NZ,PP_NZ_PZ,PP_NZ_NP,PP_NZ_ZZ
+    
+    !the fraction of a time step in one day
+    dtdays = dtsec/d_per_s
+    
+    do it = 1, (NSTEP+1)
+    ! Calculate current timing (zero is starting time):
+      current_sec = float(it-1)*dtsec
+    
+      call NPZ_CLOSURE
+    
+      IF (mod(it, nsave) .EQ. 1) THEN !Save results
+          ! Calculate model time in days:
+          current_day = int(current_sec/d_per_s)
+          write(10, 200) it, current_day, NO3,PHY,ZOO, VPHY,VNO3,VZOO,COVNP,COVNZ,COVPZ,PP_P_N,&
+           PP_N_P, PP_Z_P,PP_N_Z, PP_PP_NP, PP_NP_NN,PP_NP_PP,PP_PZ_PP,PP_NP_PZ,PP_NN_NP,&
+           PP_NN_NZ,PP_ZZ_PZ,PP_PZ_NZ,PP_NZ_PZ,PP_NZ_NP,PP_NZ_ZZ
+      ENDIF
+    enddo
+    close(10)
+  ENDDO
+ENDDO
 
-101 format(100(A5,3x))
-
-!the fraction of a time step in one day
-dtdays = dtsec/d_per_s
-write(6,*) 'dtdays = ',dtdays
-
-do it = 1, (NSTEP+1)
-! Calculate current timing (zero is starting time):
-  current_sec = float(it-1)*dtsec
-
-  call NPZ_CLOSURE(PAR_, tC, NO3, PHY, ZOO, VPHY, VNO3,VZOO,COVNP,&
-    COVPZ,COVNZ)
-  IF (mod(it, nsave) .EQ. 1) THEN !Save results
-      ! Calculate model time in days:
-      current_day = int(current_sec/d_per_s)
-      write(10, 200) it, current_day, NO3,PHY,ZOO, VPHY,VNO3,VZOO,COVNP,&
-        COVNZ,COVPZ
-  ENDIF
-enddo
-close(10)
-call cpu_time(finish)
+Call cpu_time(finish)
 print '("Time = ",f8.3," seconds.")', (finish-start)
+101 format(100(A5,3x))
 200 format(I10, 2x, I5, 100(2x, 1pe12.2))
-end program
 
-SUBROUTINE NPZ_CLOSURE(par_, temp_, NO3, PHY, ZOO, VPHY, VNO3,VZOO,COVNP,&
-    COVPZ,COVNZ)
+CONTAINS 
+
+SUBROUTINE NPZ_CLOSURE
 ! This NPZ_closure model has 5 tracers: <N>, <P>, <Z>,<N'>^2, <P'>^2,<Z'>^2, <N'P'>,<N'Z'>,<P'Z'>
 ! Governing functions modified following Priyadarshi et al. JTB (2017)
 USE PARAM_MOD
 IMPLICIT NONE
-!INPUT/output PARAMETERS:
-real, intent(in)    :: par_, temp_
-real, intent(inout) :: NO3,PHY, ZOO, VPHY, VNO3,VZOO,COVNP, COVPZ,COVNZ
-
-real :: SVNO3, SVPHY, SCOVNP
 real :: QN  ! cell quota related variables
-real :: muNet, Dp, PP_PN, muSI, KN, gmax
+real :: muNet, Dp, muSI, KN, gmax
 real :: SI, CFF1, CFF2
-real :: theta,  Kp, PP_P_N, PP_N_P, PP_PP_NP, PP_NP_NN, PP_NP_PP, PP_PZ_PP
-real :: PP_NP_PZ
-real :: PP_NN_NP
-real :: PP_NN_NZ
-real :: PP_ZZ_PZ
-real :: PP_PZ_NZ
-real :: PP_NZ_PZ
-real :: PP_NZ_NP
-real :: PP_NZ_ZZ
+real :: theta,  Kp 
 real :: Chl, NPPt, Zmort1, Zmort2
 
 !Zooplankton feeding threshold for phytoplankton
@@ -121,34 +141,9 @@ real, parameter :: Pt_bio = 0.1d0
 KN   = exp(params(iKN))
 Kp   = exp(params(iKPHY))
 
-if (NO3 < 0.) then
-  write(6,*) "NO3 is negative!"
-  stop
-endif
-if (PHY < 0.) then
-  write(6,*) "PHY is negative!"
-  stop
-endif
-if (ZOO < 0.) then
-  write(6,*) "ZOO is negative!"
-  stop
-endif
-if (VPHY < 0.) then
-  write(6,*) "VPHY is negative!"
-  stop
-endif
-if (VZOO < 0.) then
-  write(6,*) "VZOO is negative!"
-  stop
-endif
-if (VNO3 < 0.) then
-  write(6,*) "VNO3 is negative!"
-  stop
-endif
-
 !Phytoplankton equations 
-call PHY_NPCLOSURE(NO3,PAR_,Temp_,PHY,VPHY,VNO3, COVNP,muSI,  &
-        muNet,SI,theta,QN, PP_P_N, PP_N_P, Chl, NPP, PP_PP_NP, PP_NP_NN)
+call PHY_NPCLOSURE(NO3,PAR_,temp_,PHY,VPHY,VNO3, COVNP,muSI,  &
+        muNet,SI,theta,QN, PP_P_N, PP_N_P, Chl, NPPt, PP_PP_NP, PP_NP_NN)
 !=============================================================
 !! Solve ODE functions:
 !All rates have been multiplied by dtdays to get the real rate correponding to the actual time step
@@ -209,20 +204,15 @@ PHY = PHY  + (PP_P_N - PP_Z_P - PP_N_P)*dtdays
 ZOO = ZOO  + (PP_Z_P - PP_N_Z)*dtdays
 
 SI   = NO3/(NO3 + KN)
-NPPt = muSI*(SI * COVPZ + PHY * COVNZ * KN / (KN + NO3)**2 )
 
 PP_NP_PP = Dp * tf_P * VPHY
 PP_PZ_PP = gmax*(CFF2*ZOO*VPHY + CFF1*COVPZ)
 
-!VPHY = VPHY + (SVPHY - 2.*Dp*VPHY*tf_P                    &
-!   - 2.*gmax*(CFF2 * ZOO * VPHY + CFF1 * COVPZ) )*dtdays
-
+PP_PZ_NZ = muSI*(SI * COVPZ + PHY * COVNZ * KN / (KN + NO3)**2 )
 PP_ZZ_PZ = gmax * (CFF2 * ZOO * COVPZ + CFF1 * VZOO)
-PP_PZ_NZ = NPPt
 PP_NZ_PZ = Dp*tf_P*COVPZ
 PP_NZ_NP = gmax * (CFF2 * COVNP * ZOO + CFF1 * COVNZ)
-PP_NZ_ZZ = Zmort2 * VZOO + gmax * (1.-GGE)*(CFF2*ZOO*COVPZ    &
-         + CFF1 * VZOO)
+PP_NZ_ZZ = Zmort2 * VZOO + gmax * (1.-GGE)*(CFF2*ZOO*COVPZ + CFF1 *VZOO)
 PP_NP_PZ = Zmort2*COVPZ + gmax*(1.-GGE)*(COVPZ*CFF1 + VPHY*ZOO*CFF2) 
 PP_NN_NP = Dp*COVNP*tf_P
 PP_NN_NZ = (CFF2*ZOO*COVNP + CFF1*COVNZ)*(1.-GGE)*gmax + Zmort2*COVNZ
@@ -232,6 +222,10 @@ VZOO     = VZOO + 2.*(PP_ZZ_PZ - PP_NZ_ZZ           )*dtdays
 COVNP    = COVNP+    (PP_NP_PZ + PP_NP_PP + PP_NP_NN - PP_PP_NP - PP_NN_NP - PP_NZ_NP)*dtdays
 COVNZ    = COVNZ+    (PP_NZ_NP + PP_NZ_ZZ + PP_NZ_PZ - PP_NN_NZ - PP_PZ_NZ)*dtdays
 COVPZ    = COVPZ+    (PP_PZ_NZ + PP_PZ_PP - PP_NZ_PZ - PP_NP_PZ - PP_ZZ_PZ)*dtdays
+
+!VPHY = VPHY + (SVPHY - 2.*Dp*VPHY*tf_P                    &
+!   - 2.*gmax*(CFF2 * ZOO * VPHY + CFF1 * COVPZ) )*dtdays
+
 !VNO3 = VNO3 + (SVNO3 + 2.*Dp*COVNP*tf_P                   &
 !     + 2.*(1.-GGE)*gmax*(CFF2 * ZOO * COVNP + CFF1 * COVNZ)          &
 !     + 2.* Zmort2 * COVNZ) * dtdays
@@ -256,3 +250,5 @@ COVPZ    = COVPZ+    (PP_PZ_NZ + PP_PZ_PP - PP_NZ_PZ - PP_NP_PZ - PP_ZZ_PZ)*dtda
 
 return
 END SUBROUTINE NPZ_CLOSURE 
+
+END PROGRAM

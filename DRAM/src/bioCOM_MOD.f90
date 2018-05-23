@@ -167,6 +167,8 @@ real function grazing(Hollingtype, Ksat, Prey)
 implicit none
 real,    intent(in) :: Ksat, Prey
 integer, intent(in) :: Hollingtype
+
+grazing = 0.
 ! kp relates to the capture coefficient
 SELECT CASE(Hollingtype)
   ! Holling Type I
