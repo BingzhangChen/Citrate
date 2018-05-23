@@ -57,16 +57,15 @@ params(iDp)     = log(0.1)
 params(imz)     = log(0.07)
 params(iKPHY)   = log(1d0)
 
-!Initialize:
-NO3   = 1.0
-PHY   = 0.6
-ZOO   = A - NO3 - PHY
-
 DO j = 1, NPS
 
   params(igmax) = log((5. - 0.1)/dble(NPS-1)*dble(j-1) + 0.1)
   
   DO i = 1, NB
+    !Initialize:
+    NO3   = 1.0
+    PHY   = 0.6
+    ZOO   = A - NO3 - PHY
     B     = A*A*beta(i)
     
     ! B   = VNO3 + VPHY + VZOO + 2*(COVNP + COVPZ + COVNZ)
