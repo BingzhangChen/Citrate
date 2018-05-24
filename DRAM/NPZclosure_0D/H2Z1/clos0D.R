@@ -1,17 +1,22 @@
 beta = c(0.01, 0.1,0.5, 1, 2)
+A    = 2
 igm  = 1
 imz  = 2
-NPAR = imz
+iKN  = 3
+NPAR = iKN
 MAX  = numeric(NPAR)
 MIN  = MAX
 MIN[igm] = 0.01
 MAX[igm] = 5
 MIN[imz] = 0.01
 MAX[imz] = 0.8
+MIN[iKN] = 5
+MAX[iKN] = 0.01
 NB   = length(beta)
-NPS  = 50
+NPS  = 20
 gm   = MIN[igm] + (MAX[igm] - MIN[igm])/(NPS-1)*(0:(NPS-1))
 mz   = MIN[imz] + (MAX[imz] - MIN[imz])/(NPS-1)*(0:(NPS-1))
+KN   =(MIN[iKN] + (MAX[iKN] - MIN[iKN])/(NPS-1)*(0:(NPS-1))) * A
 stab = array(T, c(NB, NPS, NPS))
 for (i in 1:NB){
     for (j in 1:NPS){

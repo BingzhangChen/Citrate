@@ -13,7 +13,7 @@ real, parameter   :: dtsec   = 60.   ! Unit: seconds
 real, parameter   :: d_per_s = 864d2 ! how many seconds in one day
 integer, parameter:: nsave   = INT(d_per_s)/INT(dtsec) ! Save results once per day
 !Total time (days) of model running
-integer, parameter:: NDAYS = 3
+integer, parameter:: NDAYS = 360
 
 !Total number of time steps
 integer, parameter:: Nstep = NDAYS*INT(d_per_s)/INT(dtsec) 
@@ -73,7 +73,7 @@ MaxValue(igmax) = 5.
 MinValue(igmax) = 0.01
 MaxValue(imz)   = 0.8
 MinValue(imz)   = 0.01
-MaxValue(iKN)   = 5.
+MaxValue(iKN)   = 3.
 MinValue(iKN)   = 0.01
 
 DO p = 1, NPS
