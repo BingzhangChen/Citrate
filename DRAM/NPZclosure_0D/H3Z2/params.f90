@@ -149,8 +149,8 @@ ParamLabel(iIopt)  = 'Iopt'
 ParamLabel(iDp)    = 'DPHY'
 
 !Scaling factor of real gmax to mumax
-MaxValue(igmax)    =  10.
-MinValue(igmax)    =  0.2
+MaxValue(igmax)    =  5.
+MinValue(igmax)    =  0.01
   params(igmax)    =  2.0
 
 !Scaling factor of real mz to gmax (assume linear mortality)
