@@ -27,9 +27,14 @@ real    :: B
 real    :: current_sec 
 
 real    :: NO3, PHY, ZOO, VNO3, VPHY, VZOO, COVNP, COVNZ, COVPZ
-real    :: PP_P_N = 0d0, PP_N_P=0d0, PP_PP_NP=0d0
-real    :: PP_NP_NN=0d0, PP_NP_PP=0d0, PP_PZ_PP=0d0
-real    :: PP_Z_P=0d0, PP_N_Z=0d0
+real    :: PP_P_N   =0d0
+real    :: PP_N_P   =0d0
+real    :: PP_PP_NP =0d0
+real    :: PP_NP_NN =0d0
+real    :: PP_NP_PP =0d0
+real    :: PP_PZ_PP =0d0
+real    :: PP_Z_P   =0d0
+real    :: PP_N_Z   =0d0
 real    :: PP_NP_PZ =0d0
 real    :: PP_NN_NP =0d0
 real    :: PP_NN_NZ =0d0
@@ -75,7 +80,23 @@ DO j = 1, NPS
     COVNP = B*.0
     COVPZ = B*.0
     COVNZ = B*.0
-    
+    PP_P_N   =0d0
+    PP_N_P   =0d0
+    PP_PP_NP =0d0
+    PP_NP_NN =0d0
+    PP_NP_PP =0d0
+    PP_PZ_PP =0d0
+    PP_Z_P   =0d0
+    PP_N_Z   =0d0
+    PP_NP_PZ =0d0
+    PP_NN_NP =0d0
+    PP_NN_NZ =0d0
+    PP_ZZ_PZ =0d0
+    PP_PZ_NZ =0d0
+    PP_NZ_PZ =0d0
+    PP_NZ_NP =0d0
+    PP_NZ_ZZ =0d0
+
     ! Create data out file
     write(str, '(F12.2)') beta(i)
     str     = adjustl(str)
@@ -134,7 +155,7 @@ real :: theta,  Kp
 real :: Chl, NPPt, Zmort1, Zmort2
 
 !Zooplankton feeding threshold for phytoplankton
-real, parameter :: Pt_bio = 0.1d0
+real, parameter :: Pt_bio = 0.001d0
 
 !-----------------------------------------------------------------------
 KN   = exp(params(iKN))
@@ -153,7 +174,7 @@ PP_N_P = PP_N_P + PHY*Dp*tf_P
 
 ! params(igmax) is scaled factor to imu0
 gmax  = exp(params(igmax)) * exp(params(imu0)) * tf_Z
-Zmort = exp(params(imz))   * gmax   ! Mortality rate of zooplankton
+Zmort = exp(params(imz))   * exp(params(imu0)  * tf_Z   ! Mortality rate of zooplankton
 Select case(ZOO_MORT)
 case(LINEAR)
    Zmort1 = Zmort * ZOO
