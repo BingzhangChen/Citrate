@@ -1,19 +1,16 @@
 #Plot LogLikehood of two models at two stations in one plot:
 pwd1  <- getwd()
 model <- 'NPZclosure'
-stn   <- 'S1_H3Z1'
-setwd(paste0('~/Working/FlexEFT1D/DRAM/',model, '/',stn, '/'))
 Nstn       <- 1
 burnin     <- 100
-NDTYPE     <- 3  #The number of obs. types
+NDTYPE     <- 4  #The number of obs. types
 np         <- 2  #The number of CPUs for paralell computing
-EnsLen     <- 20  #The number of ensembles
+EnsLen     <- 5  #The number of ensembles
 enssig     <- read.table('enssig',header=T)
 enspar     <- read.table('enspar',header=T)
 
 #Convert params to original unit:
 enspar[,2:ncol(enspar)] <- exp(enspar[,2:ncol(enspar)])
-
 
 #Get bestpar:
 best    = which.max(enspar$LogL)
@@ -60,7 +57,7 @@ for (i in 1:np){
 ii = 1
 mtext(letters[ii],adj=0,cex=.8)
 
-varnames <- c('DIN','Chl','NPP')
+varnames <- c('DIN','Chl','NPP','PON')
 
 for (i in 1:(NDTYPE*Nstn)){
 

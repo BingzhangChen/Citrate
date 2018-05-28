@@ -1,14 +1,14 @@
 #Plot station map:
 source('~/Working/FlexEFT1D/Rscripts/Stnmap_Kv_S1K2.R')
 Model <- 'NPZclosure'
-Stn   <- 'S1'
+Stn   <- 'K2'
 DIR   <- paste0('~/Working/FlexEFT1D/DRAM/',Model,'/',Stn,'/')
 setwd(DIR)
 source('~/Working/FlexEFT1D/Rscripts/loglike_params_NPclos.R')  #Plot time-evolution of Log-Likelihoods and parameters 
 
 #Check total concentration and variance:
 source('~/Working/FlexEFT1D/Rscripts/plot_TN_TVAR.R')
-plot_TN_TVAR('NPZclosure',Stns='HOT')
+plot_TN_TVAR('NPZclosure',Stns='K2')
 #Plot an example of five years to show seasonal cycle:
 if (model == 'NPclosure'){
    VARs    <- c('NO3','PHY','VNO3','VPHY','COVNP')
@@ -16,7 +16,7 @@ if (model == 'NPclosure'){
    VARs    <- c('NO3','PHY','ZOO','VNO3','VPHY','VZOO','COVNP','COVNZ', 'COVPZ')
 }
 source('~/Working/FlexEFT1D/Rscripts/plot_stn_contour.R')
-plot_stn('S1', VARs, Model='NPZclosure', finalyr = F, Dmax = -200)
+plot_stn('K2', VARs, Model='NPZclosure', finalyr = F, Dmax = -200)
 
 #One plot for one station (only final year):
 if (model == 'NPclosure'){
@@ -24,7 +24,7 @@ if (model == 'NPclosure'){
 }else if (model == 'NPZclosure'){
    VARs <- c('NO3','PHY','CHL','VNO3','VPHY', 'VZOO', 'COVNP', 'COVPZ','COVNZ')
 }
-Stns <- c('S1')
+Stns <- c('K2')
 plot_stn(Stns, VARs = c('NO3','PHY','ZOO'), 
          Model = 'NPZclosure', finalyr = T, Dmax = -180)
 

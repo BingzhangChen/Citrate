@@ -8,7 +8,7 @@ plot_stn <- function(Stns, VARs, Model='NPZDcont', BOTH = F, finalyr = T, Dmax =
                  family ="serif", cex.axis=1.2, cex.lab=1.2,
                  mar    = c(2,2,1.5,3.5),
                  mgp    = c(2.3,1,0),
-                 mfrow  = c(NVar,1),
+                 mfrow  = c(3,2),
                  oma    = c(4,4,1,0)) 
      for (i in 1:NVar){
          VAR = VARs[i]
@@ -21,7 +21,7 @@ plot_stn <- function(Stns, VARs, Model='NPZDcont', BOTH = F, finalyr = T, Dmax =
          }else{
            zlim <- NULL
          }
-         plot_1D(VAR,Model,Stn,finalyr = finalyr,BOTH=Both, Dmax = Dmax, ZLIM = zlim)
+         plot_1D(VAR,Model,Stn,finalyr = finalyr,BOTH=BOTH, Dmax = Dmax, ZLIM = zlim)
          mtext(paste0(letters[i],')'),adj=0, outer=F)
      }
      mtext('Depth (m)', side = 2, outer=TRUE, line=2)
