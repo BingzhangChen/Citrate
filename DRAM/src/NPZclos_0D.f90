@@ -9,7 +9,7 @@ real, parameter   :: temp_ = 15.
 real, parameter   :: PAR_  = 1000.
 
 ! Time step
-real, parameter   :: dtsec   = 60.   ! Unit: seconds
+real, parameter   :: dtsec   = 300.   ! Unit: seconds
 real, parameter   :: d_per_s = 864d2 ! how many seconds in one day
 integer, parameter:: nsave   = INT(d_per_s)/INT(dtsec) ! Save results once per day
 !Total time (days) of model running
@@ -33,7 +33,7 @@ real    :: current_sec
 
 ! Biological tracers
 real    :: NO3, PHY, ZOO, VNO3, VPHY, VZOO, COVNP, COVNZ, COVPZ
-
+real    :: NO3_,PHY_,ZOO_
 ! Fluxes
 real    :: PP_P_N   =0d0
 real    :: PP_N_P   =0d0
@@ -54,12 +54,20 @@ real    :: PP_NZ_ZZ =0d0
 
 ! To count time
 real    :: start, finish
-integer :: i,j,k,p,it, current_day
+integer :: i,j,k,p,it, current_day = 0
+integer :: stab = 1
 character(20)       :: str
-character(LEN=50)   :: outfile = ' '
 
+! File saving simulation results for each parameter combination
+character(LEN=50)   :: outfile  = '.out'
+
+! File saving which parameter combination leads to stable model output
+character(LEN=50)   :: stabfile = '.stb'
 
 call cpu_time(start) 
+
+!the fraction of a time step in one day
+dtdays = dtsec/d_per_s
 
 !Set parameters (the parameters will be back transformed to normal values in the main subroutine):
 params(imu0)    = log(1.)
@@ -76,27 +84,49 @@ MinValue(imz)   = 0.01
 MaxValue(iKN)   = 3.
 MinValue(iKN)   = 0.01
 
-DO p = 1, NPS
- params(iKN) = log(A) + log((MaxValue(iKN) - MinValue(iKN))/dble(NPS-1)*dble(p-1)&
-       + MinValue(iKN))
 
- DO j = 1, NPS
+DO k = 1, NB
+    ! beta = B/A**2
+    B = A*A*beta(k)
+
+    DO p = 1, NPS
+      params(iKN) = log(A) + log((MaxValue(iKN) - MinValue(iKN))/dble(NPS-1)*dble(p-1)&
+           + MinValue(iKN))
+
+      ! Create data out file and stabfile
+      write(str, '(F12.2)') beta(k)
+      str      = adjustl(str)
+      outfile  = 'beta'//trim(str)//'.out'
+      stabfile = 'beta'//trim(str)//'.stb'
+
+      write(str, '(F12.2)') exp(params(iKN))
+      str      = adjustl(str)
+      outfile  = 'KN'//trim(str)//trim( outfile)
+      stabfile = 'KN'//trim(str)//trim(stabfile)
+
+      open (unit=11, file = stabfile,status = 'replace')
+      write(11, 101) 'Gm','mz','STAB'
+
+      open (unit=10, file = outfile, status = 'replace')
+      write(10, 101) 'Gm','mz','Timestep', 'Days', 'NO3', 'PHY', 'ZOO', 'VNO3', 'VPHY', &
+        'VZOO', 'COVNP', 'COVNZ', 'COVPZ','P_N', 'N_P', 'Z_P','N_Z','PP_NP','NP_NN',& 
+        'NP_PP','PZ_PP', 'NP_PZ',                                             &
+        'NN_NP','NN_NZ','ZZ_PZ','PZ_NZ','NZ_PZ','NZ_NP','NZ_ZZ'
+   
+     DO j = 1, NPS
+     
+       params(igmax) = log((MaxValue(igmax) - MinValue(igmax))/dble(NPS-1)*dble(j-1)&
+           + MinValue(igmax))
+
+       DO i = 1, NPS
+         params(imz) = log((MaxValue(imz) - MinValue(imz))/dble(NPS-1)*dble(i-1)&
+           + MinValue(imz))
  
-   params(igmax) = log((MaxValue(igmax) - MinValue(igmax))/dble(NPS-1)*dble(j-1)&
-       + MinValue(igmax))
-   DO i = 1, NPS
-     params(imz) = log((MaxValue(imz) - MinValue(imz))/dble(NPS-1)*dble(i-1)&
-       + MinValue(imz))
- 
-     DO k = 1, NB
          !Initialize:
          NO3   = 1.0
          PHY   = 0.6
          ZOO   = A - NO3 - PHY
  
-         ! beta = B/A**2
-         B     = A*A*beta(k)
-         
          ! B   = VNO3 + VPHY + VZOO + 2*(COVNP + COVPZ + COVNZ)
          VNO3     =B*0.2
          VPHY     =B*0.3
@@ -120,58 +150,53 @@ DO p = 1, NPS
          PP_NZ_PZ =0d0
          PP_NZ_NP =0d0
          PP_NZ_ZZ =0d0
- 
-         ! Create data out file
-         write(str, '(F12.2)') beta(k)
-         str     = adjustl(str)
-         outfile = 'beta'//trim(str)
-         write(str, '(F12.2)') exp(params(igmax))
-         str     = adjustl(str)
-         outfile = trim(outfile)//'Gm'//trim(str)
-         write(str, '(F12.2)') exp(params(imz))
-         str     = adjustl(str)
-         outfile = trim(outfile)//'mz'//trim(str)
-         write(str, '(F12.2)') exp(params(iKN))
-         str     = adjustl(str)
-         outfile = trim(outfile)//'KN'//trim(str)
-
-         open (unit=10, file = outfile, status = 'replace')
-         write(10, 101) 'Timestep', 'Days', 'NO3', 'PHY', 'ZOO', 'VNO3', 'VPHY', &
-           'VZOO', 'COVNP', 'COVNZ', 'COVPZ','P_N', 'N_P', 'Z_P','N_Z','PP_NP','NP_NN',& 
-           'NP_PP','PZ_PP', 'NP_PZ',                                             &
-           'NN_NP','NN_NZ','ZZ_PZ','PZ_NZ','NZ_PZ','NZ_NP','NZ_ZZ'
-   
-         write(10, 200) 0, 0, NO3,PHY,ZOO, VPHY,VNO3,VZOO,COVNP,COVNZ,COVPZ,PP_P_N,&
-          PP_N_P, PP_Z_P,PP_N_Z, PP_PP_NP, PP_NP_NN,PP_NP_PP,PP_PZ_PP,PP_NP_PZ,PP_NN_NP,&
-          PP_NN_NZ,PP_ZZ_PZ,PP_PZ_NZ,PP_NZ_PZ,PP_NZ_NP,PP_NZ_ZZ
-         
-         !the fraction of a time step in one day
-         dtdays = dtsec/d_per_s
-         
+         stab = 1
+       
          do it = 1, (NSTEP+1)
          ! Calculate current timing (zero is starting time):
            current_sec = float(it-1)*dtsec
-         
-           call NPZ_CLOSURE
-         
+
            IF (mod(it, nsave) .EQ. 1) THEN !Save results
-               ! Calculate model time in days:
+              ! Calculate model time in days:
                current_day = int(current_sec/d_per_s)
-               write(10, 200) it, current_day, NO3,PHY,ZOO, VPHY,VNO3,VZOO,COVNP,COVNZ,COVPZ,PP_P_N,&
-                PP_N_P, PP_Z_P,PP_N_Z, PP_PP_NP, PP_NP_NN,PP_NP_PP,PP_PZ_PP,PP_NP_PZ,PP_NN_NP,&
-                PP_NN_NZ,PP_ZZ_PZ,PP_PZ_NZ,PP_NZ_PZ,PP_NZ_NP,PP_NZ_ZZ
+            
+              write(10, 200)  exp(params(igmax)), exp(params(imz)),  &
+               it, current_day, NO3,PHY,ZOO, VPHY,VNO3,VZOO,COVNP,COVNZ,COVPZ,PP_P_N,&
+               PP_N_P, PP_Z_P,PP_N_Z, PP_PP_NP, PP_NP_NN,PP_NP_PP,PP_PZ_PP,PP_NP_PZ,PP_NN_NP,&
+               PP_NN_NZ,PP_ZZ_PZ,PP_PZ_NZ,PP_NZ_PZ,PP_NZ_NP,PP_NZ_ZZ
            ENDIF
+
+           call NPZ_CLOSURE
+           
+           !Exit the loop if unrealistic conditions occur
+           IF (NO3 < -0.1 .or. PHY < -0.1 .or. ZOO < -0.1 .or. VNO3 < -0.1 .or. &
+               VPHY< -0.1 .or.VZOO < -0.1 .or.VPHY > 1D5  .or. VZOO > 1D5  .or. &
+               NO3.ne.NO3 .or. PHY.ne.PHY .or.ZOO.ne.ZOO  .or. VZOO.ne.VZOO.or. &
+               NO3 > 1D5  .or. PHY > 1D5  .or. ZOO > 1D5  .or. VNO3 > 1D5) THEN
+
+               stab = 0
+
+               ! Write into stabfile:
+               write(11,201) exp(params(igmax)), exp(params(imz)),stab
+               EXIT
+           ENDIF
+
          enddo
-         close(10)
+
+         ! Write into stabfile after simulation is finished:
+         if (stab .eq. 1) &
+         write(11,201) exp(params(igmax)), exp(params(imz)), stab
        ENDDO
    ENDDO
+   close(10) !Close outfile (to avoid very large file) 
+   close(11) !Close the stabfile
  ENDDO
 ENDDO
-
 Call cpu_time(finish)
 print '("Time = ",f8.3," seconds.")', (finish-start)
 101 format(100(A5,3x))
-200 format(I10, 2x, I5, 100(2x, 1pe12.2))
+200 format(2(1pe12.2, 2x),I10, 2x, I5, 100(2x, 1pe12.2))
+201 format(2(1pe12.2, 2x),I2)
 
 CONTAINS 
 
@@ -252,9 +277,9 @@ PP_N_Z = (1. - GGE)*INGES + Zmort1
 PP_Z_P = INGES
 
 !Update tracers:
-NO3 = NO3  + (PP_N_Z - PP_P_N + PP_N_P)*dtdays
-PHY = PHY  + (PP_P_N - PP_Z_P - PP_N_P)*dtdays
-ZOO = ZOO  + (PP_Z_P - PP_N_Z)*dtdays
+NO3_ = NO3  + (PP_N_Z - PP_P_N + PP_N_P)*dtdays
+PHY_ = PHY  + (PP_P_N - PP_Z_P - PP_N_P)*dtdays
+ZOO_ = ZOO  + (PP_Z_P - PP_N_Z)*dtdays
 
 SI   = NO3/(NO3 + KN)
 
@@ -275,7 +300,9 @@ VZOO     = VZOO + 2.*(PP_ZZ_PZ - PP_NZ_ZZ           )*dtdays
 COVNP    = COVNP+    (PP_NP_PZ + PP_NP_PP + PP_NP_NN - PP_PP_NP - PP_NN_NP - PP_NZ_NP)*dtdays
 COVNZ    = COVNZ+    (PP_NZ_NP + PP_NZ_ZZ + PP_NZ_PZ - PP_NN_NZ - PP_PZ_NZ)*dtdays
 COVPZ    = COVPZ+    (PP_PZ_NZ + PP_PZ_PP - PP_NZ_PZ - PP_NP_PZ - PP_ZZ_PZ)*dtdays
-
+NO3      = NO3_
+PHY      = PHY_
+ZOO      = ZOO_
 !VPHY = VPHY + (SVPHY - 2.*Dp*VPHY*tf_P                    &
 !   - 2.*gmax*(CFF2 * ZOO * VPHY + CFF1 * COVPZ) )*dtdays
 

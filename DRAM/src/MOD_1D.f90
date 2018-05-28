@@ -3,15 +3,15 @@ USE PARAM_MOD
 implicit none
 
 ! Grid parameters
-real, private, parameter :: hmax   = 5d2   ! Total water depth
+real, private, parameter :: hmax   = 2D2   ! Total water depth
 real, private, parameter :: thetaS = 2d0   ! surface stretching parameter
-real, private, parameter :: dtsec  = 3D2   ! time step in seconds
+real, private, parameter :: dtsec  = 60.D0 ! time step in seconds
 real, private, parameter ::d_per_s = 864d2 ! how many seconds in one day
 real, private, parameter :: zero   = 0d0
                       !how many seconds of one year
 integer, private, parameter :: y_per_s = INT(d_per_s*360), &
 
-!  Number of vertical points of NO3,Temp, and Aks profile
+! Number of vertical points of NO3,Temp, and Aks profile
                       N_NO3   = 37,               &  
                       N_PO4   = 37,               &
                       N_Temp  = 57,               &
@@ -65,7 +65,8 @@ real, private, target :: VPAR(1,     NFobs(ePAR) , Nstn)
 real, private, target :: VDust(1,    NFobs(eDust), Nstn)
 real, private, target :: Vwstr(1,    NFobs(ewstr), Nstn)
 
-logical, public  :: savefile
+logical, public  :: savefile    = .FALSE.
+logical, public  :: BAD_OUTPUT  = .FALSE.
 logical, public  :: INCLUDESIZE = .FALSE.
 
 ! New calculated state variables
@@ -788,12 +789,11 @@ DO jj = 1, Nstn
         Vars(iZOO,k)   = 0.1
         TA             = Vars(iPHY(1),k) + Vars(iNO3,k) + Vars(iZOO,k)
         TB             = TA**2 * exp(params(ibeta))
-        Vars(iVPHY, k) = TB * exp(params(iVPHY0))
-        Vars(iVNO3, k) = TB * exp(params(iVNO30))
-        Vars(iCOVNP,k) = TB * 0.01
-
-        Vars(iVZOO, k) = TB * 0.3
-        Vars(iCOVNZ,k) = TB * 0.01
+        Vars(iVPHY, k) =    TB * exp(params(iVPHY0))
+        Vars(iVNO3, k) =    TB * exp(params(iVNO30))
+        Vars(iCOVNP,k) =    TB * 0.05
+        Vars(iVZOO, k) = TB * 0.2
+        Vars(iCOVNZ,k) = TB * 0.05
         Vars(iCOVPZ,k) = (TB - Vars(iVPHY,k)-Vars(iVNO3,k)               &
              - Vars(iVZOO,k)-2.*Vars(iCOVNP,k)-2.*Vars(iCOVNZ,k))/2.
      else
@@ -1028,48 +1028,15 @@ DO jj = 1, Nstn
         PARavg = PARavg/abs(Z_w(N_MLD-1))
      endif
     ! Biological rhs:
-    selectcase(Model_ID)
-      case(NPZD2sp)
-        call NPZD_2sp
-      case(NPPZDD)
-        call NPPZDD_MOD
-      case(EFTPPDD)
-        call EFT_PPZDD_MOD
-      case(NPZDN2)
-        call NPZD_N2
-      case(Geiderdisc)
-        call Geider_DISC
-      case(GeiderDroop)
-        call Geider_Droop
-      case(EFTdisc)
-        call FLEXEFT_DISC
-      case(EFTcont)
-        call FLEXEFT_CONT
-      case(NPZDFix) 
-        call NPZD_Fix
-      case(NPZDFixIRON)
-        call NPZD_Fix
-      case(NPZDcont) 
-        call NPZD_CONT
-      case(CITRATE3)
-        call Citrate3_MOD
-      case(EFTsimple)
-        call FlexEFT_simple
-      case(EFT2sp)
-        call FLEXEFT_2SP
-      case(EFTsimIRON)
-        call FlexEFT_simple
-      case(Geidersimple)
-        call Geider_simple
-      case(GeidsimIRON)
-        call Geider_simple
-      case(NPclosure)
-        call NP_closure
-      case(NPZclosure)
-        call NPZ_closure
-      case default
-        stop 'Error in choosing biological models! Quit.'
-    endselect
+     call BIOLOGY
+     if (BAD_OUTPUT) then
+     ! Early rejection
+        TINout = eps
+        CHLout = eps
+        NPPout = eps
+        PONout = eps
+        exit
+     endif
 
     ! Interpolate w data throughout the water column:
     ! call time_interp(int(current_sec), size(obs_time_w,1), nlev+1,&
@@ -1157,9 +1124,7 @@ DO jj = 1, Nstn
            a(:,1) = Varout(iNO3,:)
 
            call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1), TINout(nm,1))       
-           if (TINout(nm,1) < 0.) then
-             write(6,*) "WARNING! Negative NO3 appears at depth ", depth(1), " at day ", DOY
-           endif
+           TINout(nm,1) = max(TINout(nm,1), zero)
           elseif (i .le. (nrow(1,jj)+nrow(2,jj)) ) then
              if (jj .eq. 1) then
                 nm = i- nrow(1,jj)
@@ -1174,9 +1139,7 @@ DO jj = 1, Nstn
           ! Calculate CHL output:
            a(:,1) = Varout(oCHLt,:)
            call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1), CHLout(nm,1))   
-           if (CHLout(nm,1) < 0.) then
-             write(6,*) "WARNING! Negative CHL appears at depth ", depth(1), " at day ", DOY
-           endif
+           CHLout(nm,1) = max(CHLout(nm,1), zero)
           elseif (i .le. (nrow(1,jj)+nrow(2,jj)+nrow(3,jj)) ) then
              if (jj .eq. 1) then
                 nm = i- nrow(1,jj) - nrow(2,jj)
@@ -1193,9 +1156,7 @@ DO jj = 1, Nstn
            call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
                 NPPout(nm,1))  
 
-           if (NPPout(nm,1) < 0.) then
-             write(6,*) "WARNING! Negative NPP appears at depth ", depth(1), " at day ", DOY
-           endif
+           NPPout(nm,1) = max(NPPout(nm,1), zero)
 
           elseif (i .le. (nrow(1,jj)+nrow(2,jj)+nrow(3,jj)+nrow(4,jj))) then
              if (jj .eq. 1) then
@@ -1213,6 +1174,7 @@ DO jj = 1, Nstn
            call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
                 PONout(nm,1))  
 
+           PONout(nm,1) = max(PONout(nm,1), zero)
           elseif (do_IRON .and. (i .le. (nrow(1,jj)+nrow(2,jj)+nrow(3,jj)+nrow(4,jj)+nrow(5,jj)))) then
 
              if (jj .eq. 1) then

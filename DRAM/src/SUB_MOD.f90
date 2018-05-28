@@ -465,7 +465,7 @@ DO i = 1, EnsLen
     CurrLogLike = CalcLogLike(CurrSSqE, sigma,subpcurr)
 
     call random_number(DR_p)
-    IF (log(DR_p) < (NewLogLike - CurrLogLike)) THEN
+    IF (log(DR_p) < (NewLogLike - CurrLogLike) .and. (.not. BAD_OUTPUT)) THEN
          CurrLogLike = NewLogLike
          CurrSSqE    = SSqE
          subpcurr    = subppro
@@ -486,7 +486,7 @@ DO i = 1, EnsLen
 
          ! Judge whether the second move should be accepted or not
          call random_number(DR_p)
-         if (DR_p < alpha13) then
+         if (DR_p < alpha13 .and. (.not. BAD_OUTPUT)) then
              !accept the second move (Y1)
             CurrLogLike = NewLogLike2
             CurrSSqE    = SS3
