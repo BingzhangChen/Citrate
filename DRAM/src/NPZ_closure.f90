@@ -2,19 +2,18 @@ SUBROUTINE BIOLOGY
     ! This NPZ_closure model has 5 tracers: <N>, <P>, <Z>,<N'>^2, <P'>^2,<Z'>^2, <N'P'>,<N'Z'>,<P'Z'>
     ! Governing functions modified following Priyadarshi et al. JTB (2017)
 USE PARAM_MOD
-USE MOD_1D, only: it, nsave, BAD_OUTPUT
+USE MOD_1D, only: it, nsave, MaxN, MaxVar
 IMPLICIT NONE
 integer :: k, i
 !INPUT PARAMETERS:
 real :: par_
 !LOCAL VARIABLES of phytoplankton:
 real :: NO3,PHY, ZOO,VPHY, VNO3,VZOO, COVNP,COVPZ,COVNZ 
-real :: NO3_,PHY_,ZOO_
-real :: SVNO3, SVPHY, SCOVNP
+real :: NO3_,PHY_,ZOO_,VPHY_, VNO3_,VZOO_, COVNP_,COVPZ_,COVNZ_ 
 real :: QN  ! cell quota related variables
 real :: muNet, Dp, PP_PN, muSI, KN, gmax
 real :: SI, CFF1, CFF2
-real :: theta, Snp, Kp
+real :: theta, Kp
 real :: Chl, NPPt, Zmort1, Zmort2
 
 ! Fluxes
@@ -36,13 +35,12 @@ real :: PP_NZ_NP =0d0
 real :: PP_NZ_ZZ =0d0
 
 !Zooplankton feeding threshold for phytoplankton
-real, parameter :: Pt_bio = 0.1d0
+real, parameter :: Pt_bio = 0d0
 
 !-----------------------------------------------------------------------
 KN   = exp(params(iKN))
 Kp   = exp(params(iKPHY))
 DO k = nlev, 1, -1   
-   BAD_OUTPUT = .FALSE.
    ! Check whether in the MLD or not
    if (k .lt. N_MLD) then
       par_ = PAR(k)
@@ -76,6 +74,9 @@ DO k = nlev, 1, -1
    Varout(oQN,   k) = QN   ! N:C ratio at <N> 
    Varout(oSI,   k) = SI   ! Light limitation
    Varout(oCHLt, k) = Chl  ! ensemble mean Chl
+   Varout(oP_N,  k) = PP_P_N
+   Varout(oPP_NP,k) = PP_PP_NP
+   Varout(oNP_NN,k) = PP_NP_NN
 !=============================================================
 !! Solve ODE functions:
 !All rates have been multiplied by dtdays to get the real rate correponding to the actual time step
@@ -83,6 +84,7 @@ DO k = nlev, 1, -1
    tf_P  = TEMPBOL(Ep, Temp(k))
    tf_Z  = TEMPBOL(Ez, Temp(k))
    PP_N_P = PP_N_P + PHY*Dp*tf_P
+   Varout(oN_P, k) = PP_N_P
 
    ! params(igmax) is scaled factor to imu0
    gmax  = exp(params(igmax)) * exp(params(imu0)) * tf_Z
@@ -131,33 +133,54 @@ DO k = nlev, 1, -1
 
    PP_N_Z = (1. - GGE)*INGES + Zmort1
    PP_Z_P = INGES
+   Varout(oN_Z, k) = PP_N_Z
+   Varout(oZ_P, k) = PP_Z_P
 
 !Update tracers:
    NO3_ = NO3  + (PP_N_Z - PP_P_N + PP_N_P)*dtdays
    PHY_ = PHY  + (PP_P_N - PP_Z_P - PP_N_P)*dtdays
    ZOO_ = ZOO  + (PP_Z_P - PP_N_Z)*dtdays
-   Varout(iNO3, k) = NO3_
-   Varout(iPHY, k) = PHY_
-   Varout(iZOO, k) = ZOO_
+   Varout(iNO3, k) = min(max(NO3_, eps), MaxN)
+   Varout(iPHY, k) = min(max(PHY_, eps), MaxN)
+   Varout(iZOO, k) = min(max(ZOO_, eps), MaxN)
 
    SI       = NO3/(NO3 + KN)
    PP_NP_PP = Dp * tf_P * VPHY
+   Varout(oNP_PP,k) = PP_NP_PP
+
    PP_PZ_PP = gmax*(CFF2*ZOO*VPHY + CFF1*COVPZ)
+   Varout(oPZ_PP,k) = PP_PZ_PP
    
    PP_PZ_NZ = muSI*(SI * COVPZ + PHY * COVNZ * KN / (KN + NO3)**2 )
+   Varout(oPZ_NZ,k) = PP_PZ_NZ
+
    PP_ZZ_PZ = gmax * (CFF2 * ZOO * COVPZ + CFF1 * VZOO)
+   Varout(oZZ_PZ,k) = PP_ZZ_PZ
+
    PP_NZ_PZ = Dp*tf_P*COVPZ
+   Varout(oNZ_PZ,k) = PP_NZ_PZ
+
    PP_NZ_NP = gmax * (CFF2 * COVNP * ZOO + CFF1 * COVNZ)
+   Varout(oNZ_NP,k) = PP_NZ_NP
+
    PP_NZ_ZZ = Zmort2 * VZOO + gmax * (1.-GGE)*(CFF2*ZOO*COVPZ + CFF1 *VZOO)
+   Varout(oNZ_ZZ,k) = PP_NZ_ZZ
+
    PP_NP_PZ = Zmort2*COVPZ + gmax*(1.-GGE)*(COVPZ*CFF1 + VPHY*ZOO*CFF2) 
+   Varout(oNP_PZ,k) = PP_NP_PZ
+
    PP_NN_NP = Dp*COVNP*tf_P
+   Varout(oNN_NP,k) = PP_NN_NP
+
    PP_NN_NZ = (CFF2*ZOO*COVNP + CFF1*COVNZ)*(1.-GGE)*gmax + Zmort2*COVNZ
-   VPHY     = VPHY + 2.*(PP_PP_NP - PP_NP_PP - PP_PZ_PP)*dtdays
-   VNO3     = VNO3 + 2.*(PP_NN_NP + PP_NN_NZ - PP_NP_NN)*dtdays
-   VZOO     = VZOO + 2.*(PP_ZZ_PZ - PP_NZ_ZZ           )*dtdays
-   COVNP    = COVNP+    (PP_NP_PZ + PP_NP_PP + PP_NP_NN - PP_PP_NP - PP_NN_NP - PP_NZ_NP)*dtdays
-   COVNZ    = COVNZ+    (PP_NZ_NP + PP_NZ_ZZ + PP_NZ_PZ - PP_NN_NZ - PP_PZ_NZ)*dtdays
-   COVPZ    = COVPZ+    (PP_PZ_NZ + PP_PZ_PP - PP_NZ_PZ - PP_NP_PZ - PP_ZZ_PZ)*dtdays
+   Varout(oNN_NZ,k) = PP_NN_NZ
+
+   VPHY_  = VPHY + 2.*(PP_PP_NP - PP_NP_PP - PP_PZ_PP)*dtdays
+   VNO3_  = VNO3 + 2.*(PP_NN_NP + PP_NN_NZ - PP_NP_NN)*dtdays
+   VZOO_  = VZOO + 2.*(PP_ZZ_PZ - PP_NZ_ZZ           )*dtdays
+   COVNP_ = COVNP+    (PP_NP_PZ + PP_NP_PP + PP_NP_NN - PP_PP_NP - PP_NN_NP - PP_NZ_NP)*dtdays
+   COVNZ_ = COVNZ+    (PP_NZ_NP + PP_NZ_ZZ + PP_NZ_PZ - PP_NN_NZ - PP_PZ_NZ)*dtdays
+   COVPZ_ = COVPZ+    (PP_PZ_NZ + PP_PZ_PP - PP_NZ_PZ - PP_NP_PZ - PP_ZZ_PZ)*dtdays
 
    !Varout(iVPHY,k) = VPHY + (SVPHY - 2.*Dp*VPHY*tf_P                    &
    !   - 2.*gmax*(CFF2 * ZOO * VPHY + CFF1 * COVPZ) )*dtdays
@@ -185,16 +208,13 @@ DO k = nlev, 1, -1
    !    + gmax        * CFF1 * (GGE*COVNZ + (1.-GGE)*VZOO))*dtdays
 
    Varout(omuNet, k) = muNet               !Growth rate at <N>
-   Varout(iVPHY,k)   = VPHY
-   Varout(iVNO3,k)   = VNO3
-   Varout(iVZOO,k)   = VZOO
+   Varout(iVPHY,k)   = min(max(VPHY_, eps), MaxVar)
+   Varout(iVNO3,k)   = min(max(VNO3_, eps), MaxVar)
+   Varout(iVZOO,k)   = min(max(VZOO_, eps), MaxVar)
+   Varout(iCOVNP,k)  = min(max(COVNP_, 0.), MaxVar)
+   Varout(iCOVPZ,k)  = min(max(COVPZ_, 0.), MaxVar)
+   Varout(iCOVNZ,k)  = min(max(COVNZ_, 0.), MaxVar)
    Varout(oPON, k)   = PHY + ZOO
 
-   ! Judge whether abnormal values occur
-   do i = 1, iVZOO
-      if (Varout(i,k) < -1d0 .or. Varout(i,k) > 1D5) then
-         BAD_OUTPUT = .TRUE.
-      endif
-   end do
 ENDDO
 END SUBROUTINE BIOLOGY

@@ -5,7 +5,7 @@ implicit none
 ! Grid parameters
 real, private, parameter :: hmax   = 2D2   ! Total water depth
 real, private, parameter :: thetaS = 2d0   ! surface stretching parameter
-real, private, parameter :: dtsec  = 60.D0 ! time step in seconds
+real, private, parameter :: dtsec  = 360.D0 ! time step in seconds
 real, private, parameter ::d_per_s = 864d2 ! how many seconds in one day
 real, private, parameter :: zero   = 0d0
                       !how many seconds of one year
@@ -19,6 +19,8 @@ integer, private, parameter :: y_per_s = INT(d_per_s*360), &
                       N_par   = 1 ,               &
                       N_Dust  = 1,                &
                       N_wstr  = 1
+
+integer, private, parameter :: N_PHY = 19  !Maximal depth 200 m 
 
 integer               :: nsave   = INT(d_per_s)/INT(dtsec) ! Timesteps to save
 
@@ -48,6 +50,9 @@ real, private :: obs_Dust(N_Dust,  1+NFobs(eDust))
 real, private :: obs_wstr(N_wstr,  1+NFobs(ewstr))
 real, private, allocatable :: obs_Aks(:,:) ! (N_Aks ,  1+NFobs(eAks ))
 
+! Initial phytoplankton data:
+real, private :: PHY_ini(N_PHY, 2) = 0d0
+
 ! Bottom data for NO3, PO4, and fer
 real, private, target :: NO3_bot(1,NFobs(eNO3), Nstn)
 real, private, target :: PO4_bot(1,NFobs(ePO4), Nstn)
@@ -66,7 +71,6 @@ real, private, target :: VDust(1,    NFobs(eDust), Nstn)
 real, private, target :: Vwstr(1,    NFobs(ewstr), Nstn)
 
 logical, public  :: savefile    = .FALSE.
-logical, public  :: BAD_OUTPUT  = .FALSE.
 logical, public  :: INCLUDESIZE = .FALSE.
 
 ! New calculated state variables
@@ -132,11 +136,12 @@ real,    allocatable ::  OBS_DOY(:), OBS_Depth(:)
 character(LabelLen), allocatable :: OBS_Label(:)
 
 ! Initial profile of NO3 and PO4:
-real, private               :: NO3(nlev,1,Nstn)
-real, private               :: PO4(nlev,1,Nstn)
+real, private               :: NO3(nlev,1,Nstn) = 0d0
+real, private               :: PO4(nlev,1,Nstn) = 0d0
+real, private               :: PH0(nlev,1,Nstn) = 0d0
 
 ! Initial profile of fer:
-real, private               :: fer(nlev,1,Nstn)
+real, private               :: fer(nlev,1,Nstn) = 0d0
 
 CONTAINS
 !-----------------------------------------------------------------------
@@ -529,6 +534,7 @@ integer            :: i,j,k
 real               :: a(1)  !a scratch vector with length 1
 ! Input files
 character(LEN=20)  :: forcfile(TNFo), forcfiletime(TNFo)
+character(LEN=20)  :: PHYfile
 
 !the fraction of a time step in one day
 dtdays = dtsec/d_per_s
@@ -564,6 +570,14 @@ do j = 1, Nstn
    call gridinterpol(N_NO3,NFobs(eNO3),obs_NO3(:,1),               &
                      obs_NO3(:,2:(NFobs(eNO3)+1)),                 &
                      1, a, NO3_bot(1,:,j)) 
+
+   ! Read initial PHYTO data:
+   PHYfile = trim(Stn(j))//'_'//'PHY.dat'
+   call Readcsv(PHYfile, N_PHY, 2, PHY_ini) 
+
+   ! Interpolate initial PHY:
+   call gridinterpol(N_PHY,1,PHY_ini(:,1),PHY_ini(:,2),                 &
+                     nlev, Z_r, PH0(:,1,j)) 
 
    if (N2fix) then
       ! Read PO4 data:
@@ -766,9 +780,16 @@ DO jj = 1, Nstn
   Vars(iNO3,:) = NO3(:,1,jj)
   
   ! Initialize other variables:
+
+  ! Estimate maximal N and variance in the system
+  if (Model_ID .eq. NPclosure .or. Model_ID .eq. NPZclosure) then
+      MaxN   = eps
+      MaxVar = eps
+  endif
   do k = 1,nlev
      do i = 1,NPHY
-        Vars(iPHY(i), k) = 0.1/float(NPHY)
+        ! Initialize initial PHYTO:
+        Vars(iPHY(i), k)     = PH0(k,1,jj)/float(NPHY)
         if (Model_ID==GeiderDroop) then
            Vars(iPHYC(i), k) = Vars(iPHY(i),k) * 106./16.
            Vars(iCHL(i),  k) = Vars(iPHYC(i),k)*  12./50.
@@ -782,25 +803,26 @@ DO jj = 1, Nstn
         ! Total variance
         TB = TA**2 * exp(params(ibeta))
 
-        Vars(iVPHY, k) = TB * exp(params(iVPHY0))
-        Vars(iVNO3, k) = TB * exp(params(iVNO30)) 
+        Vars(iVPHY, k) = TB * 0.3
+        Vars(iVNO3, k) = TB * 0.3
         Vars(iCOVNP,k) = (TB - Vars(iVPHY,k) - Vars(iVNO3,k))/2.
      else if (Model_ID .eq. NPZclosure) then
-        Vars(iZOO,k)   = 0.1
+        Vars(iZOO,k)   = Vars(iPHY(1),k) * 0.78
         TA             = Vars(iPHY(1),k) + Vars(iNO3,k) + Vars(iZOO,k)
         TB             = TA**2 * exp(params(ibeta))
-        Vars(iVPHY, k) =    TB * exp(params(iVPHY0))
-        Vars(iVNO3, k) =    TB * exp(params(iVNO30))
-        Vars(iCOVNP,k) =    TB * 0.05
+        MaxN           = max(MaxN, TA)
+        MaxVar         = max(TB, MaxVar)
+        Vars(iVPHY, k) = TB * 0.1
+        Vars(iVNO3, k) = TB * 0.1
         Vars(iVZOO, k) = TB * 0.2
+        Vars(iCOVNP,k) = TB * 0.2
         Vars(iCOVNZ,k) = TB * 0.05
-        Vars(iCOVPZ,k) = (TB - Vars(iVPHY,k)-Vars(iVNO3,k)               &
-             - Vars(iVZOO,k)-2.*Vars(iCOVNP,k)-2.*Vars(iCOVNZ,k))/2.
+        Vars(iCOVPZ,k) = TB * 0.05
      else
-        Vars(iZOO,k)   = 0.1
-        Vars(iDET,k)   = 0.1
+        Vars(iZOO,k)   = Vars(iPHY(1),k) * 0.78
+        if (iDET > 0) Vars(iDET,k) = Vars(iPHY(1),k)  !Following Verity et al. AME (1996)
      endif
-     if (iZOO2 > 0) Vars(iZOO2,k)=.05 
+     if (iZOO2 > 0) Vars(iZOO2,k)=Vars(iZOO,k) * .5
      if (NVAR > iDET .and. Model_ID < NPclosure) then
         do i = (iDET+1), NVAR
            Vars(i,k) = 1D-2
@@ -809,6 +831,7 @@ DO jj = 1, Nstn
      if (Model_ID==CITRATE3) then
        cff = log(pi/6.*2.**3) + log(1.0) !Initialize size of 2 µm 
        Vars(iPMU,k)=Vars(iPHY(1),k)*cff
+
        !Initialize VAR of 1
        Vars(iVAR,k)=Vars(iPHY(1),k)*(cff**2 + 1.)
 
@@ -1029,14 +1052,15 @@ DO jj = 1, Nstn
      endif
     ! Biological rhs:
      call BIOLOGY
-     if (BAD_OUTPUT) then
-     ! Early rejection
-        TINout = eps
-        CHLout = eps
-        NPPout = eps
-        PONout = eps
-        exit
-     endif
+
+     !if (BAD_OUTPUT) then
+     !! Early rejection
+     !   TINout = eps
+     !   CHLout = eps
+     !   NPPout = eps
+     !   PONout = eps
+     !   exit
+     !endif
 
     ! Interpolate w data throughout the water column:
     ! call time_interp(int(current_sec), size(obs_time_w,1), nlev+1,&
@@ -1416,7 +1440,7 @@ DO jj = 1, Nstn
   if(allocated(ww))      deallocate(ww)
   if(allocated(VarsBom)) deallocate(VarsBom)
 ENDDO  ! ==> End of Stn
-200   format(A10,1x,I10,1x,I7,<nlev>(2x,1pe12.3))
+200   format(A10,1x,I10,1x,I7,<nlev>(2x,F12.5))
 END subroutine Timestep
 !========================================================
 subroutine setup_grid
