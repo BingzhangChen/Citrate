@@ -92,7 +92,7 @@ integer, allocatable :: iCHL(:), oCHL(:)
 ! Some common Model parameters:
 real, parameter :: PMUmax =1.5D1, VARmax=50D0
 real            :: Femin  =0.02,K0Fe  =0.8, alphaFe=0.14
-real, parameter :: GGE    =0.3, unass =0.24
+real, parameter :: GGE    =0.7, unass =0.24
 real, parameter :: Fe_N   =0.0265 ! Fe:Nitrogen molar ratio (nmol : umol)
 real, parameter :: RMchl0 =0.1
 real, parameter :: Ep     =0.4,  Ez    =0.4 
