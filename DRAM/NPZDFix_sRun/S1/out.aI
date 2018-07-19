@@ -1,0 +1,80 @@
+ Inflexible NPZD model selected!
+ Labelout(           1 ) = Temp
+ Labelout(           2 ) = PAR
+ Labelout(           3 ) = Aks
+ Labelout(           4 ) = Dust
+ Labelout(           5 ) = w
+ Labelout(           6 ) = NO3
+ Labelout(           7 ) = PHY1
+ Labelout(           8 ) = ZOO
+ Labelout(           9 ) = DET
+ Labelout(          10 ) = CHL1
+ Labelout(          11 ) = PHY_T
+ Labelout(          12 ) = CHL_T
+ Labelout(          13 ) = muN1
+ Labelout(          14 ) = Gra1
+ Labelout(          15 ) = Lno1
+ Labelout(          16 ) = SI_1
+ Labelout(          17 ) = QN_1
+ Labelout(          18 ) = The1
+ Labelout(          19 ) = Z2N
+ Labelout(          20 ) = D2N
+ Labelout(          21 ) = NPP_T
+ Labelout(          22 ) = PON
+ Labelout(          23 ) = PAR_
+ Labelout(          24 ) = muAvg
+ Labelout(          25 ) = D_NO3
+ Labelout(          26 ) = D_P1
+ Labelout(          27 ) = D_ZOO
+ Labelout(          28 ) = D_DET
+ 8 parameters in total 
+ Stn name: S1 
+Total number of observations of S1  =  1713
+Observation data set up for S1 
+ParamLabel(  1) = mu0hat
+   Params(  1) =        1.000
+      Max(  1) =        1.200
+      Min(  1) =        0.300
+ParamLabel(  2) =   gmax
+   Params(  2) =        1.350
+      Max(  2) =        2.000
+      Min(  2) =        0.500
+ParamLabel(  3) =   KPHY
+   Params(  3) =        0.250
+      Max(  3) =        2.000
+      Min(  3) =        0.050
+ParamLabel(  4) =     mz
+   Params(  4) =        0.150
+      Max(  4) =        0.200
+      Min(  4) =        0.050
+ParamLabel(  5) =     KN
+   Params(  5) =        0.200
+      Max(  5) =        0.500
+      Min(  5) =        0.050
+ParamLabel(  6) =    Q0N
+   Params(  6) =        0.060
+      Max(  6) =        0.120
+      Min(  6) =        0.040
+ParamLabel(  7) =   wDET
+   Params(  7) =        0.600
+      Max(  7) =        1.300
+      Min(  7) =        0.000
+ParamLabel(  8) =  aI0_C
+   Params(  8) =        0.055
+      Max(  8) =        0.100
+      Min(  8) =        0.010
+Timestepping:        0.003 of one day.
+ Model setup finished for S1 
+mu0hat       2.442
+  gmax       1.614
+  KPHY       0.250
+    mz       0.050
+    KN       1.335
+   Q0N       0.040
+  wDET       0.000
+ aI0_C       0.060
+SSqE(1)=  3.217E+01
+SSqE(2)=  1.599E+01
+SSqE(3)=  7.138E+00
+SSqE(4)=  2.038E+00
+Time =    0.035 mins.

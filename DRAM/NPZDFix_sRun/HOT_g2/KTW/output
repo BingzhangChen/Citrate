@@ -1,0 +1,241 @@
+ Inflexible NPZD discrete model selected!
+ Labelout(           1 ) = Temp
+ Labelout(           2 ) = PAR
+ Labelout(           3 ) = Aks
+ Labelout(           4 ) = DFe
+ Labelout(           5 ) = w
+ Labelout(           6 ) = NO3
+ Labelout(           7 ) = PHY1
+ Labelout(           8 ) = PHY2
+ Labelout(           9 ) = PHY3
+ Labelout(          10 ) = PHY4
+ Labelout(          11 ) = PHY5
+ Labelout(          12 ) = PHY6
+ Labelout(          13 ) = PHY7
+ Labelout(          14 ) = PHY8
+ Labelout(          15 ) = PHY9
+ Labelout(          16 ) = PHY10
+ Labelout(          17 ) = PHY11
+ Labelout(          18 ) = PHY12
+ Labelout(          19 ) = PHY13
+ Labelout(          20 ) = PHY14
+ Labelout(          21 ) = PHY15
+ Labelout(          22 ) = PHY16
+ Labelout(          23 ) = PHY17
+ Labelout(          24 ) = PHY18
+ Labelout(          25 ) = PHY19
+ Labelout(          26 ) = PHY20
+ Labelout(          27 ) = ZOO
+ Labelout(          28 ) = DET
+ Labelout(          29 ) = CHL1
+ Labelout(          30 ) = CHL2
+ Labelout(          31 ) = CHL3
+ Labelout(          32 ) = CHL4
+ Labelout(          33 ) = CHL5
+ Labelout(          34 ) = CHL6
+ Labelout(          35 ) = CHL7
+ Labelout(          36 ) = CHL8
+ Labelout(          37 ) = CHL9
+ Labelout(          38 ) = CHL10
+ Labelout(          39 ) = CHL11
+ Labelout(          40 ) = CHL12
+ Labelout(          41 ) = CHL13
+ Labelout(          42 ) = CHL14
+ Labelout(          43 ) = CHL15
+ Labelout(          44 ) = CHL16
+ Labelout(          45 ) = CHL17
+ Labelout(          46 ) = CHL18
+ Labelout(          47 ) = CHL19
+ Labelout(          48 ) = CHL20
+ Labelout(          49 ) = PHY_T
+ Labelout(          50 ) = CHL_T
+ Labelout(          51 ) = CHLs1
+ Labelout(          52 ) = CHLs2
+ Labelout(          53 ) = CHLs3
+ Labelout(          54 ) = CHLs4
+ Labelout(          55 ) = muN1
+ Labelout(          56 ) = muN2
+ Labelout(          57 ) = muN3
+ Labelout(          58 ) = muN4
+ Labelout(          59 ) = muN5
+ Labelout(          60 ) = muN6
+ Labelout(          61 ) = muN7
+ Labelout(          62 ) = muN8
+ Labelout(          63 ) = muN9
+ Labelout(          64 ) = muN10
+ Labelout(          65 ) = muN11
+ Labelout(          66 ) = muN12
+ Labelout(          67 ) = muN13
+ Labelout(          68 ) = muN14
+ Labelout(          69 ) = muN15
+ Labelout(          70 ) = muN16
+ Labelout(          71 ) = muN17
+ Labelout(          72 ) = muN18
+ Labelout(          73 ) = muN19
+ Labelout(          74 ) = muN20
+ Labelout(          75 ) = Gra1
+ Labelout(          76 ) = Gra2
+ Labelout(          77 ) = Gra3
+ Labelout(          78 ) = Gra4
+ Labelout(          79 ) = Gra5
+ Labelout(          80 ) = Gra6
+ Labelout(          81 ) = Gra7
+ Labelout(          82 ) = Gra8
+ Labelout(          83 ) = Gra9
+ Labelout(          84 ) = Gra10
+ Labelout(          85 ) = Gra11
+ Labelout(          86 ) = Gra12
+ Labelout(          87 ) = Gra13
+ Labelout(          88 ) = Gra14
+ Labelout(          89 ) = Gra15
+ Labelout(          90 ) = Gra16
+ Labelout(          91 ) = Gra17
+ Labelout(          92 ) = Gra18
+ Labelout(          93 ) = Gra19
+ Labelout(          94 ) = Gra20
+ Labelout(          95 ) = Lno1
+ Labelout(          96 ) = Lno2
+ Labelout(          97 ) = Lno3
+ Labelout(          98 ) = Lno4
+ Labelout(          99 ) = Lno5
+ Labelout(         100 ) = Lno6
+ Labelout(         101 ) = Lno7
+ Labelout(         102 ) = Lno8
+ Labelout(         103 ) = Lno9
+ Labelout(         104 ) = Lno10
+ Labelout(         105 ) = Lno11
+ Labelout(         106 ) = Lno12
+ Labelout(         107 ) = Lno13
+ Labelout(         108 ) = Lno14
+ Labelout(         109 ) = Lno15
+ Labelout(         110 ) = Lno16
+ Labelout(         111 ) = Lno17
+ Labelout(         112 ) = Lno18
+ Labelout(         113 ) = Lno19
+ Labelout(         114 ) = Lno20
+ Labelout(         115 ) = SI_1
+ Labelout(         116 ) = SI_2
+ Labelout(         117 ) = SI_3
+ Labelout(         118 ) = SI_4
+ Labelout(         119 ) = SI_5
+ Labelout(         120 ) = SI_6
+ Labelout(         121 ) = SI_7
+ Labelout(         122 ) = SI_8
+ Labelout(         123 ) = SI_9
+ Labelout(         124 ) = SI_10
+ Labelout(         125 ) = SI_11
+ Labelout(         126 ) = SI_12
+ Labelout(         127 ) = SI_13
+ Labelout(         128 ) = SI_14
+ Labelout(         129 ) = SI_15
+ Labelout(         130 ) = SI_16
+ Labelout(         131 ) = SI_17
+ Labelout(         132 ) = SI_18
+ Labelout(         133 ) = SI_19
+ Labelout(         134 ) = SI_20
+ Labelout(         135 ) = QN_1
+ Labelout(         136 ) = QN_2
+ Labelout(         137 ) = QN_3
+ Labelout(         138 ) = QN_4
+ Labelout(         139 ) = QN_5
+ Labelout(         140 ) = QN_6
+ Labelout(         141 ) = QN_7
+ Labelout(         142 ) = QN_8
+ Labelout(         143 ) = QN_9
+ Labelout(         144 ) = QN_10
+ Labelout(         145 ) = QN_11
+ Labelout(         146 ) = QN_12
+ Labelout(         147 ) = QN_13
+ Labelout(         148 ) = QN_14
+ Labelout(         149 ) = QN_15
+ Labelout(         150 ) = QN_16
+ Labelout(         151 ) = QN_17
+ Labelout(         152 ) = QN_18
+ Labelout(         153 ) = QN_19
+ Labelout(         154 ) = QN_20
+ Labelout(         155 ) = The1
+ Labelout(         156 ) = The2
+ Labelout(         157 ) = The3
+ Labelout(         158 ) = The4
+ Labelout(         159 ) = The5
+ Labelout(         160 ) = The6
+ Labelout(         161 ) = The7
+ Labelout(         162 ) = The8
+ Labelout(         163 ) = The9
+ Labelout(         164 ) = The10
+ Labelout(         165 ) = The11
+ Labelout(         166 ) = The12
+ Labelout(         167 ) = The13
+ Labelout(         168 ) = The14
+ Labelout(         169 ) = The15
+ Labelout(         170 ) = The16
+ Labelout(         171 ) = The17
+ Labelout(         172 ) = The18
+ Labelout(         173 ) = The19
+ Labelout(         174 ) = The20
+ Labelout(         175 ) = Z2N
+ Labelout(         176 ) = D2N
+ Labelout(         177 ) = NPP_T
+ Labelout(         178 ) = D_NO3
+ Labelout(         179 ) = D_P1
+ Labelout(         180 ) = D_P2
+ Labelout(         181 ) = D_P3
+ Labelout(         182 ) = D_P4
+ Labelout(         183 ) = D_P5
+ Labelout(         184 ) = D_P6
+ Labelout(         185 ) = D_P7
+ Labelout(         186 ) = D_P8
+ Labelout(         187 ) = D_P9
+ Labelout(         188 ) = D_P10
+ Labelout(         189 ) = D_P11
+ Labelout(         190 ) = D_P12
+ Labelout(         191 ) = D_P13
+ Labelout(         192 ) = D_P14
+ Labelout(         193 ) = D_P15
+ Labelout(         194 ) = D_P16
+ Labelout(         195 ) = D_P17
+ Labelout(         196 ) = D_P18
+ Labelout(         197 ) = D_P19
+ Labelout(         198 ) = D_P20
+ Labelout(         199 ) = D_ZOO
+ Labelout(         200 ) = D_DET
+15 parameters in total 
+ ParamLabel(           1 ) = Ep
+ ParamLabel(           2 ) = Ez
+ ParamLabel(           3 ) = mu0hat
+ ParamLabel(           4 ) = aI0
+ ParamLabel(           5 ) = Q0N
+ ParamLabel(           6 ) = KN
+ ParamLabel(           7 ) = gmax
+ ParamLabel(           8 ) = kp
+ ParamLabel(           9 ) = wDET
+ ParamLabel(          10 ) = rdn
+ ParamLabel(          11 ) = mz
+ ParamLabel(          12 ) = theta
+ ParamLabel(          13 ) = alpham
+ ParamLabel(          14 ) = alphaK
+ ParamLabel(          15 ) = alphaG
+ Stn name: S1 
+Total number of observations o S1  =  3687
+Observation data set up for S1 
+Timestepping:        0.003 of one day.
+ Model setup finished for S1 
+    Ep       0.500
+    Ez       0.600
+mu0hat       2.500
+   aI0       0.010
+   Q0N       0.150
+    KN       0.110
+  gmax       1.000
+    kp       0.500
+  wDET       2.000
+   rdn       0.100
+    mz       0.150
+ theta       0.240
+alpham       0.080
+alphaK       0.260
+alphaG       1.100
+ SSqE:    31.5235246498658        35.5382052040614        23.4116405723653     
+   12.8559044165708        18.5277151164057        7.01630272499044     
+   12.7672163729239     
+Time =    0.465 mins.
