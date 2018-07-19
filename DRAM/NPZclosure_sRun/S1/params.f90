@@ -46,15 +46,32 @@ integer, parameter :: Windex(NVsinkterms) = [iPHY(1), iVPHY]
 ! Indices for output variables
 integer, parameter :: oCHLt  = iCOVNZ  + 1
 integer, parameter :: oNPP   = oCHLt   + 1
-integer, parameter :: oPAR_  = oNPP    + 1
+integer, parameter :: oPON   = oNPP    + 1
+integer, parameter :: oPAR_  = oPON    + 1
 integer, parameter :: omuNet = oPAR_   + 1
 integer, parameter :: oSI    = omuNet  + 1
 integer, parameter :: otheta = oSI     + 1
 integer, parameter :: oQN    = otheta  + 1
+integer, parameter :: oP_N   = oQN     + 1
+integer, parameter :: oN_P   = oP_N    + 1
+integer, parameter :: oN_Z   = oN_P    + 1
+integer, parameter :: oZ_P   = oN_Z    + 1
+integer, parameter :: oPP_NP = oZ_P    + 1
+integer, parameter :: oNP_NN = oPP_NP  + 1
+integer, parameter :: oNP_PP = oNP_NN  + 1
+integer, parameter :: oPZ_PP = oNP_PP  + 1
+integer, parameter :: oPZ_NZ = oPZ_PP  + 1
+integer, parameter :: oZZ_PZ = oPZ_NZ  + 1
+integer, parameter :: oNZ_PZ = oZZ_PZ  + 1
+integer, parameter :: oNZ_NP = oNZ_PZ  + 1
+integer, parameter :: oNN_NP = oNZ_NP  + 1
+integer, parameter :: oNN_NZ = oNN_NP  + 1
+integer, parameter :: oNZ_ZZ = oNN_NZ  + 1
+integer, parameter :: oNP_PZ = oNZ_ZZ  + 1
 
 ! The diffusion output order must be consistent with the tracer order!
 integer, private   :: i
-integer, parameter :: oD_VARS(NVAR) = [(oQN + i, i = 1, NVAR)]
+integer, parameter :: oD_VARS(NVAR) = [(oNP_PZ + i, i = 1, NVAR)]
 integer, parameter :: Nout   = oD_VARS(NVAR)
 
 ! Initialize Varout matrix:
@@ -71,43 +88,72 @@ integer, parameter :: iDp     = iKN   + 1
 integer, parameter :: iwDET   = iDp   + 1  ! Index for phytoplankton sinking rate
 integer, parameter :: ibeta   = iwDET + 1  ! Beta: ratio of total variance to squares of mean concentration
 integer, parameter :: iKPHY   = ibeta + 1  ! Maximal grazing rate
-integer, parameter :: imz     = iKPHY + 1  ! Zooplankton mortality rate
-integer, parameter :: NPar    = imz        ! Total number of parameters
-real               :: params(NPar)     = 0d0  ! Define parameters
-character(LEN=8)   :: ParamLabel(NPar) = 'Unknown' !Define parameter labels
+integer, parameter :: igmax   = iKPHY + 1  ! Zooplankton maximal grazing rate
+integer, parameter :: imz     = igmax + 1  ! Zooplankton mortality rate
+integer, parameter :: iVPHY0  = imz   + 1  ! Initial fraction of VPHY over B
+integer, parameter :: iVNO30  = iVPHY0+ 1  ! Initial fraction of VNO3 over B
+integer, parameter :: NPar    = iVNO30     ! Total number of parameters
+real               :: params(NPar)     = 0d0        ! Define parameters
+character(LEN=8)   :: ParamLabel(NPar) = 'Unknown'  !Define parameter labels
 
+integer, parameter :: LINEAR              = 1       ! Linear zooplankton mortality and linear grazing function
+integer, parameter :: QUADRATIC           = 2       ! Quadratic zooplankton mortality
+integer, parameter :: H2T                 = 2       ! Holling Type II with threshold
+integer, parameter :: H3                  = 3       ! Holling Type III
+
+integer, parameter :: grazing_formulation = H3  ! Type of grazing function
+integer, parameter :: ZOO_MORT            = linear  ! Type of zooplankton mortality
 !  Maxima and minima  of parameter values 
-real               :: MaxValue(NPar)   = 0d0, MinValue(NPar) = 0d0
+real               :: MaxValue(NPar)      = 0d0, MinValue(NPar) = 0d0
+
+! Maximal total N and Variance
+real               :: MaxN = 10., MaxVar = 100.
 CONTAINS
 
 SUBROUTINE choose_model
 implicit none
-real cff !a scratch variable
 
 if(taskid==0) write(6,*) 'Nutrient-Phytoplankton-Zooplankton (NPZ) closure model selected!'
 
 ! Assign label names for Varout:
-Labelout(oTemp       ) = 'Temp'
-Labelout(oPAR        ) = 'PAR0'
-Labelout(oAks        ) = 'Aks '
-Labelout(oDust       ) = 'Dust'
-Labelout(ow          ) = 'w   '
-Labelout(iNO3    + ow) = 'NO3 '
-Labelout(iPHY    + ow) = 'PHY'
-Labelout(iZOO    + ow) = 'ZOO'
-Labelout(iVPHY   + ow) = 'VPHY'
-Labelout(iVNO3   + ow) = 'VNO3'
-Labelout(iVZOO   + ow) = 'VZOO'
-Labelout(iCOVNP  + ow) = 'COVNP'
-Labelout(iCOVPZ  + ow) = 'COVPZ'
-Labelout(iCOVNZ  + ow) = 'COVNZ'
-Labelout(oSI     + ow) = 'SI'
-Labelout(oQN     + ow) = 'QN'
-Labelout(otheta  + ow) = 'Theta'
-Labelout(oPAR_   + ow) = 'PAR'
-Labelout(omuNet  + ow) = 'mu'
-Labelout(oCHLt   + ow) = 'CHL'
-Labelout(oNPP    + ow) = 'NPP'
+Labelout(oTemp      ) = 'Temp'
+Labelout(oPAR       ) = 'PAR0'
+Labelout(oAks       ) = 'Aks '
+Labelout(oDust      ) = 'Dust'
+Labelout(ow         ) = 'w   '
+Labelout(iNO3   + ow) = 'NO3 '
+Labelout(iPHY   + ow) = 'PHY'
+Labelout(iZOO   + ow) = 'ZOO'
+Labelout(iVPHY  + ow) = 'VPHY'
+Labelout(iVNO3  + ow) = 'VNO3'
+Labelout(iVZOO  + ow) = 'VZOO'
+Labelout(iCOVNP + ow) = 'COVNP'
+Labelout(iCOVPZ + ow) = 'COVPZ'
+Labelout(iCOVNZ + ow) = 'COVNZ'
+Labelout(oSI    + ow) = 'SI'
+Labelout(oQN    + ow) = 'QN'
+Labelout(otheta + ow) = 'Theta'
+Labelout(oPAR_  + ow) = 'PAR'
+Labelout(omuNet + ow) = 'mu'
+Labelout(oCHLt  + ow) = 'CHL'
+Labelout(oNPP   + ow) = 'NPP'
+Labelout(oPON   + ow) = 'PON'
+Labelout(oP_N   + ow) = 'P_N'
+Labelout(oN_P   + ow) = 'N_P'
+Labelout(oN_Z   + ow) = 'N_Z'
+Labelout(oZ_P   + ow) = 'Z_P'
+Labelout(oPP_NP + ow) = 'PP_NP'
+Labelout(oNP_NN + ow) = 'NP_NN'
+Labelout(oNP_PP + ow) = 'NP_PP'
+Labelout(oPZ_PP + ow) = 'PZ_PP'
+Labelout(oPZ_NZ + ow) = 'PZ_NZ'
+Labelout(oZZ_PZ + ow) = 'ZZ_PZ'
+Labelout(oNZ_PZ + ow) = 'NZ_PZ'
+Labelout(oNZ_NP + ow) = 'NZ_NP'
+Labelout(oNN_NP + ow) = 'NN_NP'
+Labelout(oNN_NZ + ow) = 'NN_NZ'
+Labelout(oNP_PZ + ow) = 'NP_PZ'
+Labelout(oNZ_ZZ + ow) = 'NZ_ZZ'
 
 DO i = 1, NVAR
    Labelout(oD_VARS(i) + ow) = 'D_'//trim(Labelout(i+ow))
@@ -125,7 +171,10 @@ if (taskid==0) write(6,'(I2,1x,A30)') NPar,'parameters to be estimated.'
 
 ParamLabel(imu0)   = 'mu0hat'
 ParamLabel(imz)    = 'mz'
+ParamLabel(iVPHY0) = 'VPHY0'
+ParamLabel(iVNO30) = 'VNO30'
 ParamLabel(iKPHY)  = 'KPHY'
+ParamLabel(igmax)  = 'gmax'
 ParamLabel(iaI0_C) = 'aI0_C'
 ParamLabel(iKN)    = 'KN'
 ParamLabel(iwDET)  = 'wPHY'
@@ -133,44 +182,59 @@ ParamLabel(ibeta)  = 'beta'
 ParamLabel(iIopt)  = 'Iopt'
 ParamLabel(iDp)    = 'DPHY'
 
-MaxValue(imz)      =  0.2
-MinValue(imz)      =  0.05
-  params(imz)      =  0.1
+! Ranges of mu0 follow Chen & Laws L&O (2017)
+MaxValue(imu0)   = 2.5
+MinValue(imu0)   = 0.1
+  params(imu0)   = 0.95
 
-MaxValue(iKPHY)    =  2d0**2
-MinValue(iKPHY)    =  0.02**2
-  params(iKPHY)    =  0.25
+
+!Scaling factor of real gmax to mumax
+MaxValue(igmax)    =  4.
+MinValue(igmax)    =  0.1
+  params(igmax)    =  2.
+
+!Scaling factor of real mz to mu0 (assume linear mortality)
+MaxValue(imz)      =  0.8
+MinValue(imz)      =  0.01
+  params(imz)      =  0.4
+
+MaxValue(iKPHY)    =  2d0
+MinValue(iKPHY)    =  0.02
+  params(iKPHY)    =  0.9
+
+MaxValue(iVPHY0)   =  0.3
+MinValue(iVPHY0)   =  0.01
+  params(iVPHY0)   =  0.2
+
+MaxValue(iVNO30)   =  0.35
+MinValue(iVNO30)   =  0.01
+  params(iVNO30)   =  0.3
 
 ! KN:
 ! Fennel et al. (2006): 0.007~1.5
 ! Chai et al. (2002): 0.05~1
 ! Franks (2009): 0.005~3
-MaxValue(iKN)    =  3.0
-MinValue(iKN)    =  0.05
-  params(iKN)    =  0.2
+MaxValue(iKN)    =  10.0
+MinValue(iKN)    =  0.1
+  params(iKN)    =  6d0
 
 ! The ranges of Iopt and aI follow Edwards et al. L&O (2015)
 MaxValue(iIopt)  = 2500.
 MinValue(iIopt)  = 50.
   params(iIopt)  = 1d3
 
-MaxValue(ibeta)  = 7.0
-MinValue(ibeta)  = 0.001
-  params(ibeta)  = .1
+MaxValue(ibeta)  = 7.
+MinValue(ibeta)  = 0.01
+  params(ibeta)  = 0.02
 
 ! The ratio of phytoplankton death rate to mumax
 MaxValue(iDp)    = 0.9
 MinValue(iDp)    = 0.01
-  params(iDp)    = 0.1
+  params(iDp)    = 0.2
 
 MaxValue(iaI0_C) = 0.1
 MinValue(iaI0_C) = 0.01
   params(iaI0_C) = 0.05
-
-! Ranges of mu0 follow Chen & Laws L&O (2017)
-MaxValue(imu0)   = 2.5
-MinValue(imu0)   = 0.1
-  params(imu0)   = 0.8
 
 ! Detritus sinking rate
 ! Fennel et al. (2006) gave range of 0.009-25 m/d

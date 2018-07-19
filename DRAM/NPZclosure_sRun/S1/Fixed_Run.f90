@@ -20,22 +20,25 @@ call SetUpArrays
 ! Initialize the 1D model:
 call Model_setup
 
-NDAYS    = 1800
+NDAYS    = 1080
 savefile = .TRUE.
 
 ! Assign parameter values
-params(imu0)   = log(0.44)
-params(iIopt)  = log(1308.)
-params(iaI0_C) = log(0.099)
-params(iKN)    = log(0.052 )
-params(iDp)    = log(0.078 )
-params(iwDET)  = log(0.8997)
-params(ibeta)  = log(0.1 )
-params(iKPHY)  = log(0.509)
+params(imu0)   = log(2.5)
+params(iIopt)  = log(1000.)
+params(iaI0_C) = log(0.05)
+params(iKN)    = log(0.2 )
+params(iDp)    = log(0.1 )
+params(iwDET)  = log(0.01)
+params(ibeta)  = log(0.0001)
+params(iKPHY)  = log(0.5)
+params(igmax)  = log(2.0)
 params(imz)    = log(0.05)
+params(iVNO30) = log(0.1)
+params(iVPHY0) = log(0.1)
 
 do i = 1, NPar
-   write(6, 101) trim(ParamLabel(i)), params(i)
+   write(6, 101) trim(ParamLabel(i)), exp(params(i))
 enddo
 101 format(A6, 2x, F10.3)
 
