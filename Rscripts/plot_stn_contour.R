@@ -15,9 +15,9 @@ plot_stn <- function(Stns, VARs, Model='NPZDcont', BOTH = F, finalyr = T, Dmax =
          if (VAR == 'NO3'){
            zlim <- c(0, 3)
          }else if (VAR == 'PHY'){
-           zlim <- c(0, 1)
+           zlim <- c(0, .5)
          }else if (VAR == 'ZOO'){
-           zlim <- c(0, 1)
+           zlim <- c(0, .5)
          }else{
            zlim <- NULL
          }

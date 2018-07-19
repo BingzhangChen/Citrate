@@ -1,7 +1,7 @@
-plot_TN_TVAR <- function(model_ID = 'NPclosure', Stns=c('HOT','S1')){
+plot_TN_TVAR <- function(model_ID = 'NPclosure', Stns=c('HOT','S1'), hmax = 200){
    source('~/Working/FlexEFT1D/Rscripts/Hz.R')
    source('~/Working/FlexEFT1D/Rscripts/getData.R')
-   Hz        <- Hz(hmax=500, thetaS=2, nlev=40)
+   Hz        <- Hz(hmax, thetaS=2, nlev=40)
    BOTH      <- FALSE
    for (Stn in Stns){
      if (BOTH){

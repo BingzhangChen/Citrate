@@ -103,4 +103,3 @@ getdata_station <- function(varname,lon,lat){
      return(list(time=obs_time,data=dat))
 }
 
-

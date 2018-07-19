@@ -17,25 +17,29 @@ load(WOA13PFile)
 WOA13TFile <- '~/ROMS/Data/WOA13/WOA13_Temp.Rdata'
 load(WOA13TFile)
 
-Stn_name <- 'HOT'
+Stn_name <- 'S1'
+Dmax     <- 200 #Total depth (m) of the station
 
 if (Stn_name == 'S1'){
     stn_lon  = 145
     stn_lat  = 30
-    depth    = 500 #Total depth (m) of the station
 } else if(Stn_name == 'K2'){
     stn_lon  = 160 
     stn_lat  = 47
-    depth    = 500 #Total depth (m) of the station
 } else if(Stn_name == 'HOT'){
     stn_lon  = -158
     stn_lat  = 22.75
-    depth    = 500 #Total depth (m) of the station
+} else if(Stn_name == 'BATS'){
+    stn_lon  = -64-1/6
+    stn_lat  = 31 +4/6
+} else if(Stn_name == 'Oshima'){
+    stn_lon  = 139.3856
+    stn_lat  = 34.7409
 }
 
 #For each depth, get the profile at the targeted coordinates
  Temp_data <- woa13temp
- Par_data  <- readnc('par')
+ Par_data  <- readnc('par', ROMS=FALSE)
  NO3_data  <- woa13no3
  PO4_data  <- woa13po4
 
@@ -44,9 +48,8 @@ wSODA_data <- readnc('w_SODA')    #unit: m/s
 wROMS_data <- readnc('w_ROMS')    #unit: m/s
 
 
-
-#Write into data files:
-for (var in c('temp','par','Aks','NO3','PO4','fer','wROMS','wSODA','wstr','solfe')){
+#Write into forcing data files:
+for (var in c('temp','par','Aks','NO3','PO4','fer','wROMS','wSODA','wstr','solfe','PHY_ini')){
 
     if (var == 'wstr'){
        taux = getdata_station('taux3',stn_lon,stn_lat)
@@ -79,6 +82,9 @@ for (var in c('temp','par','Aks','NO3','PO4','fer','wROMS','wSODA','wstr','solfe
                   append = F,row.names=FALSE,col.names=TRUE)  
     time      <-  read.table(timefile,header=T)
 }
+#Add phytoplankton initial data:
+source('Rscripts/add_phy_ini.R')
+add_phy_ini('HOT')
 
 #Correct NA in HOT_fer.dat:
 Stn_name <- 'HOT'
@@ -174,9 +180,7 @@ plot_forcing <- function(Stn_name,var,useTaketo=FALSE){
        dev.off()
 }
 
-
-#Generate bottom values for NO3, PO4, PON and POP
-
+#Generate initial data for PHY, ZOO and Detritus:
 
 #Get data from 3D ROMS output for back calculation:
 setwd('~/Roms_tools/Run/NPacS') 

@@ -5,7 +5,7 @@ Nstn       <- 1
 burnin     <- 100
 NDTYPE     <- 4  #The number of obs. types
 np         <- 2  #The number of CPUs for paralell computing
-EnsLen     <- 5  #The number of ensembles
+EnsLen     <- 1  #The number of ensembles
 enssig     <- read.table('enssig',header=T)
 enspar     <- read.table('enspar',header=T)
 

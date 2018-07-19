@@ -73,7 +73,7 @@ dfdL = D(f,'P')
 f = expression((P-x)/(x+P))
 dfdL = D(f,'x')
 
-mu= expression( mu0hat * exp(alphamu*L + betamu*L**2) * (1-exp(-aI0 * exp(alphaI*L)*PAR/mu0hat)) *(NO3/(NO3 + K0N* exp(alphaK*L))) )
+mu = expression( mu0hat * exp(alphamu*L + betamu*L**2) * (1-exp(-aI0 * exp(alphaI*L)*PAR/mu0hat)) *(NO3/(NO3 + K0N* exp(alphaK*L))) )
 dmudL   = D(mu, 'L')
 d2mudL2 = D(dmudL,'L')
 d3mudL3 = D(d2mudL2,'L')

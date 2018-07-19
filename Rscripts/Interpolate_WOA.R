@@ -401,3 +401,33 @@ fill_grid <- function(grid,varname,method='bilinear'){
     return(dat)
 }
 
+#Get depth array of ROMS file:
+ROMS_depth <- function(nc){
+
+       hc = ncread(nc,'hc') 
+     Cs_r = ncread(nc,'Cs_r')
+     Cs_w = ncread(nc,'Cs_w')
+     nlev = length(Cs_r)
+     sc_r = ncread(nc,'sc_r')
+     sc_w = ncread(nc,'sc_w')
+       h  = ncread(nc,'h') 
+# Convert ROMS coordinate to real depth, assuming zeta = 0:
+    z_r = array(NA,c(dim(h), nlev))
+    z_w = array(NA,c(dim(h), nlev+1))
+    Hz  = z_r
+    hinv= 1./(h+hc)      
+    z_w[,,1]=-h
+    for (k in 1:nlev){
+      cff_w    =hc*sc_w[k+1]
+      cff_r    =hc*sc_r[k]
+      cff1_w   =Cs_w[k+1]
+      cff1_r   =Cs_r[k]
+      z_w0     =cff_w+cff1_w*h 
+      z_r0     =cff_r+cff1_r*h 
+      Zt_avg1  =0.  #zeta
+      z_w[,,k+1]=z_w0*h*hinv+Zt_avg1*(1.+z_w0*hinv) 
+      z_r[,,k]  =z_r0*h*hinv+Zt_avg1*(1.+z_r0*hinv) 
+       Hz[,,k]  =z_w[,,k+1]-z_w[,,k]
+    }
+    return(list(z_r=z_r, z_w=z_w, Hz=Hz))
+}
