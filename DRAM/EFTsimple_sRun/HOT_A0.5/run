@@ -1,0 +1,33 @@
+#!/bin/bash
+export DATADIR=../../../Forcing
+export SCRATCHDIR=Compile
+export SRCDIR=../../src
+Test=1 
+
+rm -rf ${SCRATCHDIR}
+mkdir ${SCRATCHDIR}
+
+/bin/cp -f  ${SRCDIR}/*.f90    $SCRATCHDIR
+/bin/cp -f  ${SRCDIR}/*.f      $SCRATCHDIR
+/bin/cp -f  ${SRCDIR}/Makefile_singlerun ${SCRATCHDIR}/Makefile1
+
+#Replace global setting with local setting
+/bin/cp -f bio_MOD.f90 ${SCRATCHDIR}/
+/bin/cp -f Fixed_Run.f90 ${SCRATCHDIR}/
+
+if [[ $Test == 1 ]]; then
+   echo 'Run model with debug options...'
+   FFLAGS="-O0 -r8 -i4 -g -check all -fpe0 -warn -traceback -debug extended"
+else
+   FFLAGS="-fast -r8 -i4"
+   echo 'Run model without debug options...'
+fi
+cd ${SCRATCHDIR}
+echo 's?$(FFLAGS)?'$FFLAGS'?g' >> flags.tmp
+
+export MAKEFILE=Makefile1
+sed -f flags.tmp $MAKEFILE > Makefile
+make
+rm -rf flags.tmp
+mv RUN ../EFTsimple_HOT
+cd ../

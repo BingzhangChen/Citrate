@@ -1,0 +1,14 @@
+        !COMPILER-GENERATED INTERFACE MODULE: Tue May  2 15:02:02 2017
+        MODULE IRONCYCLE__genmod
+          INTERFACE 
+            SUBROUTINE IRONCYCLE(TEMP,DET,DFE,PP_ND,PP_NZ,PP_PN,FE_SCAV)
+              REAL(KIND=8), INTENT(IN) :: TEMP
+              REAL(KIND=8), INTENT(IN) :: DET
+              REAL(KIND=8), INTENT(INOUT) :: DFE
+              REAL(KIND=8), INTENT(IN) :: PP_ND
+              REAL(KIND=8), INTENT(IN) :: PP_NZ
+              REAL(KIND=8), INTENT(IN) :: PP_PN
+              REAL(KIND=8), INTENT(OUT) :: FE_SCAV
+            END SUBROUTINE IRONCYCLE
+          END INTERFACE 
+        END MODULE IRONCYCLE__genmod

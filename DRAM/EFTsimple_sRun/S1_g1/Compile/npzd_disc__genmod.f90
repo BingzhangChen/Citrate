@@ -1,0 +1,7 @@
+        !COMPILER-GENERATED INTERFACE MODULE: Tue May  2 15:02:02 2017
+        MODULE NPZD_DISC__genmod
+          INTERFACE 
+            SUBROUTINE NPZD_DISC
+            END SUBROUTINE NPZD_DISC
+          END INTERFACE 
+        END MODULE NPZD_DISC__genmod
