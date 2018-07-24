@@ -18,9 +18,9 @@ if (param_DRAM) {
    params = data.frame(matrix(NA,nr=1,nc=NPar))
    colnames(params)=c("mu0hat","aI0" ,"A0N", "Q0N", "wDET")
    params$mu0hat=5
-   params$aI0   =0.6
-   params$A0N   =1
-   params$Q0N   =0.05
+   params$aI0   =0.59
+   params$A0N   =0.23
+   params$Q0N   =0.04
    params$wDET  =1
 }
 
@@ -62,7 +62,7 @@ MU_sim2 <- predict(Fit2,newdata=data.frame(NO3=NO3,PAR=max(dat1$PAR)))
 #  KN=coef(Fit3)[2]
 #aI0 =coef(Fit3)[3]
 
-pdf('~/Working/FlexEFT1D/DRAM_0.9/N_PAR_EFT_FIX_One.pdf',
+pdf('~/Working/FlexEFT1D/DRAM/N_PAR_EFT_FIX_One.pdf',
                           width=3.5, height=8,paper='a4')
 op <- par( font.lab = 1,
              family ="serif",
@@ -151,12 +151,12 @@ close(fw)
 system('./run')
 system('./EFTsimple > Out')
 
-MONOD <- function(NO3,par_){
-         mu_fix(NO3=NO3,par_=par_,mu0=rmax,KN0=KN,
+MONOD <- function(NO3,par_,temp=15){
+         mu_fix(NO3=NO3,par_=par_,mu0=rmax,KN0=KN,Temp=temp,
                 Q0N=params$Q0N,aI0C=aI0, thetamax=themax)
 }
 #Check the interactions between light and nutrient:
-pdf('~/Working/FlexEFT1D/DRAM_0.9/Light_NO3_interaction.pdf',
+pdf('~/Working/FlexEFT1D/DRAM/Light_NO3_interaction.pdf',
                     width=8, height=6,paper='a4')
 mumax = 3.5
 
@@ -290,6 +290,34 @@ for (i in 1:length(NO3)){
 }
 mtext('f',adj=0)
 
+#Plot mu, theta, and QN at different temperatures
+#4 combinations of light and nutrients
+SST = 1:30
+NT  = length(SST)
+env = expand.grid(PAR=c(5,400), DIN=c(0.1,10))
+N   = nrow(env)
+MU_FIX = matrix(NA, nr = NT, nc = N)
+MU_EFT = MU_FIX
+THE_FIX <- MU_FIX
+THE_EFT <- MU_FIX
+ QN_FIX <- MU_FIX
+ QN_EFT <- MU_FIX
+
+for (i in 1:N){
+    MU_FIX[,i]  <- MONOD(par_=env[i,]$PAR, 
+                          NO3=env[i,]$DIN,
+                         temp=SST)$mu 
+
+    MU_EFT[,i]  <- sapply(1:NT, function(x)MU1(par_=PAR[x],NO3=NO3[i])$mu) 
+
+    plot(SST, MU_FIX[,i], type = 'l', ylim=c(0,mumax), lty=i,col=3,
+            xlab = expression(paste('PAR (W '*m^-2*')')),
+            ylab = expression(paste('Growth rate ('*d^-1*')')))
+    }else{
+       points(PAR, MU_FIX[,i], type = 'l',lty=i,col=3)
+    }
+    points(PAR,MU_EFT[,i],type='l', lty=i,col=2)
+}
 dev.off()
 
 #Plot 1D results:
