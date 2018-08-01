@@ -161,7 +161,7 @@ MinValue(imz)      =  0.01
 
 MaxValue(iKPHY)    =  2d0
 MinValue(iKPHY)    =  0.02
-  params(iKPHY)    =  0.5
+  params(iKPHY)    =  0.9
 
 MaxValue(iVPHY0)   =  0.35
 MinValue(iVPHY0)   =  0.01
@@ -175,9 +175,9 @@ MinValue(iVNO30)   =  0.01
 ! Fennel et al. (2006): 0.007~1.5
 ! Chai et al. (2002): 0.05~1
 ! Franks (2009): 0.005~3
-MaxValue(iKN)    =  3.0
+MaxValue(iKN)    =  10.
 MinValue(iKN)    =  0.05
-  params(iKN)    =  0.2
+  params(iKN)    =  6
 
 ! The ranges of Iopt and aI follow Edwards et al. L&O (2015)
 MaxValue(iIopt)  = 2500.
