@@ -321,14 +321,20 @@ ncread  <- function(file, VAR, start = NA, count = NA){
   }else{
     stop(paste(file,'does not exist!'))
   }
-  nvar    <- which(names(nc$var) == VAR)
-  if (length(nvar) < 1) stop(paste0(VAR, ' not found in ',file))
-    v4    <- nc$var[[nvar]] # The index of data to be extracted
-  data    <- ncvar_get(nc, v4, start = start, count = count)
+  data    <- ncvar_get(nc, VAR, start = start, count = count)
   nc_close(nc)
   return(data)
 }
 
+ncwrite  <- function(file, VAR, data,  start = NA, count = NA){
+  if(file.exists(file)){
+    nc    <- nc_open(file, write=TRUE)
+  }else{
+    stop(paste(file,'does not exist!'))
+  }
+  ncvar_put(nc, VAR, data, start=start, count=count)
+  nc_close(nc)
+}
 #Get var names of nc file
 ncVarname  <- function(file){
   if(file.exists(file)){

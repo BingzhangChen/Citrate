@@ -8,8 +8,6 @@ param_DRAM=TRUE
 
 if (param_DRAM) {
    #Read best parameters from DRAM output:
-   system('scp -r bzchen@chula.yes.jamstec.go.jp:/data16/bzchen/FlexEFT1D/DRAM_0.8/EFTsimple/S1  ~/Working/FlexEFT1D/DRAM/EFTsimple/')
-   
    params = read.table('~/Working/FlexEFT1D/DRAM_0.8/EFTsimple/S1/enspar',header=T)
    params = params[which.max(params$LogL),]
    sigma  = read.table('~/Working/FlexEFT1D/DRAM_0.8/EFTsimple/S1/enssig',header=T)
@@ -38,7 +36,7 @@ N     <- nrow(dat1)
 #Use Monod model to fit Pahlow model:
 
 #Flexible:
-MU1  <- function(NO3,par_)mu_EFT(NO3 = NO3, par_ = par_,aI=params$aI0,Q0N=params$Q0N,mu0=params$mu0hat,A0N=params$A0N)
+MU1  <- function(NO3,par_,temp=15)mu_EFT(temp=temp,NO3 = NO3, par_ = par_,aI=params$aI0,Q0N=params$Q0N,mu0=params$mu0hat,A0N=params$A0N)
 MU2  <- sapply(1:N,function(x)MU1(par_=dat1[x,'PAR'],NO3=dat1[x,'NO3'])$mu) 
 
 dat1$mu = MU2
@@ -46,11 +44,23 @@ Fit2 <- nls( mu ~ rmax * NO3/(NO3 + KN)*(1-exp(-aI0*PAR/rmax)),
                 data  = dat1, 
                 start = list(rmax = 3, KN = 0.1, aI0 = 0.05),
                 algorithm = "port" )
-rmax=coef(Fit2)[1]
-  KN=coef(Fit2)[2]
-aI0 =coef(Fit2)[3]
-the_EFT <- sapply(1:N,function(x)MU1(par_=dat1[x,'PAR'],NO3=dat1[x,'NO3'])$Theta) 
-themax  <- max(the_EFT)
+#rmax=coef(Fit2)[1]
+#  KN=coef(Fit2)[2]
+#aI0 =coef(Fit2)[3]
+#the_EFT <- sapply(1:N,function(x)MU1(par_=dat1[x,'PAR'],NO3=dat1[x,'NO3'])$Theta) 
+#themax  <- max(the_EFT)
+
+#Consistent with the ms
+rmax=2.44
+KN  =1.33
+aI0 =0.11
+themax=.61
+
+#MONOD model:
+MONOD <- function(NO3,par_,temp=15){
+         mu_fix(NO3=NO3,par_=par_,mu0=rmax,KN0=KN,Temp=temp,
+                Q0N=params$Q0N,aI0C=aI0, thetamax=themax)
+}
 
 MU_sim2 <- predict(Fit2,newdata=data.frame(NO3=NO3,PAR=max(dat1$PAR)))
 
@@ -99,7 +109,7 @@ legend('bottomright',pch=c(16,NA),lty=c(NA,1),col=c(2,3),
 dev.off()
 
 #Change parameters in the single run namelist:
-setwd('~/Working/FlexEFT1D/DRAM_0.9/NPZDFix_sRun/HOT_A2/')
+setwd('~/Working/FlexEFT1D/DRAM/NPZDFix_sRun/HOT_A2/')
 fname='param.nml'
 mz   =0.15
 gmax =1
@@ -126,7 +136,7 @@ close(fw)
 system('./run')
 system('./NPZDFix > Out')
 
-setwd('~/Working/FlexEFT1D/DRAM_0.9/EFTsimple_sRun/HOT/')
+setwd('~/Working/FlexEFT1D/DRAM/EFTsimple_sRun/HOT/')
 fname='param.nml'
 if(file.exists(fname)) file.remove(fname)
 file.create(fname)
@@ -151,20 +161,16 @@ close(fw)
 system('./run')
 system('./EFTsimple > Out')
 
-MONOD <- function(NO3,par_,temp=15){
-         mu_fix(NO3=NO3,par_=par_,mu0=rmax,KN0=KN,Temp=temp,
-                Q0N=params$Q0N,aI0C=aI0, thetamax=themax)
-}
 #Check the interactions between light and nutrient:
-pdf('~/Working/FlexEFT1D/DRAM/Light_NO3_interaction.pdf',
-                    width=8, height=6,paper='a4')
+pdf('~/Working/FlexEFT1D/DRAM/Light_NO3_interaction_rev.pdf',
+                    width=8, height=9,paper='a4')
 mumax = 3.5
 
 op <- par( font.lab = 1,
              family ="serif",
              mar    = c(3.5,4,1,0.2),
              mgp    = c(2.3,1,0),
-             mfrow  = c(2,3),
+             mfrow  = c(3,3),
              cex.lab= 1.2, cex=1,
              lwd    = 1.5, las=1,
              cex.axis=1) 
@@ -308,16 +314,63 @@ for (i in 1:N){
                           NO3=env[i,]$DIN,
                          temp=SST)$mu 
 
-    MU_EFT[,i]  <- sapply(1:NT, function(x)MU1(par_=PAR[x],NO3=NO3[i])$mu) 
+    MU_EFT[,i]  <- sapply(1:NT, function(x)MU1(temp=SST[x], 
+                                               par_=env[i,]$PAR,
+                                               NO3 =env[i,]$DIN)$mu) 
 
-    plot(SST, MU_FIX[,i], type = 'l', ylim=c(0,mumax), lty=i,col=3,
-            xlab = expression(paste('PAR (W '*m^-2*')')),
+    if(i==1) {
+       plot(SST, MU_FIX[,i], type = 'l', ylim=c(0,mumax), lty=i,col=3,
+            xlab = 'Temperature (ºC)',
             ylab = expression(paste('Growth rate ('*d^-1*')')))
     }else{
-       points(PAR, MU_FIX[,i], type = 'l',lty=i,col=3)
+       points(SST, MU_FIX[,i], type = 'l',lty=i,col=3)
     }
-    points(PAR,MU_EFT[,i],type='l', lty=i,col=2)
+    points(SST,MU_EFT[,i],type='l', lty=i,col=2)
 }
+mtext('g',adj=0)
+legend('topleft',legend=paste0('DIN=',env$DIN,', PAR=',env$PAR),lty=1:nrow(env), cex=.8 )
+
+for (i in 1:N){
+    THE_FIX[,i]  <- MONOD(par_=env[i,]$PAR, 
+                           NO3=env[i,]$DIN,
+                          temp=SST)$Theta 
+
+    THE_EFT[,i]  <- sapply(1:NT, function(x)MU1(temp=SST[x], 
+                                               par_=env[i,]$PAR,
+                                               NO3 =env[i,]$DIN)$Theta) 
+
+    if(i==1) {
+       plot(SST, THE_FIX[,i], type = 'l', ylim=c(0,0.65), lty=i,col=3,
+            xlab = 'Temperature (ºC)',
+            ylab = expression(paste('Chl:C (molC '*gChl^-1*')')))
+    }else{
+       points(SST, THE_FIX[,i], type = 'l',lty=i,col=3)
+    }
+    points(SST,THE_EFT[,i],type='l', lty=i,col=2)
+}
+mtext('h',adj=0)
+
+for (i in 1:N){
+    QN_FIX[,i]  <- MONOD(par_=env[i,]$PAR, 
+                           NO3=env[i,]$DIN,
+                          temp=SST)$QN 
+
+    QN_EFT[,i]  <- sapply(1:NT, function(x)MU1(temp=SST[x], 
+                                               par_=env[i,]$PAR,
+                                               NO3 =env[i,]$DIN)$QN) 
+
+    if(i==1) {
+       plot(SST, QN_FIX[,i], type = 'l',  lty=i,col=3,
+            ylim = c(params$Q0N,4.1*params$Q0N),
+            xlab = 'Temperature (ºC)',
+            ylab = expression(paste('N:C (mol '*mol^-1*')')))
+    }else{
+       points(SST, QN_FIX[,i], type = 'l',lty=i,col=3)
+    }
+    points(SST, QN_EFT[,i], type='l', lty=i,col=2)
+}
+mtext('i',adj=0)
+
 dev.off()
 
 #Plot 1D results:
@@ -326,6 +379,7 @@ source('~/Working/FlexEFT1D/Rscripts/MLD_PHYZOO.R')
 source('~/Working/FlexEFT1D/Rscripts/CChl_ML.R')
 source('~/Working/FlexEFT1D/Rscripts/vertical_OBS_model_MS.R')
 source('~/Working/FlexEFT1D/Rscripts/vertical_muQNtheta.R')
+source('~/Working/FlexEFT1D/Rscripts/Vertical_QN.R')
 
 pdf('Growth.pdf')
 op <- par(font.lab = 1,

@@ -1,19 +1,20 @@
-setwd('~/Working/FlexEFT1D/DRAM')  
+setwd('~/Working/FlexEFT1D/DRAM') 
 source('~/Working/FlexEFT1D/Rscripts/getData.R')
 source('~/Working/FlexEFT1D/Rscripts/get_obs_MLD.R')
 source('~/Working/FlexEFT1D/Rscripts/Interpolate_WOA.R')
 
 #Obtain theta from satellite:
-theta = get_theta(Stn)
+Chl_C = readnc('Chl_C', ROMS=F)
+theta = get_theta('HOT')
 Mo    = theta$time
 theta = theta$data
-COLS     <- c(2,3)
+COLS     <- c(3,2)
 Models   <- c('NPZDFix_sRun','EFTsimple_sRun')
 Modnames <- c('MONOD', 'PAHLOW')
 Stns     <- c('HOT','S1')
 Nstn     <- length(Stns)
 
-#PLot out vertical distributions of mu, theta, and QN
+#PLot out vertical distributions of QN
 fname <- paste('Fig10_Vertical_QN.pdf',sep='')
 pdf(fname, width=2*2,height=6,paper='a4')
 #Average into 4 seasons
@@ -89,10 +90,8 @@ for (Stn in Stns){
                  mtext(paste(letters[j],')',seasons[i]),adj=0)
                  if (i == 1){
                      mtext(Stn,adj=1)
+                     if (Stn == 'S1') legend('topright', Modnames,lty=1, col=COLS)
                  }
-             }
-             if (Var=='muN' && i == 1 && length(Modnames) > 1){
-                 legend('bottomright',Modnames,col=COLS,lty=1)
              }
 
              lines(cff, depth, lty=kk, lwd=1.5, col=COLS[ii])
@@ -118,5 +117,3 @@ for (Stn in Stns){
 }
 mtext('Depth (m)',side = 2, outer=TRUE, line=1)
 dev.off()
-
-
