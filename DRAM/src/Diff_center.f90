@@ -1,3 +1,4 @@
+!  Original author(s): Karsten Bolding & Hans Burchard
 subroutine diff_center(N,dt,cnpar,posconc,h,Bcup,Bcdw, &
                        Yup,Ydw,nuY,Lsour,Qsour,Taur,Yobs,Yin,Yout)
 USE PARAM_MOD, only: Dirichlet, Neumann
@@ -152,4 +153,5 @@ IMPLICIT NONE
    call tridiagonal(N,au,bu,cu,du,1,N,Yout)
    return
 end subroutine diff_center
-!-----------------------------------------------------------------------
+!--------------------------------------------------------------
+! Copyright by the GOTM-team under the GNU Public License - www.gnu.org
