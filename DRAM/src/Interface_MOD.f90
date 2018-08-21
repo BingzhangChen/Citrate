@@ -2,6 +2,7 @@ MODULE Interface_MOD
 ! User defined section:
 ! The read data section better to be put together with the modeling section
 ! because the model needs to interpolate the model output to match with the OBS. data
+#ifdef 
 USE MOD_1D
 USE syminvf90
 IMPLICIT NONE
