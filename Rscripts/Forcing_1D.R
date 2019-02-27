@@ -17,8 +17,8 @@ load(WOA13PFile)
 WOA13TFile <- '~/ROMS/Data/WOA13/WOA13_Temp.Rdata'
 load(WOA13TFile)
 
-Stn_name <- 'S1'
-Dmax     <- 200 #Total depth (m) of the station
+Stn_name <- 'SEATS'
+Dmax     <- 300 #Total depth (m) of the station
 
 if (Stn_name == 'S1'){
     stn_lon  = 145
@@ -35,6 +35,9 @@ if (Stn_name == 'S1'){
 } else if(Stn_name == 'Oshima'){
     stn_lon  = 139.3856
     stn_lat  = 34.7409
+} else if(Stn_name == 'SEATS'){
+    stn_lon  = 116
+    stn_lat  = 18
 }
 
 #For each depth, get the profile at the targeted coordinates
@@ -44,8 +47,8 @@ if (Stn_name == 'S1'){
  PO4_data  <- woa13po4
 
  Aks_data  <- readnc('Aks')       #From my ROMS output, unit: m2/s
-wSODA_data <- readnc('w_SODA')    #unit: m/s
-wROMS_data <- readnc('w_ROMS')    #unit: m/s
+#wSODA_data <- readnc('w_SODA')    #unit: m/s
+#wROMS_data <- readnc('w_ROMS')    #unit: m/s
 
 
 #Write into forcing data files:
@@ -84,7 +87,7 @@ for (var in c('temp','par','Aks','NO3','PO4','fer','wROMS','wSODA','wstr','solfe
 }
 #Add phytoplankton initial data:
 source('Rscripts/add_phy_ini.R')
-add_phy_ini('HOT')
+add_phy_ini(Stn_name)
 
 #Correct NA in HOT_fer.dat:
 Stn_name <- 'HOT'

@@ -67,9 +67,9 @@ real     :: Temp(nlev), PAR(nlev), dtdays, Ntot, PARavg, wstr0(1)
 real     :: DFe(nlev)                           ! Dissolved iron concentration
 real     :: Z_r(1:nlev), Z_w(0:nlev), Hz(nlev)  ! Grid variables
 real     :: I_zero
-integer  :: iZOO2, iDET,iDET2,iDETp,iDETFe, iPMU, iVAR, iPO4,iDIA
-integer  :: oZOO, oZOO2,oDET, oFER, oZ2N, oD2N, oPHYt
-integer  :: oPO4, oPOP, oDIA, oDIAu,oDETp, oDET2, oDETFe, iwDET2
+integer  :: iZOO2, iDET2,iDETp,iDETFe, iPMU, iVAR, iPO4,iDIA
+integer  :: oZOO2, oFER, oPHYt
+integer  :: oPOP, oDIA, oDIAu,oDETp, oDET2, oDETFe, iwDET2
 integer  :: itau,igb,oFescav,odstdep
 !integer  :: oPMU, oVAR, oMTo, oVTo, oMIo, oVIo
 !integer  :: odmudl,odgdl,od2mu,od2gdl,odmudT,od2mudT2,odmudI,od2mudI2  

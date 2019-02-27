@@ -19,7 +19,8 @@ getdata_station <- function(varname,lon,lat){
       data_s=readnc(varname,sourcefile=file,ROMS=F)
 
     } else if (varname %in% c('radsw','hbl','Aks','Chl_roms','LNV','temp_roms','DFE','NO3_roms')){
-      avgfile <- '~/Roms_tools/run/NpacS/npacS_avg11.nc'
+      #avgfile <- '~/Roms_tools/run/NpacS/npacS_avg11.nc'
+      avgfile <- '/Volumes/Seagate/Roms_tools/Run/NPacs/npacS_avg11.nc'
       data_s  <- readnc(varname, sourcefile = avgfile)
       ROMS    <- TRUE
       #readnc <- function(variable, sourcefile = ROMSFile, ROMS=T, nameit='npacS'){

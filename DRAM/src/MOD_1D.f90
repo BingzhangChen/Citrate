@@ -308,6 +308,20 @@ Do j = 1, Nstn
       NDPTS(itNPP,j) = 1712
       if (NDTYPE .ge. 4) NDPTS(itPON,j) = 2806
       if (DO_IRON) NDPTS(itDFe,j) = 168
+  else if (trim(Stn(j)) .eq. 'SEATS') then
+      N_Aks(j)       = 40
+      NDPTS(itNO3,j) = 6451  !Needs to be corrected
+      if (Model_ID .eq. NPZDN2) then
+         NDPTS(itPO4,j) = 8072
+         NDPTS(itPOP,j) = 2850
+         NDPTS(itDIA,j) = 23
+      endif
+
+      NDPTS(itCHL,j) = 8181  !Needs to be corrected
+      NDPTS(itNPP,j) = 1712  !Needs to be corrected
+      if (NDTYPE .ge. 4) NDPTS(itPON,j) = 2806  !Needs to be corrected (should be POC)
+      if (DO_IRON) NDPTS(itDFe,j) = 168
+
   else
       write(6,*) 'Station number incorrect! Stop!'
       stop
@@ -782,10 +796,10 @@ DO jj = 1, Nstn
   ! Initialize other variables:
 
   ! Estimate maximal N and variance in the system
-  if (Model_ID .eq. NPclosure .or. Model_ID .eq. NPZclosure) then
-      MaxN   = eps
-      MaxVar = eps
-  endif
+  !if (Model_ID .eq. NPclosure .or. Model_ID .eq. NPZclosure) then
+  !    MaxN   = eps
+  !    MaxVar = eps
+  !endif
   do k = 1,nlev
      do i = 1,NPHY
         ! Initialize initial PHYTO:
@@ -1053,15 +1067,6 @@ DO jj = 1, Nstn
     ! Biological rhs:
      call BIOLOGY
 
-     !if (BAD_OUTPUT) then
-     !! Early rejection
-     !   TINout = eps
-     !   CHLout = eps
-     !   NPPout = eps
-     !   PONout = eps
-     !   exit
-     !endif
-
     ! Interpolate w data throughout the water column:
     ! call time_interp(int(current_sec), size(obs_time_w,1), nlev+1,&
     !      obs_time_w, Vw, w)
@@ -1176,7 +1181,7 @@ DO jj = 1, Nstn
              endif
 
           ! Calculate NPP output:
-           a(:,1) = Varout(oNPP,:)   ! Carbon based PP
+           a(:,1) = Varout(oPPt,:)   ! Carbon based PP
            call gridinterpol(nlev,1,Z_r(:),a(:,1),1,depth(1),&
                 NPPout(nm,1))  
 

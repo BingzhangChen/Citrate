@@ -22,7 +22,6 @@ POCFile   <- '~/Working/Global_PP/POC_month.nc'
 bathyFile <- '/Users/apple/ROMS/Data/ETOPO1_Ice_g_gmt4.grd'
 DFeFile   <- '~/ROMS/Data/WOAPISCES/fer_seas.cdf'
 Dustfile  <- '~/ROMS/Data/scenario3.nc'
-
 #w data:
 SODAFile <- '~/ROMS/Data/SODA/SODA_month.nc'
 # This function does a 2-dimensional interpolation from source file to
@@ -437,3 +436,7 @@ ROMS_depth <- function(nc){
     }
     return(list(z_r=z_r, z_w=z_w, Hz=Hz))
 }
+
+jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))  #A good color
+
+
