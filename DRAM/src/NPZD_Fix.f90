@@ -11,9 +11,9 @@ real, parameter :: Qnmin = 0.05
 real, parameter :: KPO4  = 0.5/16.
 
 Kp  = 0.5
-gmax= exp(params(igmax))
+gmax= exp(params(igmax)) * exp(params(imu0))
 RDN = 0.1
-mz  = exp(params(imz))
+mz  = exp(params(imz))* exp(params(imu0))
 
 if (do_IRON) KFe = params(iKFe)
 
@@ -31,21 +31,24 @@ DO k = 1, nlev
    endif
 
    ! Calculate phytoplankton growth rate if not considering mixing
-   ! MONOD(Temp, PAR,NO3,PO4,mu0,Qnmin,Qpmin,aI0,bI0,KN,KP,DFe,KFe,muNet,QN,QP,theta,SI,Lno3)
    CALL MONOD(Temp(k), PAR(k), NO3, 1.,exp(params(imu0)),Qnmin, Qpmin,  &
               exp(params(iaI0_C)), &
               bI0, exp(params(iKN)),KPO4, DFe(k), KFe_,                        &
               muNet, QN, QP,Varout(oTheta,k),                          &
               Varout(oSI,k), Varout(oLno3,k))
 
-   Varout(oPPt,k) = Vars(iPHY(1),k)*muNet/QN*12d0
+   Varout(oPPt,k) = Vars(iPHY(1),k)*muNet/QN*12d0   !NPP Unit: ug C L-1
 
-   ! Calculate phytoplankton growth rate, theta, and QN based on environmental conditions
-   CALL MONOD(Temp(k), PAR_, NO3, 1.,exp(params(imu0)),Qnmin, Qpmin,  &
-              exp(params(iaI0_C)), &
-              bI0, exp(params(iKN)),KPO4, DFe(k), KFe_,                        &
-              muNet, Varout(oQN,k),QP,Varout(oTheta,k),             &
-              Varout(oSI,k), Varout(oLno3,k))
+   if (k .gt. N_MLD) then  !Within surface mixed layer
+      ! Calculate phytoplankton growth rate, theta, and QN based on environmental conditions
+      CALL MONOD(Temp(k), PAR_, NO3, 1.,exp(params(imu0)),Qnmin, Qpmin,  &
+                 exp(params(iaI0_C)), &
+                 bI0, exp(params(iKN)),KPO4, DFe(k), KFe_,                        &
+                 muNet, Varout(oQN,k),QP,Varout(oTheta,k),             &
+                 Varout(oSI,k), Varout(oLno3,k))
+   else
+      Varout(oQN,k) = QN
+   endif
 
    ! Correct the unit of growth rate
    muNet = muNet*dtdays
@@ -75,10 +78,10 @@ DO k = 1, nlev
   Varout(oZOO,k)   = (ZOO+pp_ZP)-pp_DZ-pp_NZ
   Varout(oZ2N,k)   = pp_NZ/dtdays
   Varout(oD2N,k)   = pp_ND/dtdays
-  Varout(oCHLt,k)  = PHY/Varout(oQN,k)*Varout(otheta,k)
+  Varout(oCHLt,k)  = PHY/Varout(oQN,k)*Varout(otheta,k)  !Chl unit: ugchl/L
 
   ! Total particulate organic nitrogen (PON)
-  Varout(oPON,k)=Varout(oZOO,k)+Varout(oPHY(1),k)+Varout(oDET,k)
+  Varout(oPON,k)=Varout(oZOO,k)+Varout(oPHY(1),k)+Varout(oDET,k)   !PON unit: umol N/L
 Enddo
 RETURN
 END SUBROUTINE BIOLOGY

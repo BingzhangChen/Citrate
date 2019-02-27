@@ -28,7 +28,7 @@ integer, parameter :: iNO3   = 1
 integer, parameter :: iPHY(1)= iNO3   + 1
 integer, parameter :: iZOO   = iPHY(1)+ 1
 integer, parameter :: iDET   = iZOO   + 1
-integer, parameter :: NVAR   = 1      + iDET ! Total number of biological tracers
+integer, parameter :: NVAR   = iDET     ! Total number of biological tracers
 integer            :: iPHYC(NPHY)=0     ! Needed for compilation
 ! Define tracer matrix:
 real               :: Vars(NVAR,nlev) = 0d0
@@ -37,7 +37,7 @@ real               :: Vars(NVAR,nlev) = 0d0
 integer, parameter :: NVsinkterms =  1
 
 ! Define the index of sinking tracers in the Vars matrix: 
-integer, parameter :: Windex(NVsinkterms) = iDET
+integer, parameter :: Windex(NVsinkterms) = [ iDET]
 
 ! Indices for output variables
 integer, parameter :: oNO3   = 1
@@ -72,7 +72,7 @@ character(LEN=10)  :: Labelout(Nout+ow)  = 'Unknown'
 integer, parameter :: imu0    = 1
 integer, parameter :: iaI0_C  = imu0  + 1
 integer, parameter :: iKN     = iaI0_C+ 1
-integer, parameter :: iwDET   = iKN   + 1  ! Index for phytoplankton sinking rate
+integer, parameter :: iwDET   = iKN   + 1  ! Index for detrital sinking rate
 integer, parameter :: igmax   = iwDET + 1  ! Zooplankton maximal grazing rate
 integer, parameter :: imz     = igmax + 1  ! Zooplankton mortality rate
 integer, parameter :: NPar    = imz        ! Total number of parameters
@@ -90,7 +90,7 @@ CONTAINS
 SUBROUTINE choose_model
 IMPLICIT NONE
 
-if(taskid==0) write(6,*) 'Nutrient-Phytoplankton-Zooplankton (NPZ) closure model selected!'
+if(taskid==0) write(6,*) 'Nutrient-Phytoplankton-Zooplankton-Detritus (NPZD) model selected!'
 
 ! Assign label names for Varout:
 Labelout(oTemp      ) = 'Temp'
@@ -101,7 +101,9 @@ Labelout(ow         ) = 'w   '
 Labelout(iNO3   + ow) = 'NO3 '
 Labelout(iPHY(1)+ ow) = 'PHY'
 Labelout(iZOO   + ow) = 'ZOO'
+Labelout(iDET   + ow) = 'DET'
 Labelout(oSI    + ow) = 'SI'
+Labelout(oLNO3  + ow) = 'LNO3'
 Labelout(oQN    + ow) = 'QN'
 Labelout(otheta + ow) = 'Theta'
 Labelout(oPAR_  + ow) = 'PAR'
